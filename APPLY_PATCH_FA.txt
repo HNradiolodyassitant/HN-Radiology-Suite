@@ -1,0 +1,2 @@
+این سه فایل را داخل پوشه فعلی hn-radiology-suite کپی کنید و Replace را بزنید.
+سپس روی START_HN.command راست‌کلیک و Open را انتخاب کنید.
