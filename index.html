@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite - Ultrasound Report Engine" />
+  <meta name="description" content="HN Radiology Suite - Ultrasound and Color Doppler Report Engine" />
   <title>HN Radiology Suite</title>
   <style>
 * {
@@ -71,7 +71,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v0.4 - prebuilt static bundle, no npm/build required */
+/* HN Radiology Suite v0.5 - prebuilt static bundle, no npm/build required */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -87,12 +87,348 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 require("./App.css");
 const Home_1 = __importDefault(require("./components/Home"));
 const Ultrasound_1 = __importDefault(require("./components/Ultrasound"));
+const ColorDopplerClinic_jsx_1 = __importDefault(require("./components/Doppler/ColorDopplerClinic.jsx"));
 const react_1 = require("react");
 function App() {
     const [page, setPage] = (0, react_1.useState)("home");
-    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [page === "home" && (0, jsx_runtime_1.jsx)(Home_1.default, { goUltrasound: () => setPage("ultrasound") }), page === "ultrasound" && (0, jsx_runtime_1.jsx)(Ultrasound_1.default, { goBack: () => setPage("home") })] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [page === "home" && (0, jsx_runtime_1.jsx)(Home_1.default, { goUltrasound: () => setPage("ultrasound"), goDoppler: () => setPage("doppler") }), page === "ultrasound" && (0, jsx_runtime_1.jsx)(Ultrasound_1.default, { goBack: () => setPage("home") }), page === "doppler" && (0, jsx_runtime_1.jsx)(ColorDopplerClinic_jsx_1.default, { goBack: () => setPage("home") })] }));
 }
 exports.default = App;
+
+};
+
+__modules["src/library/Doppler/varicocele.js"] = function(module, exports, require){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.gradeDescriptions = void 0;
+exports.calculateTesticularVolume = calculateTesticularVolume;
+exports.suggestSarteschiGrade = suggestSarteschiGrade;
+exports.buildVaricoceleReport = buildVaricoceleReport;
+const mm = (value) => {
+    const number = Number.parseFloat(value);
+    return Number.isFinite(number) ? number : null;
+};
+const formatNumber = (value, digits = 1) => {
+    if (!Number.isFinite(value))
+        return "";
+    return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(value);
+};
+function calculateTesticularVolume(length, width, height) {
+    const l = mm(length);
+    const w = mm(width);
+    const h = mm(height);
+    if (![l, w, h].every((item) => item && item > 0))
+        return null;
+    return (l * w * h * 0.71) / 1000;
+}
+exports.gradeDescriptions = {
+    1: "رفلاکس محدود به عروق کانال اینگوینال است و فقط در وضعیت ایستاده هنگام مانور Valsalva دیده می‌شود؛ وریدهای اسکروتال اتساع قابل‌توجهی ندارند.",
+    2: "وریدهای رفلاکسی در وضعیت ایستاده تا ناحیه سوپراتستیکولار و قطب فوقانی بیضه امتداد دارند و رفلاکس فقط هنگام مانور Valsalva مشاهده می‌شود.",
+    3: "وریدهای رفلاکسی در وضعیت ایستاده تا قطب تحتانی بیضه امتداد دارند، ولی در حالت خوابیده اتساع قابل‌توجه وریدی مشاهده نمی‌شود.",
+    4: "اتساع وریدها در حالت خوابیده نیز باقی می‌ماند و رفلاکس خودبه‌خودی در استراحت وجود دارد که با مانور Valsalva تشدید می‌شود.",
+    5: "اتساع وریدها در وضعیت خوابیده و ایستاده وجود دارد؛ رفلاکس خودبه‌خودی و مداوم در استراحت دیده می‌شود و با مانور Valsalva افزایش قابل‌توجهی نشان نمی‌دهد.",
+};
+function suggestSarteschiGrade(side) {
+    if (side.manualGrade && side.manualGrade !== "auto")
+        return Number(side.manualGrade);
+    if (side.refluxPattern === "rest_no_increase")
+        return 5;
+    if (side.refluxPattern === "rest_increases")
+        return 4;
+    if (side.extent === "lower" || side.extent === "diffuse")
+        return 3;
+    if (side.extent === "upper")
+        return 2;
+    if (side.extent === "inguinal")
+        return 1;
+    return null;
+}
+const sideName = (sideKey) => (sideKey === "left" ? "چپ" : "راست");
+function buildMeasurementSentence(data) {
+    const parts = [];
+    if (mm(data.supineRest) !== null)
+        parts.push(`در حالت خوابیده و استراحت ${formatNumber(mm(data.supineRest))} میلی‌متر`);
+    if (mm(data.standingRest) !== null)
+        parts.push(`در حالت ایستاده و استراحت ${formatNumber(mm(data.standingRest))} میلی‌متر`);
+    if (mm(data.standingValsalva) !== null)
+        parts.push(`در حالت ایستاده حین مانور Valsalva ${formatNumber(mm(data.standingValsalva))} میلی‌متر`);
+    if (data.showAdvanced && mm(data.supineValsalva) !== null)
+        parts.push(`در حالت خوابیده حین Valsalva ${formatNumber(mm(data.supineValsalva))} میلی‌متر`);
+    if (!parts.length)
+        return "";
+    return `حداکثر قطر ورید اندازه‌گیری‌شده ${parts.join("، ")} است.`;
+}
+function buildRefluxSentence(data) {
+    let sentence = "";
+    if (data.refluxPattern === "none")
+        sentence = "رفلاکس وریدی پاتولوژیک مشاهده نشد.";
+    if (data.refluxPattern === "vals_only")
+        sentence = "رفلاکس وریدی فقط در وضعیت ایستاده و حین مانور Valsalva مشاهده شد.";
+    if (data.refluxPattern === "rest_increases")
+        sentence = "رفلاکس خودبه‌خودی در حالت استراحت وجود دارد و با مانور Valsalva تشدید می‌شود.";
+    if (data.refluxPattern === "rest_no_increase")
+        sentence = "رفلاکس خودبه‌خودی و مداوم در حالت استراحت وجود دارد و با مانور Valsalva افزایش قابل‌توجهی نشان نمی‌دهد.";
+    const duration = mm(data.refluxDuration);
+    if (data.spectralMeasured && duration !== null) {
+        sentence += ` مدت رفلاکس در Spectral Doppler حدود ${formatNumber(duration)} ثانیه اندازه‌گیری شد.`;
+    }
+    if (data.colorProminent) {
+        sentence += " رفلاکس واضح و قابل‌توجه در Color Doppler مشاهده شد.";
+    }
+    return sentence.trim();
+}
+function buildExtentSentence(data) {
+    const sentences = [];
+    if (data.extent === "inguinal")
+        sentences.push("رفلاکس محدود به عروق کانال اینگوینال است و اتساع قابل‌توجه وریدهای داخل اسکروتوم دیده نمی‌شود.");
+    if (data.extent === "upper")
+        sentences.push("وریدهای رفلاکسی تا ناحیه سوپراتستیکولار و قطب فوقانی بیضه امتداد دارند.");
+    if (data.extent === "lower")
+        sentences.push("وریدهای رفلاکسی تا سطح قطب تحتانی بیضه امتداد دارند.");
+    if (data.extent === "diffuse")
+        sentences.push("وریدهای دیلاته و رفلاکسی در امتداد شبکه پامپینی‌فرم و اطراف بیضه گسترش دارند.");
+    if (data.intratesticular)
+        sentences.push("گسترش داخل‌بیضه‌ای عروق وریدی دیلاته نیز مشاهده شد.");
+    return sentences.join(" ");
+}
+function buildSideFinding(sideKey, data) {
+    const label = sideName(sideKey);
+    const grade = suggestSarteschiGrade(data);
+    const lines = [];
+    if (grade === 1) {
+        lines.push(`در سمت ${label}، رفلاکس وریدی در عروق کانال اینگوینال در وضعیت ایستاده و حین مانور Valsalva مشاهده شد؛ وریدهای اسکروتال اتساع قابل‌توجهی ندارند.`);
+    }
+    else {
+        lines.push(`در سمت ${label}، اتساع عروق شبکه پامپینی‌فرم مشاهده شد.`);
+    }
+    const measurement = buildMeasurementSentence(data);
+    if (measurement)
+        lines.push(measurement);
+    lines.push(buildRefluxSentence(data));
+    lines.push(buildExtentSentence(data));
+    if (data.supineDilatation) {
+        lines.push("اتساع وریدی در حالت خوابیده نیز باقی می‌ماند.");
+    }
+    else if (grade && grade <= 3) {
+        lines.push("در حالت خوابیده اتساع قابل‌توجه وریدی مشاهده نشد.");
+    }
+    return lines.filter(Boolean).join(" ");
+}
+function buildWarnings(sideKey, data) {
+    const warnings = [];
+    const label = sideName(sideKey);
+    const grade = suggestSarteschiGrade(data);
+    const duration = mm(data.refluxDuration);
+    const valsalvaDiameter = mm(data.standingValsalva);
+    if (data.refluxPattern === "none")
+        warnings.push(`برای سمت ${label} واریکوسل انتخاب شده، اما رفلاکس روی «مشاهده نشد» قرار دارد.`);
+    if (grade && grade >= 4 && !data.supineDilatation)
+        warnings.push(`Grade ${grade} معمولاً نیازمند باقی‌ماندن اتساع وریدی در حالت خوابیده است.`);
+    if (grade && grade <= 3 && data.supineDilatation)
+        warnings.push(`وجود اتساع وریدی در حالت خوابیده با Grade ${grade} سازگار نیست؛ Grade یا گزینه Supine dilatation را بازبینی کنید.`);
+    if (grade === 4 && data.refluxPattern !== "rest_increases")
+        warnings.push("Grade IV با رفلاکس خودبه‌خودی در استراحت که با Valsalva تشدید می‌شود تعریف می‌شود.");
+    if (grade === 5 && data.refluxPattern !== "rest_no_increase")
+        warnings.push("Grade V با رفلاکس خودبه‌خودی و مداوم در استراحت، بدون افزایش واضح با Valsalva تعریف می‌شود.");
+    if (grade === 1 && data.extent !== "inguinal")
+        warnings.push("Grade I باید به رفلاکس محدود به کانال اینگوینال اختصاص یابد.");
+    if (grade === 2 && data.extent !== "upper")
+        warnings.push("Grade II معمولاً با گسترش تا قطب فوقانی بیضه تعریف می‌شود.");
+    if (grade === 3 && !["lower", "diffuse"].includes(data.extent))
+        warnings.push("Grade III معمولاً با گسترش وریدهای رفلاکسی تا قطب تحتانی بیضه تعریف می‌شود.");
+    if (data.spectralMeasured && duration !== null && duration <= 2 && !data.colorProminent) {
+        warnings.push(`مدت رفلاکس سمت ${label} بیش از ۲ ثانیه نیست؛ پیش از ثبت قطعی واریکوسل، یافته‌ها و کیفیت مانور Valsalva را بازبینی کنید.`);
+    }
+    if (grade && grade >= 2 && valsalvaDiameter !== null && valsalvaDiameter < 3) {
+        warnings.push(`حداکثر قطر ورید سمت ${label} در حالت ایستاده حین Valsalva کمتر از ۳ میلی‌متر است؛ تشخیص باید با رفلاکس و سایر یافته‌ها تطبیق داده شود.`);
+    }
+    return warnings;
+}
+function testisDimensionText(sideLabel, dimensions, volume) {
+    const values = [dimensions.length, dimensions.width, dimensions.height].map(mm);
+    if (!values.every((item) => item !== null))
+        return "";
+    return `ابعاد بیضه ${sideLabel} حدود ${values.map((item) => formatNumber(item)).join(" × ")} میلی‌متر و حجم محاسبه‌شده آن حدود ${formatNumber(volume)} میلی‌لیتر است.`;
+}
+function buildVaricoceleReport(state) {
+    const findings = [];
+    const impressions = [];
+    const recommendations = [];
+    const warnings = [];
+    const rightVolume = calculateTesticularVolume(state.testes.right.length, state.testes.right.width, state.testes.right.height);
+    const leftVolume = calculateTesticularVolume(state.testes.left.length, state.testes.left.width, state.testes.left.height);
+    if (state.scrotalBaselineNormal) {
+        findings.push("هر دو بیضه از نظر اندازه و اکوتکچر طبیعی بوده و جریان خون داخل‌بیضه‌ای دو طرف حفظ شده است. اپیدیدیم‌های دو طرف نمای طبیعی دارند و هیدروسل قابل‌توجهی مشاهده نشد.");
+    }
+    const rightDimensionText = testisDimensionText("راست", state.testes.right, rightVolume);
+    const leftDimensionText = testisDimensionText("چپ", state.testes.left, leftVolume);
+    if (rightDimensionText)
+        findings.push(rightDimensionText);
+    if (leftDimensionText)
+        findings.push(leftDimensionText);
+    if (rightVolume && leftVolume) {
+        const larger = Math.max(rightVolume, leftVolume);
+        const smaller = Math.min(rightVolume, leftVolume);
+        const difference = ((larger - smaller) / larger) * 100;
+        if (difference >= 20) {
+            const smallerSide = rightVolume < leftVolume ? "راست" : "چپ";
+            findings.push(`کاهش نسبی حجم بیضه ${smallerSide} نسبت به سمت مقابل به میزان تقریبی ${formatNumber(difference, 0)}٪ مشاهده می‌شود.`);
+        }
+    }
+    if (state.testes.right.hypotrophy)
+        findings.push("کاهش حجم/هیپوتروفی بیضه راست مشاهده شد.");
+    if (state.testes.left.hypotrophy)
+        findings.push("کاهش حجم/هیپوتروفی بیضه چپ مشاهده شد.");
+    if (state.examMode === "normal") {
+        findings.push("در بررسی شبکه پامپینی‌فرم دو طرف در وضعیت خوابیده و ایستاده، در حالت استراحت و حین مانور Valsalva، اتساع پاتولوژیک وریدی یا رفلاکس وریدی پایدار مشاهده نشد.");
+        impressions.push("شواهد سونوگرافیک به نفع واریکوسل مشاهده نشد.");
+    }
+    else {
+        const sides = state.examMode === "bilateral" ? ["left", "right"] : [state.examMode];
+        for (const sideKey of sides) {
+            const data = state.sides[sideKey];
+            const grade = suggestSarteschiGrade(data);
+            findings.push(buildSideFinding(sideKey, data));
+            warnings.push(...buildWarnings(sideKey, data));
+            if (grade) {
+                impressions.push(`واریکوسل سمت ${sideName(sideKey)}، منطبق با Sarteschi/Liguori grade ${grade}؛ ${exports.gradeDescriptions[grade]}`);
+            }
+            else {
+                impressions.push(`واریکوسل سمت ${sideName(sideKey)}؛ اطلاعات واردشده برای تعیین Grade کامل نیست.`);
+            }
+        }
+    }
+    if (state.additionalFinding.trim())
+        findings.push(state.additionalFinding.trim());
+    if (state.recommendClinical)
+        recommendations.push("تطابق با یافته‌های بالینی بیمار توصیه می‌شود.");
+    if (state.recommendSemen)
+        recommendations.push("در صورت بررسی ناباروری، انجام آنالیز مایع منی توصیه می‌شود.");
+    if (state.recommendUrology)
+        recommendations.push("مشاوره اورولوژی توصیه می‌شود.");
+    if (state.recommendSecondary)
+        recommendations.push("با توجه به الگوی واریکوسل، در صورت شروع جدید، سمت راست منفرد یا عدم کاهش در حالت خوابیده، ارزیابی علل ثانویه شکمی و رتروپریتوئن توصیه می‌شود.");
+    return {
+        finding: findings.filter(Boolean).join("\n"),
+        impression: impressions.filter(Boolean).join("\n"),
+        recommendation: recommendations.filter(Boolean).join("\n"),
+        warnings,
+        volumes: { right: rightVolume, left: leftVolume },
+    };
+}
+
+};
+
+__modules["src/components/Doppler/VaricoceleCard.jsx"] = function(module, exports, require){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+const ReportOutput_jsx_1 = __importDefault(require("../Common/ReportOutput.jsx"));
+const varicocele_js_1 = require("../../library/Doppler/varicocele.js");
+const makeSide = () => ({
+    supineRest: "",
+    standingRest: "",
+    standingValsalva: "",
+    supineValsalva: "",
+    showAdvanced: false,
+    extent: "upper",
+    refluxPattern: "vals_only",
+    spectralMeasured: true,
+    refluxDuration: "",
+    colorProminent: false,
+    supineDilatation: false,
+    intratesticular: false,
+    manualGrade: "auto",
+});
+const initialState = {
+    examMode: "left",
+    scrotalBaselineNormal: true,
+    sides: { left: makeSide(), right: makeSide() },
+    testes: {
+        right: { length: "", width: "", height: "", hypotrophy: false },
+        left: { length: "", width: "", height: "", hypotrophy: false },
+    },
+    additionalFinding: "",
+    recommendClinical: false,
+    recommendSemen: false,
+    recommendUrology: false,
+    recommendSecondary: false,
+};
+const panelStyle = {
+    background: "#111827",
+    border: "1px solid #334155",
+    borderRadius: "12px",
+    padding: "16px",
+    marginTop: "14px",
+};
+const fieldStyle = { display: "flex", flexDirection: "column", gap: "6px", minWidth: "180px", flex: "1 1 190px" };
+const inputStyle = { background: "#0f172a", color: "white", border: "1px solid #64748b", borderRadius: "8px", padding: "9px" };
+const buttonStyle = { padding: "9px 14px", borderRadius: "8px", color: "white", cursor: "pointer" };
+function NumberField({ label, value, onChange, suffix = "میلی‌متر" }) {
+    return ((0, jsx_runtime_1.jsxs)("label", { style: fieldStyle, children: [(0, jsx_runtime_1.jsx)("span", { children: label }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", alignItems: "center", gap: "7px" }, children: [(0, jsx_runtime_1.jsx)("input", { type: "number", min: "0", step: "0.1", value: value, onChange: (event) => onChange(event.target.value), style: { ...inputStyle, width: "100%" } }), (0, jsx_runtime_1.jsx)("span", { style: { color: "#cbd5e1", whiteSpace: "nowrap" }, children: suffix })] })] }));
+}
+function TestisFields({ label, data, onChange }) {
+    const volume = (0, varicocele_js_1.calculateTesticularVolume)(data.length, data.width, data.height);
+    return ((0, jsx_runtime_1.jsxs)("div", { style: { ...panelStyle, flex: "1 1 360px", marginTop: 0 }, children: [(0, jsx_runtime_1.jsxs)("h4", { style: { marginTop: 0 }, children: ["\u0628\u06CC\u0636\u0647 ", label] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "10px" }, children: [(0, jsx_runtime_1.jsx)(NumberField, { label: "\u0637\u0648\u0644", value: data.length, onChange: (value) => onChange("length", value) }), (0, jsx_runtime_1.jsx)(NumberField, { label: "\u0639\u0631\u0636", value: data.width, onChange: (value) => onChange("width", value) }), (0, jsx_runtime_1.jsx)(NumberField, { label: "\u0627\u0631\u062A\u0641\u0627\u0639 AP", value: data.height, onChange: (value) => onChange("height", value) })] }), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: "10px", color: "#bae6fd" }, children: ["\u062D\u062C\u0645 \u0628\u0627 \u0641\u0631\u0645\u0648\u0644 Lambert: ", volume ? `${volume.toFixed(1)} mL` : "—"] }), (0, jsx_runtime_1.jsxs)("label", { style: { display: "block", marginTop: "10px" }, children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.hypotrophy, onChange: (event) => onChange("hypotrophy", event.target.checked) }), " \u06A9\u0627\u0647\u0634 \u062D\u062C\u0645/\u0647\u06CC\u067E\u0648\u062A\u0631\u0648\u0641\u06CC \u0628\u06CC\u0636\u0647"] })] }));
+}
+function SideCard({ sideKey, data, onChange }) {
+    const sideLabel = sideKey === "left" ? "چپ" : "راست";
+    const suggestedGrade = (0, varicocele_js_1.suggestSarteschiGrade)(data);
+    const change = (key, value) => onChange({ ...data, [key]: value });
+    return ((0, jsx_runtime_1.jsxs)("section", { style: { ...panelStyle, border: "1px solid #0ea5e9" }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }, children: [(0, jsx_runtime_1.jsxs)("h3", { style: { margin: 0 }, children: ["\u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644 \u0633\u0645\u062A ", sideLabel] }), (0, jsx_runtime_1.jsxs)("span", { style: { background: "#075985", borderRadius: "999px", padding: "6px 12px" }, children: ["Grade \u067E\u06CC\u0634\u0646\u0647\u0627\u062F\u06CC: ", suggestedGrade || "—"] })] }), (0, jsx_runtime_1.jsx)("h4", { children: "\u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0642\u0637\u0631 \u0648\u0631\u06CC\u062F" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "12px" }, children: [(0, jsx_runtime_1.jsx)(NumberField, { label: "Supine \u2013 Rest", value: data.supineRest, onChange: (value) => change("supineRest", value) }), (0, jsx_runtime_1.jsx)(NumberField, { label: "Standing \u2013 Rest", value: data.standingRest, onChange: (value) => change("standingRest", value) }), (0, jsx_runtime_1.jsx)(NumberField, { label: "Standing \u2013 Valsalva (\u0639\u062F\u062F \u0627\u0635\u0644\u06CC)", value: data.standingValsalva, onChange: (value) => change("standingValsalva", value) })] }), (0, jsx_runtime_1.jsxs)("label", { style: { display: "block", marginTop: "10px" }, children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.showAdvanced, onChange: (event) => change("showAdvanced", event.target.checked) }), " \u0646\u0645\u0627\u06CC\u0634 \u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u062A\u06A9\u0645\u06CC\u0644\u06CC Supine\u2013Valsalva"] }), data.showAdvanced && ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: "10px", maxWidth: "360px" }, children: (0, jsx_runtime_1.jsx)(NumberField, { label: "Supine \u2013 Valsalva", value: data.supineValsalva, onChange: (value) => change("supineValsalva", value) }) })), (0, jsx_runtime_1.jsx)("h4", { children: "\u0627\u0644\u06AF\u0648\u06CC \u0631\u0641\u0644\u0627\u06A9\u0633" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { style: fieldStyle, children: [(0, jsx_runtime_1.jsx)("span", { children: "Pattern" }), (0, jsx_runtime_1.jsxs)("select", { value: data.refluxPattern, onChange: (event) => change("refluxPattern", event.target.value), style: inputStyle, children: [(0, jsx_runtime_1.jsx)("option", { value: "none", children: "\u0631\u0641\u0644\u0627\u06A9\u0633 \u0645\u0634\u0627\u0647\u062F\u0647 \u0646\u0634\u062F" }), (0, jsx_runtime_1.jsx)("option", { value: "vals_only", children: "\u0641\u0642\u0637 \u062F\u0631 Standing + Valsalva" }), (0, jsx_runtime_1.jsx)("option", { value: "rest_increases", children: "\u0631\u0641\u0644\u0627\u06A9\u0633 \u062E\u0648\u062F\u0628\u0647\u200C\u062E\u0648\u062F\u06CC \u062F\u0631 Rest\u061B \u062A\u0634\u062F\u06CC\u062F \u0628\u0627 Valsalva" }), (0, jsx_runtime_1.jsx)("option", { value: "rest_no_increase", children: "\u0631\u0641\u0644\u0627\u06A9\u0633 \u062E\u0648\u062F\u0628\u0647\u200C\u062E\u0648\u062F\u06CC \u0648 \u0645\u062F\u0627\u0648\u0645 \u062F\u0631 Rest\u061B \u0628\u062F\u0648\u0646 \u0627\u0641\u0632\u0627\u06CC\u0634 \u0648\u0627\u0636\u062D \u0628\u0627 Valsalva" })] })] }), (0, jsx_runtime_1.jsxs)("label", { style: fieldStyle, children: [(0, jsx_runtime_1.jsx)("span", { children: "\u0645\u062D\u0644 \u06AF\u0633\u062A\u0631\u0634" }), (0, jsx_runtime_1.jsxs)("select", { value: data.extent, onChange: (event) => change("extent", event.target.value), style: inputStyle, children: [(0, jsx_runtime_1.jsx)("option", { value: "inguinal", children: "\u0641\u0642\u0637 \u06A9\u0627\u0646\u0627\u0644 \u0627\u06CC\u0646\u06AF\u0648\u06CC\u0646\u0627\u0644" }), (0, jsx_runtime_1.jsx)("option", { value: "upper", children: "\u062A\u0627 \u0642\u0637\u0628 \u0641\u0648\u0642\u0627\u0646\u06CC \u0628\u06CC\u0636\u0647" }), (0, jsx_runtime_1.jsx)("option", { value: "lower", children: "\u062A\u0627 \u0642\u0637\u0628 \u062A\u062D\u062A\u0627\u0646\u06CC \u0628\u06CC\u0636\u0647" }), (0, jsx_runtime_1.jsx)("option", { value: "diffuse", children: "\u06AF\u0633\u062A\u0631\u0634 \u0645\u0646\u062A\u0634\u0631 \u0627\u0637\u0631\u0627\u0641 \u0628\u06CC\u0636\u0647" })] })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.spectralMeasured, onChange: (event) => change("spectralMeasured", event.target.checked) }), " \u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0628\u0627 Spectral Doppler"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.colorProminent, onChange: (event) => change("colorProminent", event.target.checked) }), " \u0631\u0641\u0644\u0627\u06A9\u0633 \u0648\u0627\u0636\u062D \u0648 prominent \u062F\u0631 Color Doppler"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.supineDilatation, onChange: (event) => change("supineDilatation", event.target.checked) }), " \u0627\u062A\u0633\u0627\u0639 \u0648\u0631\u06CC\u062F\u06CC \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0628\u06CC\u062F\u0647 \u0628\u0627\u0642\u06CC \u0645\u06CC\u200C\u0645\u0627\u0646\u062F"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: data.intratesticular, onChange: (event) => change("intratesticular", event.target.checked) }), " \u06AF\u0633\u062A\u0631\u0634 \u062F\u0627\u062E\u0644\u200C\u0628\u06CC\u0636\u0647\u200C\u0627\u06CC"] })] }), data.spectralMeasured && ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: "12px", maxWidth: "360px" }, children: (0, jsx_runtime_1.jsx)(NumberField, { label: "\u0645\u062F\u062A \u0631\u0641\u0644\u0627\u06A9\u0633", value: data.refluxDuration, onChange: (value) => change("refluxDuration", value), suffix: "\u062B\u0627\u0646\u06CC\u0647" }) })), (0, jsx_runtime_1.jsxs)("div", { style: { marginTop: "14px", display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "end" }, children: [(0, jsx_runtime_1.jsxs)("label", { style: fieldStyle, children: [(0, jsx_runtime_1.jsx)("span", { children: "Grade \u0646\u0647\u0627\u06CC\u06CC" }), (0, jsx_runtime_1.jsxs)("select", { value: data.manualGrade, onChange: (event) => change("manualGrade", event.target.value), style: inputStyle, children: [(0, jsx_runtime_1.jsx)("option", { value: "auto", children: "\u062E\u0648\u062F\u06A9\u0627\u0631 \u0628\u0631 \u0627\u0633\u0627\u0633 \u062F\u0627\u062F\u0647\u200C\u0647\u0627" }), [1, 2, 3, 4, 5].map((grade) => (0, jsx_runtime_1.jsxs)("option", { value: String(grade), children: ["Grade ", grade] }, grade))] })] }), suggestedGrade && (0, jsx_runtime_1.jsx)("div", { style: { color: "#cbd5e1", flex: "2 1 420px" }, children: varicocele_js_1.gradeDescriptions[suggestedGrade] })] })] }));
+}
+function VaricoceleCard() {
+    const [state, setState] = (0, react_1.useState)(initialState);
+    const report = (0, react_1.useMemo)(() => (0, varicocele_js_1.buildVaricoceleReport)(state), [state]);
+    const updateSide = (sideKey, data) => setState((prev) => ({ ...prev, sides: { ...prev.sides, [sideKey]: data } }));
+    const updateTestis = (sideKey, key, value) => setState((prev) => ({
+        ...prev,
+        testes: { ...prev.testes, [sideKey]: { ...prev.testes[sideKey], [key]: value } },
+    }));
+    const reset = () => setState(initialState);
+    const activeSides = state.examMode === "bilateral" ? ["left", "right"] : state.examMode === "normal" ? [] : [state.examMode];
+    return ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: "18px" }, children: (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "18px" }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", alignItems: "center" }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { style: { margin: 0 }, children: "Varicocele Doppler Engine" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1", marginBottom: 0 }, children: "Sarteschi/Liguori grading \u2014 \u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0627\u0633\u062A\u0627\u0646\u062F\u0627\u0631\u062F \u062F\u0631 Supine/Standing \u0648 \u062D\u06CC\u0646 Valsalva" })] }), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: reset, style: { ...buttonStyle, background: "#7f1d1d", border: "1px solid #ef4444" }, children: "\u067E\u0627\u06A9\u200C\u06A9\u0631\u062F\u0646 \u0641\u0631\u0645" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { ...panelStyle }, children: [(0, jsx_runtime_1.jsx)("h3", { style: { marginTop: 0 }, children: "\u0646\u062A\u06CC\u062C\u0647 \u0628\u0631\u0631\u0633\u06CC \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644" }), (0, jsx_runtime_1.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [
+                                ["normal", "بدون واریکوسل"],
+                                ["left", "واریکوسل چپ"],
+                                ["right", "واریکوسل راست"],
+                                ["bilateral", "واریکوسل دوطرفه"],
+                            ].map(([value, label]) => ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => setState((prev) => ({ ...prev, examMode: value })), style: {
+                                    ...buttonStyle,
+                                    background: state.examMode === value ? "#0369a1" : "#334155",
+                                    border: state.examMode === value ? "2px solid #38bdf8" : "1px solid #64748b",
+                                }, children: label }, value))) }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#bae6fd", marginBottom: 0 }, children: "\u067E\u0631\u0648\u062A\u06A9\u0644 \u0633\u0631\u06CC\u0639 \u067E\u06CC\u0634\u0646\u0647\u0627\u062F\u06CC: Supine\u2013Rest\u060C Standing\u2013Rest \u0648 Standing\u2013Valsalva\u061B \u0639\u062F\u062F \u0627\u0635\u0644\u06CC \u062A\u0634\u062E\u06CC\u0635\u06CC\u060C \u062D\u062F\u0627\u06A9\u062B\u0631 \u0642\u0637\u0631 \u0648\u0631\u06CC\u062F \u062F\u0631 \u062D\u0627\u0644\u062A \u0627\u06CC\u0633\u062A\u0627\u062F\u0647 \u062D\u06CC\u0646 Valsalva \u0627\u0633\u062A." })] }), (0, jsx_runtime_1.jsxs)("div", { style: panelStyle, children: [(0, jsx_runtime_1.jsx)("h3", { style: { marginTop: 0 }, children: "\u0627\u0631\u0632\u06CC\u0627\u0628\u06CC \u067E\u0627\u06CC\u0647 \u0627\u0633\u06A9\u0631\u0648\u062A\u0648\u0645 \u0648 \u062D\u062C\u0645 \u0628\u06CC\u0636\u0647\u200C\u0647\u0627" }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.scrotalBaselineNormal, onChange: (event) => setState((prev) => ({ ...prev, scrotalBaselineNormal: event.target.checked })) }), " \u0628\u06CC\u0636\u0647\u200C\u0647\u0627\u060C \u0627\u067E\u06CC\u062F\u06CC\u062F\u06CC\u0645\u200C\u0647\u0627\u060C \u067E\u0631\u0641\u06CC\u0648\u0698\u0646 \u0648 \u0647\u06CC\u062F\u0631\u0648\u0633\u0644 \u062F\u0631 \u0645\u062D\u062F\u0648\u062F\u0647 \u0637\u0628\u06CC\u0639\u06CC \u0647\u0633\u062A\u0646\u062F"] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "14px" }, children: [(0, jsx_runtime_1.jsx)(TestisFields, { label: "\u0631\u0627\u0633\u062A", data: state.testes.right, onChange: (key, value) => updateTestis("right", key, value) }), (0, jsx_runtime_1.jsx)(TestisFields, { label: "\u0686\u067E", data: state.testes.left, onChange: (key, value) => updateTestis("left", key, value) })] })] }), activeSides.map((sideKey) => ((0, jsx_runtime_1.jsx)(SideCard, { sideKey: sideKey, data: state.sides[sideKey], onChange: (data) => updateSide(sideKey, data) }, sideKey))), (0, jsx_runtime_1.jsxs)("div", { style: panelStyle, children: [(0, jsx_runtime_1.jsx)("h3", { style: { marginTop: 0 }, children: "\u06CC\u0627\u0641\u062A\u0647\u200C\u0647\u0627\u06CC \u0647\u0645\u0631\u0627\u0647 \u0648 Recommendation" }), (0, jsx_runtime_1.jsxs)("label", { style: { display: "block" }, children: [(0, jsx_runtime_1.jsx)("span", { children: "\u06CC\u0627\u0641\u062A\u0647 \u0627\u0636\u0627\u0641\u06CC \u0622\u0632\u0627\u062F" }), (0, jsx_runtime_1.jsx)("textarea", { value: state.additionalFinding, onChange: (event) => setState((prev) => ({ ...prev, additionalFinding: event.target.value })), rows: "3", style: { ...inputStyle, display: "block", width: "100%", marginTop: "7px", resize: "vertical" }, placeholder: "\u0645\u062B\u0644\u0627\u064B \u0647\u06CC\u062F\u0631\u0648\u0633\u0644 \u062E\u0641\u06CC\u0641\u060C \u06A9\u06CC\u0633\u062A \u0627\u067E\u06CC\u062F\u06CC\u062F\u06CC\u0645 \u06CC\u0627 \u06CC\u0627\u0641\u062A\u0647 \u0647\u0645\u0631\u0627\u0647..." })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.recommendClinical, onChange: (event) => setState((prev) => ({ ...prev, recommendClinical: event.target.checked })) }), " \u062A\u0637\u0627\u0628\u0642 \u0628\u0627\u0644\u06CC\u0646\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.recommendSemen, onChange: (event) => setState((prev) => ({ ...prev, recommendSemen: event.target.checked })) }), " \u0622\u0646\u0627\u0644\u06CC\u0632 \u0645\u0627\u06CC\u0639 \u0645\u0646\u06CC \u062F\u0631 \u0628\u0631\u0631\u0633\u06CC \u0646\u0627\u0628\u0627\u0631\u0648\u0631\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.recommendUrology, onChange: (event) => setState((prev) => ({ ...prev, recommendUrology: event.target.checked })) }), " \u0645\u0634\u0627\u0648\u0631\u0647 \u0627\u0648\u0631\u0648\u0644\u0648\u0698\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.recommendSecondary, onChange: (event) => setState((prev) => ({ ...prev, recommendSecondary: event.target.checked })) }), " \u0628\u0631\u0631\u0633\u06CC \u0639\u0644\u0644 \u062B\u0627\u0646\u0648\u06CC\u0647 \u062F\u0631 \u0645\u0648\u0627\u0631\u062F \u0645\u0646\u062A\u062E\u0628"] })] })] }), report.warnings.length > 0 && ((0, jsx_runtime_1.jsxs)("div", { style: { background: "#451a03", border: "1px solid #f59e0b", color: "#fde68a", borderRadius: "12px", padding: "14px", marginTop: "14px" }, children: [(0, jsx_runtime_1.jsx)("strong", { children: "\u06A9\u0646\u062A\u0631\u0644 \u062A\u0646\u0627\u0642\u0636 \u0648 \u0627\u06CC\u0645\u0646\u06CC:" }), (0, jsx_runtime_1.jsx)("ul", { style: { marginBottom: 0 }, children: report.warnings.map((warning, index) => (0, jsx_runtime_1.jsx)("li", { children: warning }, `${warning}-${index}`)) })] })), (0, jsx_runtime_1.jsx)(ReportOutput_jsx_1.default, { finding: report.finding, impression: report.impression, recommendation: report.recommendation })] }) }));
+}
+exports.default = VaricoceleCard;
+
+};
+
+__modules["src/components/Doppler/ColorDopplerClinic.jsx"] = function(module, exports, require){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+const VaricoceleCard_jsx_1 = __importDefault(require("./VaricoceleCard.jsx"));
+function ColorDopplerClinic({ goBack }) {
+    const [activeModule, setActiveModule] = (0, react_1.useState)("varicocele");
+    const button = (active, disabled = false) => ({
+        padding: "12px 16px",
+        borderRadius: "9px",
+        border: active ? "2px solid #38bdf8" : "1px solid #64748b",
+        background: active ? "#0369a1" : "#334155",
+        color: "white",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+    });
+    return ((0, jsx_runtime_1.jsxs)("div", { style: { minHeight: "100vh", background: "#0f172a", color: "white", direction: "rtl", padding: "clamp(16px, 4vw, 32px)" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: goBack, children: "\u0628\u0627\u0632\u06AF\u0634\u062A" }), (0, jsx_runtime_1.jsx)("h1", { children: "HN Color Doppler Clinic" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F5 \u2014 \u067E\u0648\u0633\u062A\u0647 \u0627\u062E\u062A\u0635\u0627\u0635\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631 \u0628\u0627 Varicocele Doppler Engine \u0628\u0631 \u067E\u0627\u06CC\u0647 Sarteschi/Liguori classification." }), (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px" }, children: [(0, jsx_runtime_1.jsx)("h2", { style: { marginTop: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", style: button(activeModule === "varicocele"), onClick: () => setActiveModule("varicocele"), children: "Scrotal Doppler / Varicocele" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Venous Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Arterial Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Upper Limb Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Dialysis AV Fistula" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Renal & Abdominal Doppler" })] }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8", marginBottom: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u062F\u0631 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0628\u0639\u062F\u06CC \u0645\u0631\u062D\u0644\u0647\u200C\u0628\u0647\u200C\u0645\u0631\u062D\u0644\u0647 \u0627\u0636\u0627\u0641\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F\u061B \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0648 \u0641\u0631\u0645 \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644 \u0645\u0633\u062A\u0642\u0644 \u0627\u0632 \u0633\u0648\u0646\u0648\u06AF\u0631\u0627\u0641\u06CC \u0645\u0639\u0645\u0648\u0644\u06CC \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0634\u062F\u0647 \u0627\u0633\u062A." })] }), activeModule === "varicocele" && (0, jsx_runtime_1.jsx)(VaricoceleCard_jsx_1.default, {})] }));
+}
+exports.default = ColorDopplerClinic;
 
 };
 
@@ -148,9 +484,9 @@ __modules["src/components/Home.jsx"] = function(module, exports, require){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
-function Home({ goUltrasound }) {
+function Home({ goUltrasound, goDoppler }) {
     const cardStyle = {
-        padding: "28px 48px",
+        padding: "28px 42px",
         borderRadius: "16px",
         background: "#1e293b",
         color: "white",
@@ -165,13 +501,13 @@ function Home({ goUltrasound }) {
             padding: "clamp(24px, 5vw, 48px)",
             textAlign: "center",
             direction: "rtl",
-        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsxs)("div", { style: {
-                    marginTop: "48px",
+        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F5 \u2014 Ultrasound + Color Doppler Clinic" }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                    marginTop: "42px",
                     display: "flex",
                     justifyContent: "center",
                     flexWrap: "wrap",
                     gap: "20px",
-                }, children: [(0, jsx_runtime_1.jsxs)("button", { type: "button", onClick: goUltrasound, style: { ...cardStyle, cursor: "pointer" }, children: ["Ultrasound", (0, jsx_runtime_1.jsx)("br", {}), "\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627\u06CC \u0633\u0648\u0646\u0648\u06AF\u0631\u0627\u0641\u06CC"] }), (0, jsx_runtime_1.jsxs)("button", { type: "button", disabled: true, style: { ...cardStyle, opacity: 0.55, cursor: "not-allowed" }, children: ["MRI", (0, jsx_runtime_1.jsx)("br", {}), "\u062F\u0631 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0628\u0639\u062F\u06CC"] })] })] }));
+                }, children: [(0, jsx_runtime_1.jsxs)("button", { type: "button", onClick: goUltrasound, style: { ...cardStyle, cursor: "pointer" }, children: ["Ultrasound", (0, jsx_runtime_1.jsx)("br", {}), "\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627\u06CC \u0633\u0648\u0646\u0648\u06AF\u0631\u0627\u0641\u06CC \u0645\u0639\u0645\u0648\u0644\u06CC"] }), (0, jsx_runtime_1.jsxs)("button", { type: "button", onClick: goDoppler, style: { ...cardStyle, cursor: "pointer", border: "2px solid #0ea5e9" }, children: ["Color Doppler Clinic", (0, jsx_runtime_1.jsx)("br", {}), "\u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644 \u0648 \u062F\u0627\u067E\u0644\u0631\u0647\u0627\u06CC \u062A\u062E\u0635\u0635\u06CC"] }), (0, jsx_runtime_1.jsxs)("button", { type: "button", disabled: true, style: { ...cardStyle, opacity: 0.55, cursor: "not-allowed" }, children: ["MRI", (0, jsx_runtime_1.jsx)("br", {}), "\u062F\u0631 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0628\u0639\u062F\u06CC"] })] })] }));
 }
 exports.default = Home;
 
