@@ -71,7 +71,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v0.7 - Hepatobiliary Engine + organ-specific free-text fields */
+/* HN Radiology Suite v0.8 - Female Pelvis Engine + locked uterus/adnexa phrase bank */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -501,7 +501,7 @@ function Home({ goUltrasound, goDoppler }) {
             padding: "clamp(24px, 5vw, 48px)",
             textAlign: "center",
             direction: "rtl",
-        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F6 \u2014 Workflow Ultrasound + Color Doppler Clinic" }), (0, jsx_runtime_1.jsxs)("div", { style: {
+        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F8 \u2014 Workflow Ultrasound + Color Doppler Clinic + Female Pelvis Engine" }), (0, jsx_runtime_1.jsxs)("div", { style: {
                     marginTop: "42px",
                     display: "flex",
                     justifyContent: "center",
@@ -1217,50 +1217,420 @@ function PancreasSpleenCard({onReportChange}){
 }
 exports.PancreasSpleenCard = PancreasSpleenCard;
 
-const pelvisInitial = { position:"anteverted", ul:"",uap:"",ut:"", myometrium:"normal", endometrium:"", rl:"",rap:"",rt:"", ll:"",lap:"",lt:"", ovaryMode:"normal", cystSide:"right", cystSize:"", cystType:"simple", pcomSide:"bilateral", freeFluid:"none", custom:"", followup:false };
-function buildFemalePelvis(s){
-  const f=[]; const i=[]; const r=[];
-  const pos=s.position==="anteverted"?"آنت‌ورت":"رتروورت"; const ud=dims(s.ul,s.uap,s.ut);
-  f.push(`رحم در وضعیت ${pos} قرار دارد${ud?` و ابعاد آن حدود ${ud} است`:""}.`);
-  if(s.myometrium==="normal") f.push("اکوی میومتر هموژن است و ضایعه فوکال بارزی مشاهده نشد.");
-  if(s.myometrium==="heterogeneous") { f.push("اکوی میومتر هتروژن است."); i.push("هتروژنیسیته میومتر."); }
-  if(s.myometrium==="fibroid") { f.push(s.custom?`در میومتر: ${s.custom}`:"نمایی به نفع میوم رحمی مشاهده شد."); i.push("میوم رحمی؛ مطابق شرح گزارش."); }
-  if(s.endometrium) f.push(`ضخامت اندومتر حدود ${fa(s.endometrium)} میلی‌متر است.`);
-  const rv=volume(s.rl,s.rap,s.rt), lv=volume(s.ll,s.lap,s.lt);
-  const rd=dims(s.rl,s.rap,s.rt), ld=dims(s.ll,s.lap,s.lt);
-  f.push(`تخمدان راست${rd?` با ابعاد ${rd}`:""}${rv!==null?` و حجم تقریبی ${fa(rv)} سی‌سی`:""} مشاهده شد.`);
-  f.push(`تخمدان چپ${ld?` با ابعاد ${ld}`:""}${lv!==null?` و حجم تقریبی ${fa(lv)} سی‌سی`:""} مشاهده شد.`);
-  if(s.ovaryMode==="normal") f.push("اکوی هر دو تخمدان طبیعی است و ضایعه فوکال بارزی در آن‌ها مشاهده نشد.");
-  if(s.ovaryMode==="cyst") { const side=s.cystSide==="right"?"راست":"چپ"; const type=s.cystType==="simple"?"ساده":"هموراژیک‌نما"; f.push(`یک کیست ${type} در تخمدان ${side}${s.cystSize?` به قطر ${fa(s.cystSize)} میلی‌متر`:""} مشاهده شد.`); i.push(`کیست ${type} تخمدان ${side}.`); if(s.followup) r.push("پیگیری سونوگرافیک بر اساس سن، علائم بالینی و نظر متخصص زنان توصیه می‌شود."); }
-  if(s.ovaryMode==="pcom") { const side=s.pcomSide==="bilateral"?"دوطرفه":(s.pcomSide==="right"?"سمت راست":"سمت چپ"); f.push(`نمای مورفولوژیک پلی‌کیستیک در تخمدان‌های ${side} مشاهده شد.`); i.push("نمای مورفولوژیک پلی‌کیستیک تخمدان؛ تطابق با معیارهای بالینی و آزمایشگاهی توصیه می‌شود."); }
+const newFibroid = () => ({ location:"fundal", l:"", ap:"", t:"", cavityComponent:false, endometrialContact:false, serosalContact:false, pedunculated:false, intramuralFraction:"none", otherLocation:false, hybrid:false, hybridCode:"", degeneration:"none" });
+const newPolyp = () => ({ location:"fundal", l:"", ap:"", t:"", feedingVessel:true, cysticSpaces:false, internalVascularity:false });
+const newOvarianLesion = (adequate=true) => ({ side:"right", type:"simple", l:"", ap:"", t:"", adequate, orads:"none", followup:false });
+const pelvisInitial = {
+  examApproach:"transabdominal",
+  uterusMode:"normal",
+  position:"av_af",
+  ul:"",uap:"",ut:"",
+  myometrium:"homogeneous",
+  contour:"regular",
+  arcuateCalc:false,
+  endometrium:"",
+  endoVisible:"complete",
+  endoPattern:"trilinear",
+  adenomyosisMode:"none",
+  adenoGlobular:false,
+  adenoAsymmetric:false,
+  adenoHeterogeneous:false,
+  adenoFanShadow:false,
+  adenoTranslesionalFlow:false,
+  adenoJunctionalIrregular:false,
+  adenoCysts:false,
+  adenoHyperechoicIslands:false,
+  adenoSubendometrialLines:false,
+  adenoLocation:"posterior",
+  adenoL:"",adenoAP:"",adenoT:"",
+  fibroids:[],
+  polyps:[],
+  mullerianType:"indeterminate",
+  mullerianNeedFurther:true,
+  rightStatus:"normal", leftStatus:"normal",
+  rl:"",rap:"",rt:"", ll:"",lap:"",lt:"",
+  rightFollicleCount:"",leftFollicleCount:"",
+  rightPeripheral:false,leftPeripheral:false,
+  rightStroma:false,leftStroma:false,
+  rightDominant:false,leftDominant:false,
+  rightDominantSize:"",leftDominantSize:"",
+  cysts:[],
+  freeFluid:"none"
+};
+function uterusDims(s){
+  const a=num(s.ul), b=num(s.uap), c=num(s.ut);
+  if(a!==null && b!==null && c!==null) return `${fa(a)} × ${fa(b)} × ${fa(c)} میلی‌متر در راستاهای ساژیتال، قدامی‌ـ‌خلفی و مدیولترال`;
+  if(a!==null && b!==null) return `${fa(a)} × ${fa(b)} میلی‌متر در راستاهای ساژیتال و قدامی‌ـ‌خلفی`;
+  return "";
+}
+function positionText(v){
+  return {av_af:"anteverted و anteflexed",av_rf:"anteverted و retroflexed",rv_af:"retroverted و anteflexed",rv_rf:"retroverted و retroflexed"}[v] || "anteverted و anteflexed";
+}
+function uterusLocationText(v){
+  return {fundal:"فوندوس",anterior:"دیواره قدامی",posterior:"دیواره خلفی",right:"دیواره لترال راست",left:"دیواره لترال چپ",cervical:"سرویکس"}[v] || "رحم";
+}
+function adnexSideText(v){ return v==="right"?"راست":(v==="left"?"چپ":"آدنکس"); }
+function classifyFigo(x){
+  if(x.hybrid && String(x.hybridCode||"").trim()) return String(x.hybridCode).trim();
+  if(x.otherLocation) return "8";
+  if(x.cavityComponent && x.pedunculated && x.intramuralFraction==="none") return "0";
+  if(x.cavityComponent && x.intramuralFraction==="lt50") return "1";
+  if(x.cavityComponent && x.intramuralFraction==="ge50") return "2";
+  if(!x.cavityComponent && x.endometrialContact && !x.serosalContact) return "3";
+  if(!x.endometrialContact && !x.serosalContact && !x.pedunculated) return "4";
+  if(x.serosalContact && x.pedunculated) return "7";
+  if(x.serosalContact && x.intramuralFraction==="ge50") return "5";
+  if(x.serosalContact && x.intramuralFraction==="lt50") return "6";
+  return "";
+}
+function figoSentence(x,index){
+  const code=classifyFigo(x), d=dims(x.l,x.ap,x.t), loc=uterusLocationText(x.location), prefix=`میوم شماره ${index+1}`;
+  let core=`${prefix}${d?` به ابعاد ${d}`:""} در ${loc}`;
+  if(code==="0") core += " به‌صورت پدانکوله و کاملاً داخل حفره اندومتر، بدون جزء اینترامورال قابل‌توجه";
+  else if(code==="1") core += " به‌صورت ساب‌موکوزال با کمتر از ۵۰٪ جزء اینترامورال";
+  else if(code==="2") core += " به‌صورت ساب‌موکوزال با حداقل ۵۰٪ جزء اینترامورال و ایجاد برجستگی در حفره اندومتر";
+  else if(code==="3") core += " به‌صورت کاملاً اینترامورال و در تماس مستقیم با اندومتر، بدون جزء داخل کاویته";
+  else if(code==="4") core += " به‌صورت اینترامورال و بدون تماس با اندومتر یا سطح سروزی";
+  else if(code==="5") core += " به‌صورت ساب‌سروزال با حداقل ۵۰٪ جزء اینترامورال";
+  else if(code==="6") core += " به‌صورت ساب‌سروزال با کمتر از ۵۰٪ جزء اینترامورال";
+  else if(code==="7") core += " به‌صورت پدانکوله ساب‌سروزال";
+  else if(code==="8") core += " در موقعیت غیرمعمول/سایر محل‌های میوم";
+  else if(code) core += " با گسترش ترانس‌مورال و ارتباط هم‌زمان با اندومتر و سطح سروزی";
+  else core += " با حدود مشخص و نمای whorled";
+  if(code) core += `؛ مطابق با FIGO type ${code}`;
+  if(x.degeneration==="cystic") core += " و دارای تغییرات دژنراتیو کیستیک";
+  if(x.degeneration==="calcified") core += " و همراه با کلسیفیکاسیون";
+  return core + ".";
+}
+function polypSentence(x,index){
+  const d=dims(x.l,x.ap,x.t), loc=uterusLocationText(x.location);
+  let sentence=`یک ضایعه فوکال اکوژن با حدود مشخص${d?` به ابعاد ${d}`:""} در حفره اندومتر و در مجاورت ${loc} مشاهده شد`;
+  if(x.cysticSpaces) sentence += " که حاوی چند فضای کیستیک کوچک است";
+  if(x.feedingVessel) sentence += ". در بررسی Color Doppler، یک عروق تغذیه‌کننده منفرد داخل ضایعه قابل مشاهده است";
+  else if(x.internalVascularity) sentence += ". واسکولاریتی داخلی ضایعه مشاهده شد";
+  else sentence += ". عروق تغذیه‌کننده مشخص یا واسکولاریتی واضح داخلی مشاهده نشد";
+  return sentence + ". یافته‌ها در درجه اول به نفع پولیپ اندومتر است.";
+}
+function adenomyosisSigns(s){
+  const a=[];
+  if(s.adenoGlobular) a.push("نمای globular رحم");
+  if(s.adenoAsymmetric) a.push("ضخیم‌شدگی نامتقارن میومتر");
+  if(s.adenoHeterogeneous) a.push("هتروژنیسیته میومتر");
+  if(s.adenoFanShadow) a.push("fan-shaped shadowing");
+  if(s.adenoTranslesionalFlow) a.push("translesional vascularity");
+  if(s.adenoJunctionalIrregular) a.push("نامنظمی یا قطع‌شدگی Junctional Zone");
+  if(s.adenoCysts) a.push("کانون‌های کیستیک کوچک داخل میومتر");
+  if(s.adenoHyperechoicIslands) a.push("جزایر هایپراکو داخل میومتر");
+  if(s.adenoSubendometrialLines) a.push("خطوط و buds اکوژن ساب‌اندومتر");
+  return a;
+}
+function mullerianReport(s,f,i,r){
+  const type=s.mullerianType;
+  if(type==="indeterminate"){
+    f.push("رحم دارای نمای دوشاخه و دو حفره اندومتر است. با توجه به محدودیت بررسی، افتراق دقیق بین رحم septate و bicornuate در مطالعه حاضر امکان‌پذیر نیست.");
+    i.push("آنومالی مولرین رحم؛ نوع دقیق در بررسی حاضر قابل تعیین نیست.");
+  }
+  if(type==="bicornuate"){
+    f.push("رحم دارای دو شاخ بوده و فرورفتگی واضح در کانتور خارجی فوندوس مشاهده می‌شود. مجموعه یافته‌ها در درجه اول به نفع bicornuate uterus است.");
+    i.push("نمای محتمل bicornuate uterus.");
+  }
+  if(type==="septate"){
+    f.push("حفره اندومتر توسط یک سپتوم به دو قسمت تقسیم شده است و کانتور خارجی فوندوس فاقد فرورفتگی قابل‌توجه است. یافته‌ها در درجه اول به نفع septate uterus است.");
+    i.push("نمای محتمل septate uterus.");
+  }
+  if(type==="didelphys"){
+    f.push("دو جسم رحمی مجزا همراه با دو حفره اندومتر مشاهده شد که مطرح‌کننده uterus didelphys است.");
+    i.push("نمای محتمل uterus didelphys.");
+  }
+  if(type==="unicornuate"){
+    f.push("یک حفره رحمی کوچک و کشیده با انحراف یک‌طرفه مشاهده شد و شاخ رحمی مقابل به‌طور واضح قابل مشاهده نیست. یافته‌ها می‌تواند مطرح‌کننده unicornuate uterus باشد.");
+    i.push("نمای مشکوک به unicornuate uterus.");
+  }
+  if(type==="arcuate"){
+    f.push("فرورفتگی خفیف و صاف در قسمت مرکزی فوندوس حفره اندومتر مشاهده شد که با arcuate configuration، به‌عنوان یک واریانت آناتومیک، تطابق دارد.");
+    i.push("Arcuate configuration رحم.");
+  }
+  if(s.mullerianNeedFurther && type!=="arcuate") r.push("انجام سونوگرافی سه‌بعدی ترانس‌واژینال یا MRI لگن جهت تعیین دقیق نوع آنومالی مولرین توصیه می‌شود.");
+}
+function ovarianStatusReport(side,s,f,i,r,hasCyst){
+  const right=side==="right", label=right?"راست":"چپ";
+  const status=right?s.rightStatus:s.leftStatus;
+  const a=right?s.rl:s.ll, b=right?s.rap:s.lap, c=right?s.rt:s.lt;
+  const d=dims(a,b,c), v=volume(a,b,c);
+  const dominant=right?s.rightDominant:s.leftDominant;
+  const dominantSize=right?s.rightDominantSize:s.leftDominantSize;
+  const follicleCount=right?s.rightFollicleCount:s.leftFollicleCount;
+  const peripheral=right?s.rightPeripheral:s.leftPeripheral;
+  const stroma=right?s.rightStroma:s.leftStroma;
+  if(status==="notSeen"){
+    f.push(`تخمدان ${label} در بررسی حاضر به‌طور جداگانه قابل مشاهده نبود.`);
+    return;
+  }
+  f.push(`تخمدان ${label}${d?` به ابعاد ${d}`:""}${v!==null?` و حجم تقریبی ${fa(v)} میلی‌لیتر`:""} مشاهده شد.`);
+  if(dominant) f.push(`یک فولیکول غالب${dominantSize?` به قطر ${fa(dominantSize)} میلی‌متر`:""} در تخمدان ${label} مشاهده شد.`);
+  if(status==="normal") f.push(`اکوی تخمدان ${label} طبیعی است.`);
+  if(status==="pcom"){
+    if(dominant || hasCyst){
+      f.push(`به‌علت وجود ${dominant?"فولیکول غالب":"ضایعه کیستیک"}، طبقه‌بندی خودکار PCOM برای تخمدان ${label} در این بررسی انجام نشد.`);
+      r.push("ارزیابی PCOM بر اساس تخمدان مقابل یا در بررسی پیگیری و در فاز مناسب سیکل انجام شود.");
+    } else {
+      let sentence=`تخمدان ${label} دارای نمای مورفولوژیک پلی‌کیستیک است`;
+      if(follicleCount) sentence += ` و حدود ${fa(follicleCount,0)} فولیکول کوچک در یک مقطع مشاهده شد`;
+      if(peripheral) sentence += "؛ فولیکول‌ها عمدتاً توزیع محیطی دارند";
+      if(stroma) sentence += " و استرومای مرکزی برجسته است";
+      sentence += ".";
+      f.push(sentence);
+      i.push(`نمای polycystic ovarian morphology در تخمدان ${label}.`);
+      r.push("تطابق با شرح حال، وضعیت قاعدگی و یافته‌های هورمونی از نظر PCOS توصیه می‌شود.");
+    }
+  }
+}
+function ovarianLesionSentence(x,index,allowOrads,r){
+  const d=dims(x.l,x.ap,x.t), side=adnexSideText(x.side);
+  if(!x.adequate){
+    r.push("انجام سونوگرافی اختصاصی لگن، ترجیحاً به روش ترانس‌واژینال، جهت characterization دقیق‌تر ضایعه توصیه می‌شود.");
+    return `یک ضایعه کیستیک${d?` به ابعاد ${d}`:""} در ناحیه ${side} مشاهده شد که در بررسی حاضر به‌طور کامل قابل characterization نیست${allowOrads && x.orads==="0"?" (O-RADS US 0؛ ارزیابی ناکامل)":""}.`;
+  }
+  let sentence="";
+  if(x.type==="simple") sentence=`یک ضایعه کیستیک unilocular با جداره نازک و منظم، محتویات anechoic و posterior acoustic enhancement${d?` به ابعاد ${d}`:""} در تخمدان ${side} مشاهده شد. سپتوم، جزء سالید یا واسکولاریتی داخلی در آن مشاهده نشد. یافته‌ها با کیست ساده تخمدان تطابق دارد`;
+  if(x.type==="hemorrhagicReticular") sentence=`یک ضایعه کیستیک${d?` به ابعاد ${d}`:""} در تخمدان ${side} مشاهده شد که حاوی اکوهای خطی ظریف با نمای reticular یا lace-like است. واسکولاریتی داخلی قابل‌توجهی مشاهده نشد. یافته‌ها با کیست هموراژیک تطابق دارد`;
+  if(x.type==="hemorrhagicClot") sentence=`یک ضایعه کیستیک${d?` به ابعاد ${d}`:""} در تخمدان ${side} مشاهده شد که حاوی جزء اکوژن جمع‌شده با حدود مقعر و فاقد واسکولاریتی داخلی است. یافته‌ها در درجه اول به نفع کیست هموراژیک همراه با retracting clot است`;
+  if(x.type==="endometrioma") sentence=`یک ضایعه کیستیک با جداره نسبتاً منظم و اکوهای داخلی هموژن و low-level با نمای ground-glass${d?` به ابعاد ${d}`:""} در تخمدان ${side} مشاهده شد. واسکولاریتی واضحی در محتویات داخلی ضایعه مشاهده نشد. یافته‌ها در درجه اول به نفع اندومتریوما است`;
+  if(x.type==="dermoid") sentence=`یک ضایعه کیستیک ناهمگن${d?` به ابعاد ${d}`:""} در تخمدان ${side} مشاهده شد که حاوی اجزای اکوژن، خطوط و نقاط اکوژن و سایه صوتی خلفی است. یافته‌ها در درجه اول به نفع mature cystic teratoma یا dermoid cyst است`;
+  if(x.type==="complex"){
+    sentence=`یک ضایعه کیستیک کمپلکس${d?` به ابعاد ${d}`:""} در ناحیه تخمدان ${side} مشاهده شد که نیازمند characterization تکمیلی است`;
+    r.push("انجام سونوگرافی اختصاصی لگن، ترجیحاً به روش ترانس‌واژینال، توصیه می‌شود.");
+  }
+  if(allowOrads && x.orads!=="none" && x.orads!=="0") sentence += ` (O-RADS US ${x.orads})`;
+  if(x.followup) r.push("پیگیری سونوگرافیک بر اساس سن، وضعیت یائسگی، علائم بالینی و نظر متخصص زنان توصیه می‌شود.");
+  return sentence + ".";
+}
+function buildFemalePelvis(s,examId){
+  const f=[], i=[], r=[];
+  const allowOrads=examId==="femalePelvis";
+  const ud=uterusDims(s), hasFibroids=s.fibroids.length>0, hasPolyps=s.polyps.length>0, hasAdeno=s.adenomyosisMode!=="none";
+  if(s.uterusMode==="hysterectomyKnown"){
+    f.push("رحم در محل آناتومیک خود مشاهده نشد که با سابقه هیسترکتومی بیمار تطابق دارد.");
+    i.push("وضعیت پس از هیسترکتومی.");
+  } else if(s.uterusMode==="notSeenUnknown"){
+    f.push("رحم در محل آناتومیک خود مشاهده نشد.");
+    r.push("تطابق با شرح حال بیمار از نظر هیسترکتومی قبلی توصیه می‌شود؛ در صورت فقدان سابقه جراحی، بررسی تکمیلی از نظر آژنزی رحم یا سایر آنومالی‌های مولرین قابل بررسی است.");
+  } else {
+    if(s.uterusMode==="atrophic"){
+      f.push(`رحم کوچک و آتروفیک بوده${ud?` و ابعاد آن حدود ${ud} اندازه‌گیری شد`:""}.`);
+      i.push("نمای سونوگرافیک رحم آتروفیک، متناسب با وضعیت پس از یائسگی.");
+    } else {
+      f.push(`رحم در وضعیت ${positionText(s.position)} قرار دارد${ud?` و ابعاد آن حدود ${ud} اندازه‌گیری شد`:""}.`);
+    }
+    if(s.uterusMode==="mullerian") mullerianReport(s,f,i,r);
+    if(s.myometrium==="homogeneous") f.push(`اکوی میومتر هموژن است و کانتور رحم ${s.contour==="regular"?"منظم":"نامنظم"} است.`);
+    else f.push(`اکوی میومتر هتروژن است و کانتور رحم ${s.contour==="regular"?"منظم":"نامنظم"} است.`);
+    if(s.arcuateCalc) f.push("کلسیفیکاسیون‌هایی در مسیر عروق arcuate میومتر مشاهده شد.");
+    if(s.endoVisible==="notFully"){
+      f.push("اندومتر در تمام طول خود به‌طور کامل قابل ارزیابی نیست و اندازه‌گیری دقیق ضخامت آن امکان‌پذیر نبود.");
+    } else {
+      let endo=`اندومتر در خط وسط، سالم و منظم است${s.endometrium?` و ضخامت آن حدود ${fa(s.endometrium)} میلی‌متر اندازه‌گیری شد`:""}`;
+      if(s.endoPattern==="trilinear") endo += ". اندومتر دارای نمای trilinear است که با فاز proliferative سیکل قاعدگی تطابق دارد";
+      if(s.endoPattern==="echogenic") endo += ". اندومتر دارای نمای هموژن و اکوژن است که با فاز secretory سیکل قاعدگی تطابق دارد";
+      if(s.endoPattern==="thin") endo += ". اندومتر نازک و هموژن است";
+      f.push(endo+".");
+    }
+    if(hasAdeno){
+      const signs=adenomyosisSigns(s);
+      if(s.adenomyosisMode==="suspected"){
+        f.push(`${signs.length?signs.join("، "):"هتروژنیسیته میومتر و نامنظمی موضعی Junctional Zone"} مشاهده شد. یافته‌ها می‌تواند مطرح‌کننده آدنومیوز باشد.`);
+        i.push("تغییرات مشکوک به آدنومیوز.");
+      }
+      if(s.adenomyosisMode==="diffuse"){
+        f.push(`رحم دارای تغییرات منتشر شامل ${signs.length?signs.join("، "):"نمای globular، ضخیم‌شدگی نامتقارن و کانون‌های کیستیک کوچک داخل میومتر"} است. مجموعه یافته‌ها با آدنومیوز منتشر تطابق دارد.`);
+        i.push("نمای سونوگرافیک به نفع آدنومیوز منتشر رحم.");
+      }
+      if(s.adenomyosisMode==="focal"){
+        const d=dims(s.adenoL,s.adenoAP,s.adenoT), loc=uterusLocationText(s.adenoLocation);
+        f.push(`یک ناحیه با حدود نسبتاً نامشخص و اکوی ناهمگن${d?` به ابعاد ${d}`:""} در میومتر ${loc} مشاهده شد که حاوی کانون‌های کیستیک کوچک و خطوط اکوژن بوده و دارای fan-shaped shadowing است. یافته‌ها در درجه اول مطرح‌کننده آدنومیوز فوکال یا adenomyoma است.`);
+        i.push("ضایعه میومتری با نمای محتمل آدنومیوز فوکال.");
+        r.push("در صورت نیاز بالینی، بررسی تکمیلی با MRI لگن پیشنهاد می‌شود.");
+      }
+    }
+    s.fibroids.forEach((x,idx)=>f.push(figoSentence(x,idx)));
+    if(hasFibroids){
+      const codes=unique(s.fibroids.map(classifyFigo).filter(Boolean));
+      i.push(`${s.fibroids.length>1?"میوم‌های متعدد رحمی":"میوم رحمی"}${codes.length?` با طبقه‌بندی FIGO ${codes.join("، ")}`:""}.`);
+    }
+    s.polyps.forEach((x,idx)=>f.push(polypSentence(x,idx)));
+    if(hasPolyps){
+      i.push(`${s.polyps.length>1?"پولیپ‌های متعدد اندومتر":"پولیپ اندومتر"}.`);
+      r.push("تطابق با علائم بالینی بیمار و مشاوره زنان توصیه می‌شود؛ در صورت خونریزی غیرطبیعی رحم یا نیاز به تأیید دقیق‌تر، سونوهیستروگرافی یا هیستروسکوپی قابل بررسی است.");
+    }
+  }
+  const rightHasCyst=s.cysts.some(x=>x.side==="right"), leftHasCyst=s.cysts.some(x=>x.side==="left");
+  ovarianStatusReport("right",s,f,i,r,rightHasCyst);
+  ovarianStatusReport("left",s,f,i,r,leftHasCyst);
+  s.cysts.forEach((x,idx)=>{
+    f.push(ovarianLesionSentence(x,idx,allowOrads,r));
+    const side=adnexSideText(x.side);
+    const label={simple:"کیست ساده",hemorrhagicReticular:"کیست هموراژیک",hemorrhagicClot:"کیست هموراژیک",endometrioma:"اندومتریوما",dermoid:"درموئید/تراتوم کیستیک بالغ",complex:"ضایعه کیستیک کمپلکس"}[x.type];
+    i.push(`${label} در سمت ${side}${allowOrads && x.adequate && x.orads!=="none" && x.orads!=="0"?`، O-RADS US ${x.orads}`:""}.`);
+  });
+  if(!s.cysts.length){
+    if(s.rightStatus==="notSeen" && s.leftStatus==="notSeen") f.push("با این حال، ضایعه فضاگیر کیستیک یا سالید واضحی در نواحی آدنکس مشاهده نشد.");
+    else f.push("ضایعه فضاگیر کیستیک یا سالید واضحی در آدنکس‌ها مشاهده نشد.");
+  }
   if(s.freeFluid==="none") f.push("مایع آزاد پاتولوژیک در لگن مشاهده نشد.");
   if(s.freeFluid==="mild") f.push("مقدار مختصری مایع آزاد در کلدوساک مشاهده شد.");
-  if(s.freeFluid==="moderate") { f.push("مقدار متوسط مایع آزاد در لگن مشاهده شد."); i.push("مایع آزاد لگنی."); }
-  if(s.custom && s.myometrium!=="fibroid") f.push(s.custom);
-  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در رحم و ضمائم مشاهده نشد.", recommendation:unique(r).join("\n")};
+  if(s.freeFluid==="moderate"){ f.push("مقدار متوسط مایع آزاد در لگن مشاهده شد."); i.push("مایع آزاد لگنی."); }
+  if(s.freeFluid==="large"){ f.push("مقدار زیاد مایع آزاد در لگن مشاهده شد."); i.push("آسیت/مایع آزاد قابل‌توجه لگنی."); }
+  return {finding:unique(f).join("\n"), impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در رحم و ضمائم مشاهده نشد.", recommendation:unique(r).join("\n")};
 }
-function FemalePelvisCard({onReportChange}){
-  const [s,setS]=React.useState(pelvisInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v}));
-  const report=React.useMemo(()=>buildFemalePelvis(s),[s]); useEmit(report,onReportChange);
-  return h("div", {style:cardStyle}, h(CardHeader,{title:"رحم و ضمائم",onReset:()=>setS(pelvisInitial)}),
-    h("div", {style:groupStyle}, h("h3",null,"رحم و اندومتر"), h("div",{style:gridStyle},
-      label("وضعیت رحم",select(s.position,v=>set("position",v),[["anteverted","Anteverted"],["retroverted","Retroverted"]])),
-      label("طول رحم (mm)",input({type:"number",value:s.ul,onChange:e=>set("ul",e.target.value)})),
-      label("AP رحم (mm)",input({type:"number",value:s.uap,onChange:e=>set("uap",e.target.value)})),
-      label("عرض رحم (mm)",input({type:"number",value:s.ut,onChange:e=>set("ut",e.target.value)})),
-      label("میومتر",select(s.myometrium,v=>set("myometrium",v),[["normal","هموژن و طبیعی"],["heterogeneous","هتروژن"],["fibroid","میوم / ضایعه فوکال"]])),
-      label("ضخامت اندومتر (mm)",input({type:"number",value:s.endometrium,onChange:e=>set("endometrium",e.target.value)}))
+function FemalePelvisCard({onReportChange,examId}){
+  const [s,setS]=React.useState(pelvisInitial);
+  const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v}));
+  const report=React.useMemo(()=>buildFemalePelvis(s,examId),[s,examId]); useEmit(report,onReportChange);
+  const allowOrads=examId==="femalePelvis";
+  const chooseUterusMode=v=>setS(p=>Object.assign({},p,{uterusMode:v,rightStatus:v==="atrophic"?"notSeen":p.rightStatus,leftStatus:v==="atrophic"?"notSeen":p.leftStatus,endoPattern:v==="atrophic"?"thin":p.endoPattern}));
+  const updateArray=(key,index,field,value)=>setS(p=>Object.assign({},p,{[key]:p[key].map((x,j)=>j===index?Object.assign({},x,{[field]:value}):x)}));
+  const addItem=(key,item)=>setS(p=>Object.assign({},p,{[key]:p[key].concat([item])}));
+  const removeItem=(key,index)=>setS(p=>Object.assign({},p,{[key]:p[key].filter((_,j)=>j!==index)}));
+  const details=(title,children,open=true)=>h("details",{open,style:groupStyle},h("summary",{style:{cursor:"pointer",fontWeight:"bold",fontSize:"17px"}},title),children);
+  const smallButton={type:"button",style:{marginTop:"10px",background:"#334155",color:"white",border:"1px solid #64748b"}};
+  const ovaryPanel=(side)=>{
+    const right=side==="right", labelText=right?"تخمدان راست":"تخمدان چپ";
+    const status=right?s.rightStatus:s.leftStatus;
+    const prefix=right?"right":"left";
+    const a=right?s.rl:s.ll,b=right?s.rap:s.lap,c=right?s.rt:s.lt;
+    const v=volume(a,b,c);
+    return h("div",{style:{background:"#111827",border:"1px solid #334155",borderRadius:"10px",padding:"12px"}},
+      h("h4",{style:{marginTop:0}},labelText),
+      label("وضعیت",select(status,v=>set(prefix+"Status",v),[["normal","طبیعی"],["pcom","نمای PCOM"],["notSeen","قابل مشاهده نیست"]])),
+      status!=="notSeen"?h("div",{style:gridStyle},
+        label("طول (mm)",input({type:"number",value:a,onChange:e=>set(right?"rl":"ll",e.target.value)})),
+        label("AP (mm)",input({type:"number",value:b,onChange:e=>set(right?"rap":"lap",e.target.value)})),
+        label("Mediolateral (mm)",input({type:"number",value:c,onChange:e=>set(right?"rt":"lt",e.target.value)}))
+      ):null,
+      status!=="notSeen"?h("div",{style:{color:"#bae6fd",marginTop:"8px"}},`حجم خودکار: ${v!==null?fa(v):"—"} mL`):null,
+      status==="pcom"?h("div",null,
+        h("div",{style:gridStyle},
+          label("تعداد فولیکول در یک مقطع",input({type:"number",value:right?s.rightFollicleCount:s.leftFollicleCount,onChange:e=>set(prefix+"FollicleCount",e.target.value)})),
+          checkbox(right?s.rightPeripheral:s.leftPeripheral,v=>set(prefix+"Peripheral",v),"توزیع محیطی فولیکول‌ها"),
+          checkbox(right?s.rightStroma:s.leftStroma,v=>set(prefix+"Stroma",v),"افزایش استرومای مرکزی")
+        ),
+        h("p",{style:muted},"تشخیص PCOS صرفاً بر اساس سونوگرافی داده نمی‌شود؛ گزارش به‌صورت PCOM تولید خواهد شد.")
+      ):null,
+      status!=="notSeen"?h("div",{style:{marginTop:"10px"}},
+        checkbox(right?s.rightDominant:s.leftDominant,v=>set(prefix+"Dominant",v),"فولیکول غالب وجود دارد"),
+        (right?s.rightDominant:s.leftDominant)?label("قطر فولیکول غالب (mm)",input({type:"number",value:right?s.rightDominantSize:s.leftDominantSize,onChange:e=>set(prefix+"DominantSize",e.target.value)})):null
+      ):null
+    );
+  };
+  return h("div",{style:cardStyle},
+    h(CardHeader,{title:"رحم و ضمائم — Female Pelvis Engine v0.8",onReset:()=>setS(pelvisInitial)}),
+    h("p",{style:muted},"طبقه‌بندی O-RADS به‌صورت خودکار در سونوگرافی عمومی شکم و لگن فعال نمی‌شود و فقط در ورک‌فلو اختصاصی رحم و ضمائم، پس از تأیید کفایت بررسی، قابل ثبت است."),
+    details("روش بررسی و وضعیت رحم",h("div",null,
+      h("div",{style:gridStyle},
+        label("روش بررسی",select(s.examApproach,v=>set("examApproach",v),[["transabdominal","Transabdominal"],["transvaginal","Transvaginal"],["combined","Combined"]])),
+        label("حالت اصلی رحم",select(s.uterusMode,chooseUterusMode,[["normal","رحم معمولی"],["atrophic","رحم آتروفیک"],["hysterectomyKnown","هیسترکتومی شناخته‌شده"],["notSeenUnknown","رحم دیده نشد؛ سابقه نامشخص"],["mullerian","آنومالی مولرین"]]))
+      ),
+      !["hysterectomyKnown","notSeenUnknown"].includes(s.uterusMode)?h("div",null,
+        h("div",{style:gridStyle},
+          label("وضعیت رحم",select(s.position,v=>set("position",v),[["av_af","Anteverted + Anteflexed"],["av_rf","Anteverted + Retroflexed"],["rv_af","Retroverted + Anteflexed"],["rv_rf","Retroverted + Retroflexed"]])),
+          label("بعد ساژیتال (mm)",input({type:"number",value:s.ul,onChange:e=>set("ul",e.target.value)})),
+          label("AP (mm)",input({type:"number",value:s.uap,onChange:e=>set("uap",e.target.value)})),
+          label("Mediolateral اختیاری (mm)",input({type:"number",value:s.ut,onChange:e=>set("ut",e.target.value)})),
+          label("اکوی میومتر",select(s.myometrium,v=>set("myometrium",v),[["homogeneous","هموژن"],["heterogeneous","هتروژن"]])),
+          label("کانتور رحم",select(s.contour,v=>set("contour",v),[["regular","منظم"],["irregular","نامنظم"]])),
+          checkbox(s.arcuateCalc,v=>set("arcuateCalc",v),"کلسیفیکاسیون عروق arcuate")
+        ),
+        s.uterusMode==="mullerian"?h("div",{style:gridStyle},
+          label("نوع آنومالی",select(s.mullerianType,v=>set("mullerianType",v),[["indeterminate","دوشاخه؛ نوع نامشخص"],["bicornuate","Bicornuate"],["septate","Septate"],["didelphys","Uterus didelphys"],["unicornuate","Unicornuate"],["arcuate","Arcuate configuration"]])),
+          checkbox(s.mullerianNeedFurther,v=>set("mullerianNeedFurther",v),"توصیه 3D TVUS / MRI برای تعیین دقیق نوع")
+        ):null
+      ):null
     )),
-    h("div", {style:groupStyle}, h("h3",null,"تخمدان‌ها"), h("div",{style:gridStyle},
-      label("طول تخمدان راست",input({type:"number",value:s.rl,onChange:e=>set("rl",e.target.value)})), label("AP راست",input({type:"number",value:s.rap,onChange:e=>set("rap",e.target.value)})), label("عرض راست",input({type:"number",value:s.rt,onChange:e=>set("rt",e.target.value)})),
-      label("طول تخمدان چپ",input({type:"number",value:s.ll,onChange:e=>set("ll",e.target.value)})), label("AP چپ",input({type:"number",value:s.lap,onChange:e=>set("lap",e.target.value)})), label("عرض چپ",input({type:"number",value:s.lt,onChange:e=>set("lt",e.target.value)})),
-      label("یافته تخمدان",select(s.ovaryMode,v=>set("ovaryMode",v),[["normal","طبیعی"],["cyst","کیست تخمدان"],["pcom","نمای PCOM"]])),
-      label("مایع آزاد",select(s.freeFluid,v=>set("freeFluid",v),[["none","مشاهده نشد"],["mild","مختصر"],["moderate","متوسط"]]))
-    ),
-      s.ovaryMode==="cyst" ? h("div",{style:gridStyle}, label("سمت",select(s.cystSide,v=>set("cystSide",v),[["right","راست"],["left","چپ"]])), label("نوع",select(s.cystType,v=>set("cystType",v),[["simple","ساده"],["hemorrhagic","هموراژیک‌نما"]])), label("قطر (mm)",input({type:"number",value:s.cystSize,onChange:e=>set("cystSize",e.target.value)})), checkbox(s.followup,v=>set("followup",v),"افزودن توصیه پیگیری")) : null,
-      s.ovaryMode==="pcom" ? label("سمت PCOM",select(s.pcomSide,v=>set("pcomSide",v),[["bilateral","دوطرفه"],["right","راست"],["left","چپ"]])) : null
-    ),
-    label("یافته اضافی / توضیح پزشک", input({value:s.custom,onChange:e=>set("custom",e.target.value),placeholder:"اختیاری"}))
+    !["hysterectomyKnown","notSeenUnknown"].includes(s.uterusMode)?details("اندومتر",h("div",null,
+      h("div",{style:gridStyle},
+        label("قابلیت مشاهده",select(s.endoVisible,v=>set("endoVisible",v),[["complete","کامل و قابل ارزیابی"],["notFully","در تمام طول واضح نیست"]])),
+        s.endoVisible==="complete"?label("ضخامت اندومتر (mm)",input({type:"number",value:s.endometrium,onChange:e=>set("endometrium",e.target.value)})):null,
+        s.endoVisible==="complete"?label("الگوی اندومتر",select(s.endoPattern,v=>set("endoPattern",v),[["trilinear","Trilinear / proliferative"],["echogenic","Echogenic homogeneous / secretory"],["thin","نازک و هموژن / آتروفیک"]])):null
+      )
+    )):null,
+    !["hysterectomyKnown","notSeenUnknown"].includes(s.uterusMode)?details("آدنومیوز",h("div",null,
+      label("الگو",select(s.adenomyosisMode,v=>set("adenomyosisMode",v),[["none","وجود ندارد"],["suspected","مشکوک"],["diffuse","منتشر"],["focal","فوکال / Adenomyoma"]])),
+      s.adenomyosisMode!=="none"?h("div",null,
+        h("div",{style:gridStyle},
+          checkbox(s.adenoGlobular,v=>set("adenoGlobular",v),"رحم globular"),
+          checkbox(s.adenoAsymmetric,v=>set("adenoAsymmetric",v),"ضخیم‌شدگی نامتقارن میومتر"),
+          checkbox(s.adenoHeterogeneous,v=>set("adenoHeterogeneous",v),"هتروژنیسیته میومتر"),
+          checkbox(s.adenoFanShadow,v=>set("adenoFanShadow",v),"Fan-shaped shadowing"),
+          checkbox(s.adenoTranslesionalFlow,v=>set("adenoTranslesionalFlow",v),"Translesional vascularity"),
+          checkbox(s.adenoJunctionalIrregular,v=>set("adenoJunctionalIrregular",v),"Junctional Zone نامنظم/منقطع"),
+          checkbox(s.adenoCysts,v=>set("adenoCysts",v),"Myometrial cysts"),
+          checkbox(s.adenoHyperechoicIslands,v=>set("adenoHyperechoicIslands",v),"Hyperechoic islands"),
+          checkbox(s.adenoSubendometrialLines,v=>set("adenoSubendometrialLines",v),"Subendometrial lines/buds")
+        ),
+        s.adenomyosisMode==="focal"?h("div",{style:gridStyle},
+          label("محل",select(s.adenoLocation,v=>set("adenoLocation",v),[["fundal","فوندوس"],["anterior","قدامی"],["posterior","خلفی"],["right","لترال راست"],["left","لترال چپ"]])),
+          label("طول",input({type:"number",value:s.adenoL,onChange:e=>set("adenoL",e.target.value)})),
+          label("AP",input({type:"number",value:s.adenoAP,onChange:e=>set("adenoAP",e.target.value)})),
+          label("عرض",input({type:"number",value:s.adenoT,onChange:e=>set("adenoT",e.target.value)}))
+        ):null
+      ):null
+    ),false):null,
+    !["hysterectomyKnown","notSeenUnknown"].includes(s.uterusMode)?details("میوم‌های رحمی و FIGO",h("div",null,
+      s.fibroids.map((x,idx)=>h("div",{key:idx,style:{background:"#111827",border:"1px solid #334155",borderRadius:"10px",padding:"12px",marginTop:"10px"}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"8px",flexWrap:"wrap"}},h("h4",{style:{margin:0}},`میوم ${idx+1} — FIGO ${classifyFigo(x)||"نامشخص"}`),h("button",{type:"button",onClick:()=>removeItem("fibroids",idx)},"حذف")),
+        h("div",{style:gridStyle},
+          label("محل",select(x.location,v=>updateArray("fibroids",idx,"location",v),[["fundal","فوندوس"],["anterior","قدامی"],["posterior","خلفی"],["right","لترال راست"],["left","لترال چپ"],["cervical","سرویکال"]])),
+          label("طول",input({type:"number",value:x.l,onChange:e=>updateArray("fibroids",idx,"l",e.target.value)})),
+          label("AP",input({type:"number",value:x.ap,onChange:e=>updateArray("fibroids",idx,"ap",e.target.value)})),
+          label("عرض",input({type:"number",value:x.t,onChange:e=>updateArray("fibroids",idx,"t",e.target.value)})),
+          label("درصد جزء اینترامورال",select(x.intramuralFraction,v=>updateArray("fibroids",idx,"intramuralFraction",v),[["none","بدون جزء اینترامورال"],["lt50","کمتر از ۵۰٪"],["ge50","۵۰٪ یا بیشتر"]])),
+          label("دژنراسیون",select(x.degeneration,v=>updateArray("fibroids",idx,"degeneration",v),[["none","ندارد"],["cystic","کیستیک"],["calcified","کلسیفیه"]]))
+        ),
+        h("div",{style:gridStyle},
+          checkbox(x.cavityComponent,v=>updateArray("fibroids",idx,"cavityComponent",v),"جزء داخل حفره اندومتر"),
+          checkbox(x.endometrialContact,v=>updateArray("fibroids",idx,"endometrialContact",v),"تماس مستقیم با اندومتر"),
+          checkbox(x.serosalContact,v=>updateArray("fibroids",idx,"serosalContact",v),"تماس/برجستگی به سطح سروزی"),
+          checkbox(x.pedunculated,v=>updateArray("fibroids",idx,"pedunculated",v),"Pedunculated"),
+          checkbox(x.otherLocation,v=>updateArray("fibroids",idx,"otherLocation",v),"محل غیرمعمول / FIGO 8"),
+          checkbox(x.hybrid,v=>updateArray("fibroids",idx,"hybrid",v),"میوم هیبرید/ترانس‌مورال")
+        ),
+        x.hybrid?label("کد ترکیبی FIGO مانند 2-5",input({value:x.hybridCode,onChange:e=>updateArray("fibroids",idx,"hybridCode",e.target.value)})):null
+      )),
+      h("button",Object.assign({},smallButton,{onClick:()=>addItem("fibroids",newFibroid())}),"افزودن میوم")
+    ),false):null,
+    !["hysterectomyKnown","notSeenUnknown"].includes(s.uterusMode)?details("پولیپ اندومتر",h("div",null,
+      s.polyps.map((x,idx)=>h("div",{key:idx,style:{background:"#111827",border:"1px solid #334155",borderRadius:"10px",padding:"12px",marginTop:"10px"}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},h("h4",{style:{margin:0}},`پولیپ ${idx+1}`),h("button",{type:"button",onClick:()=>removeItem("polyps",idx)},"حذف")),
+        h("div",{style:gridStyle},
+          label("محل",select(x.location,v=>updateArray("polyps",idx,"location",v),[["fundal","فوندوس"],["anterior","دیواره قدامی"],["posterior","دیواره خلفی"]])),
+          label("طول",input({type:"number",value:x.l,onChange:e=>updateArray("polyps",idx,"l",e.target.value)})),
+          label("AP",input({type:"number",value:x.ap,onChange:e=>updateArray("polyps",idx,"ap",e.target.value)})),
+          label("عرض",input({type:"number",value:x.t,onChange:e=>updateArray("polyps",idx,"t",e.target.value)})),
+          checkbox(x.feedingVessel,v=>updateArray("polyps",idx,"feedingVessel",v),"Feeding vessel منفرد"),
+          checkbox(x.cysticSpaces,v=>updateArray("polyps",idx,"cysticSpaces",v),"فضاهای کیستیک کوچک"),
+          checkbox(x.internalVascularity,v=>updateArray("polyps",idx,"internalVascularity",v),"واسکولاریتی داخلی")
+        )
+      )),
+      h("button",Object.assign({},smallButton,{onClick:()=>addItem("polyps",newPolyp())}),"افزودن پولیپ")
+    ),false):null,
+    details("تخمدان‌ها، حجم و PCOM",h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:"12px",marginTop:"10px"}},ovaryPanel("right"),ovaryPanel("left"))),
+    details("کیست‌ها و ضایعات آدنکس",h("div",null,
+      s.cysts.map((x,idx)=>h("div",{key:idx,style:{background:"#111827",border:"1px solid #334155",borderRadius:"10px",padding:"12px",marginTop:"10px"}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},h("h4",{style:{margin:0}},`ضایعه ${idx+1}`),h("button",{type:"button",onClick:()=>removeItem("cysts",idx)},"حذف")),
+        h("div",{style:gridStyle},
+          label("سمت",select(x.side,v=>updateArray("cysts",idx,"side",v),[["right","راست"],["left","چپ"],["adnexal","آدنکس؛ منشأ نامشخص"]])),
+          label("نوع",select(x.type,v=>updateArray("cysts",idx,"type",v),[["simple","کیست ساده"],["hemorrhagicReticular","هموراژیک؛ reticular"],["hemorrhagicClot","هموراژیک؛ retracting clot"],["endometrioma","اندومتریوما"],["dermoid","درموئید"],["complex","کمپلکس/نامشخص"]])),
+          label("طول",input({type:"number",value:x.l,onChange:e=>updateArray("cysts",idx,"l",e.target.value)})),
+          label("AP",input({type:"number",value:x.ap,onChange:e=>updateArray("cysts",idx,"ap",e.target.value)})),
+          label("عرض",input({type:"number",value:x.t,onChange:e=>updateArray("cysts",idx,"t",e.target.value)})),
+          checkbox(x.adequate,v=>updateArray("cysts",idx,"adequate",v),"ضایعه برای characterization کامل به‌طور کافی ارزیابی شده است"),
+          checkbox(x.followup,v=>updateArray("cysts",idx,"followup",v),"افزودن توصیه پیگیری")
+        ),
+        allowOrads?h("div",{style:{marginTop:"8px"}},label("O-RADS اختیاری",select(x.orads,v=>updateArray("cysts",idx,"orads",v),x.adequate?[["none","ثبت نشود"],["2","O-RADS 2"],["3","O-RADS 3"],["4","O-RADS 4"],["5","O-RADS 5"]]:[["none","ثبت نشود"],["0","O-RADS 0؛ ارزیابی ناکامل"]]))):h("p",{style:muted},"در سونوگرافی عمومی شکم و لگن، O-RADS عددی به‌طور پیش‌فرض گزارش نمی‌شود.")
+      )),
+      h("button",Object.assign({},smallButton,{onClick:()=>addItem("cysts",newOvarianLesion(allowOrads))}),"افزودن کیست / ضایعه")
+    )),
+    details("مایع آزاد لگنی",h("div",{style:gridStyle},label("میزان مایع آزاد",select(s.freeFluid,v=>set("freeFluid",v),[["none","مشاهده نشد"],["mild","مختصر"],["moderate","متوسط"],["large","زیاد"]]))),false)
   );
 }
 exports.FemalePelvisCard = FemalePelvisCard;
@@ -1382,14 +1752,14 @@ const exams=[
 {id:"scrotal",icon:"⚕️",title:"بیضه‌ها و اسکروتوم",description:"ابعاد و حجم بیضه‌ها، پرفیوژن، اپیدیدیم، هیدروسل و ضایعات فوکال",organs:["scrotal"]},
 {id:"inguinal",icon:"↔️",title:"نواحی اینگوینال",description:"بررسی فتق راست و چپ، Valsalva، قابلیت جااندازی و جریان خون محتوا",organs:["inguinal"]},
 {id:"thyroid",icon:"🦋",title:"تیروئید",description:"ابعاد لوب‌ها، پارانشیم، واسکولاریته، ندول و لنف‌نودهای گردنی",organs:["thyroid"]},
-{id:"femalePelvis",icon:"♀️",title:"رحم و ضمائم",description:"رحم، اندومتر، تخمدان‌ها و مایع آزاد لگنی",organs:["femalePelvis"]}
+{id:"femalePelvis",icon:"♀️",title:"رحم و ضمائم",description:"رحم، اندومتر، FIGO میوم‌ها، آدنومیوز، تخمدان‌ها، PCOM و ضایعات آدنکس",organs:["femalePelvis"]}
 ];
 const organTitles={liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",scrotal:"بیضه‌ها و اسکروتوم",inguinal:"ناحیه اینگوینال"};
 const freeSections={
   pancreasSpleen:[["pancreas","پانکراس"],["spleen","طحال"]],
   kidney:[["rightKidney","کلیه راست"],["leftKidney","کلیه چپ"],["ureters","حالب‌ها"],["bladder","مثانه"]],
   prostate:[["prostate","پروستات و PVR"]],
-  femalePelvis:[["uterus","رحم و اندومتر"],["rightOvary","تخمدان راست"],["leftOvary","تخمدان چپ"],["adnexa","سایر یافته‌های ضمائم و لگن"]],
+  femalePelvis:[["uterus","رحم و اندومتر"],["rightOvary","تخمدان راست"],["leftOvary","تخمدان چپ"],["adnexa","ضمائم و لگن"]],
   thyroid:[["thyroidRight","لوب راست تیروئید"],["thyroidLeft","لوب چپ تیروئید"],["thyroidIsthmus","ایسموس"],["cervicalNodes","لنف‌نودهای گردنی"]],
   scrotal:[["rightTestis","بیضه راست"],["leftTestis","بیضه چپ"],["rightEpididymis","اپیدیدیم راست"],["leftEpididymis","اپیدیدیم چپ"],["spermaticCords","طناب‌های اسپرماتیک و سایر یافته‌ها"]],
   inguinal:[["rightInguinal","ناحیه اینگوینال راست"],["leftInguinal","ناحیه اینگوینال چپ"]]
@@ -1409,7 +1779,7 @@ function Ultrasound({goBack}){
  function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۰.۷ — ابتدا عنوان دقیق سونوگرافی روی برگه پذیرش را انتخاب کنید؛ فقط فرم‌های مربوط به همان بررسی نمایش داده می‌شوند."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۰.۸ — موتور کامل رحم و ضمائم با FIGO خودکار، آدنومیوز، پولیپ، PCOM و ضایعات تیپیک تخمدان."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
