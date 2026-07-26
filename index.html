@@ -71,7 +71,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v0.5 - prebuilt static bundle, no npm/build required */
+/* HN Radiology Suite v0.6 - workflow-based ultrasound selector + Color Doppler Clinic */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -426,7 +426,7 @@ function ColorDopplerClinic({ goBack }) {
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
     });
-    return ((0, jsx_runtime_1.jsxs)("div", { style: { minHeight: "100vh", background: "#0f172a", color: "white", direction: "rtl", padding: "clamp(16px, 4vw, 32px)" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: goBack, children: "\u0628\u0627\u0632\u06AF\u0634\u062A" }), (0, jsx_runtime_1.jsx)("h1", { children: "HN Color Doppler Clinic" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F5 \u2014 \u067E\u0648\u0633\u062A\u0647 \u0627\u062E\u062A\u0635\u0627\u0635\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631 \u0628\u0627 Varicocele Doppler Engine \u0628\u0631 \u067E\u0627\u06CC\u0647 Sarteschi/Liguori classification." }), (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px" }, children: [(0, jsx_runtime_1.jsx)("h2", { style: { marginTop: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", style: button(activeModule === "varicocele"), onClick: () => setActiveModule("varicocele"), children: "Scrotal Doppler / Varicocele" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Venous Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Arterial Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Upper Limb Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Dialysis AV Fistula" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Renal & Abdominal Doppler" })] }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8", marginBottom: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u062F\u0631 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0628\u0639\u062F\u06CC \u0645\u0631\u062D\u0644\u0647\u200C\u0628\u0647\u200C\u0645\u0631\u062D\u0644\u0647 \u0627\u0636\u0627\u0641\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F\u061B \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0648 \u0641\u0631\u0645 \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644 \u0645\u0633\u062A\u0642\u0644 \u0627\u0632 \u0633\u0648\u0646\u0648\u06AF\u0631\u0627\u0641\u06CC \u0645\u0639\u0645\u0648\u0644\u06CC \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0634\u062F\u0647 \u0627\u0633\u062A." })] }), activeModule === "varicocele" && (0, jsx_runtime_1.jsx)(VaricoceleCard_jsx_1.default, {})] }));
+    return ((0, jsx_runtime_1.jsxs)("div", { style: { minHeight: "100vh", background: "#0f172a", color: "white", direction: "rtl", padding: "clamp(16px, 4vw, 32px)" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: goBack, children: "\u0628\u0627\u0632\u06AF\u0634\u062A" }), (0, jsx_runtime_1.jsx)("h1", { children: "HN Color Doppler Clinic" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F6 \u2014 \u067E\u0648\u0633\u062A\u0647 \u0627\u062E\u062A\u0635\u0627\u0635\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631 \u0628\u0627 Varicocele Doppler Engine \u0628\u0631 \u067E\u0627\u06CC\u0647 Sarteschi/Liguori classification." }), (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px" }, children: [(0, jsx_runtime_1.jsx)("h2", { style: { marginTop: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u06A9\u0627\u0644\u0631 \u062F\u0627\u067E\u0644\u0631" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", style: button(activeModule === "varicocele"), onClick: () => setActiveModule("varicocele"), children: "Scrotal Doppler / Varicocele" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Venous Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Lower Limb Arterial Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Upper Limb Doppler" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Dialysis AV Fistula" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: button(false, true), disabled: true, children: "Renal & Abdominal Doppler" })] }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8", marginBottom: 0 }, children: "\u0645\u0627\u0698\u0648\u0644\u200C\u0647\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u062F\u0631 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0628\u0639\u062F\u06CC \u0645\u0631\u062D\u0644\u0647\u200C\u0628\u0647\u200C\u0645\u0631\u062D\u0644\u0647 \u0627\u0636\u0627\u0641\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F\u061B \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0648 \u0641\u0631\u0645 \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644 \u0645\u0633\u062A\u0642\u0644 \u0627\u0632 \u0633\u0648\u0646\u0648\u06AF\u0631\u0627\u0641\u06CC \u0645\u0639\u0645\u0648\u0644\u06CC \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0634\u062F\u0647 \u0627\u0633\u062A." })] }), activeModule === "varicocele" && (0, jsx_runtime_1.jsx)(VaricoceleCard_jsx_1.default, {})] }));
 }
 exports.default = ColorDopplerClinic;
 
@@ -501,7 +501,7 @@ function Home({ goUltrasound, goDoppler }) {
             padding: "clamp(24px, 5vw, 48px)",
             textAlign: "center",
             direction: "rtl",
-        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F5 \u2014 Ultrasound + Color Doppler Clinic" }), (0, jsx_runtime_1.jsxs)("div", { style: {
+        }, children: [(0, jsx_runtime_1.jsx)("h1", { children: "HN Radiology Suite" }), (0, jsx_runtime_1.jsx)("p", { children: "\u0637\u0631\u0627\u062D\u06CC\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u062F\u06A9\u062A\u0631 \u0647\u0627\u0634\u0645 \u0646\u0634\u0627\u0637\u06CC" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F6 \u2014 Workflow Ultrasound + Color Doppler Clinic" }), (0, jsx_runtime_1.jsxs)("div", { style: {
                     marginTop: "42px",
                     display: "flex",
                     justifyContent: "center",
@@ -1023,72 +1023,262 @@ exports.default = ProstateCard;
 
 };
 
+__modules["src/components/Workflow/ExamCards.jsx"] = function(module, exports, require){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InguinalCard = exports.ScrotalCard = exports.ThyroidCard = exports.FemalePelvisCard = exports.PancreasSpleenCard = void 0;
+const React = require("react");
+const h = React.createElement;
+
+const fieldStyle = { width:"100%", padding:"9px", marginTop:"6px", borderRadius:"8px", border:"1px solid #64748b", background:"#f8fafc", color:"#0f172a" };
+const groupStyle = { background:"#172033", border:"1px solid #334155", borderRadius:"12px", padding:"14px", marginTop:"14px" };
+const gridStyle = { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(170px, 1fr))", gap:"10px", marginTop:"10px" };
+const cardStyle = { background:"#1e293b", padding:"18px", borderRadius:"14px", border:"1px solid #334155", marginTop:"18px" };
+const muted = { color:"#cbd5e1", fontSize:"13px" };
+
+function num(v){ const n = Number.parseFloat(v); return Number.isFinite(n) ? n : null; }
+function fa(v, digits=1){ const n=num(v); return n===null ? "" : new Intl.NumberFormat("fa-IR", {maximumFractionDigits:digits}).format(n); }
+function dims(a,b,c){ return [a,b,c].every(x=>num(x)!==null) ? `${fa(a)} × ${fa(b)} × ${fa(c)} میلی‌متر` : ""; }
+function volume(a,b,c,k=0.523){ const vals=[a,b,c].map(num); return vals.every(x=>x!==null && x>0) ? vals[0]*vals[1]*vals[2]*k/1000 : null; }
+function unique(items){ return [...new Set(items.filter(Boolean).map(x=>String(x).trim()).filter(Boolean))]; }
+function normalImpression(text){ return { finding:text, impression:"یافته پاتولوژیک بارزی مشاهده نشد.", recommendation:"" }; }
+function useEmit(report, cb){ React.useEffect(()=>{ if(cb) cb(report); }, [cb, report]); }
+function label(text, control){ return h("label", null, text, control); }
+function input(props){ return h("input", Object.assign({style:fieldStyle}, props)); }
+function select(value, onChange, options){ return h("select", {style:fieldStyle, value, onChange:e=>onChange(e.target.value)}, options.map(o=>h("option", {key:o[0], value:o[0]}, o[1]))); }
+function checkbox(checked, onChange, text){ return h("label", {style:{display:"flex", gap:"8px", alignItems:"center"}}, h("input", {type:"checkbox", checked, onChange:e=>onChange(e.target.checked)}), text); }
+function CardHeader({title,onReset}){ return h("div", {style:{display:"flex", justifyContent:"space-between", gap:"12px", alignItems:"center", flexWrap:"wrap"}}, h("h2", {style:{margin:0}}, title), h("button", {type:"button", onClick:onReset}, "پاک‌کردن فرم")); }
+
+const pancreasInitial = { pancreas:"normal", pancreasNote:"", spleen:"normal", spleenLength:"", spleenNote:"" };
+function buildPancreasSpleen(s){
+  const f=[]; const i=[]; const r=[];
+  if(s.pancreas==="normal") f.push("پانکراس در حد قابل ارزیابی دارای اندازه و اکوی طبیعی است.");
+  if(s.pancreas==="limited") f.push("ارزیابی کامل پانکراس به علت گاز روده‌ای محدود است؛ بخش‌های قابل مشاهده یافته پاتولوژیک بارزی ندارند.");
+  if(s.pancreas==="abnormal") { f.push(s.pancreasNote ? `در پانکراس: ${s.pancreasNote}` : "نمای غیرطبیعی در پانکراس مشاهده شد."); i.push("یافته غیرطبیعی پانکراس؛ مطابق شرح گزارش."); }
+  if(s.spleen==="normal") f.push(`طحال دارای ابعاد و اکوی طبیعی است${s.spleenLength ? ` و طول آن حدود ${fa(s.spleenLength)} میلی‌متر اندازه‌گیری شد` : ""}.`);
+  if(s.spleen==="enlarged") { f.push(`طحال بزرگ‌تر از حد طبیعی است${s.spleenLength ? ` و طول آن حدود ${fa(s.spleenLength)} میلی‌متر اندازه‌گیری شد` : ""}.`); i.push("اسپلنومگالی."); }
+  if(s.spleen==="focal") { f.push(s.spleenNote ? `در طحال: ${s.spleenNote}` : "ضایعه فوکال در طحال مشاهده شد."); i.push("ضایعه فوکال طحال؛ مطابق شرح گزارش."); }
+  return {finding:f.join("\n"), impression:i.length?i.join("\n"):"یافته پاتولوژیک بارزی در پانکراس و طحال مشاهده نشد.", recommendation:r.join("\n")};
+}
+function PancreasSpleenCard({onReportChange}){
+  const [s,setS]=React.useState(pancreasInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v}));
+  const report=React.useMemo(()=>buildPancreasSpleen(s),[s]); useEmit(report,onReportChange);
+  return h("div", {style:cardStyle}, h(CardHeader,{title:"پانکراس و طحال",onReset:()=>setS(pancreasInitial)}),
+    h("div", {style:gridStyle},
+      label("پانکراس", select(s.pancreas,v=>set("pancreas",v), [["normal","طبیعی"],["limited","محدود به علت گاز روده‌ای"],["abnormal","یافته غیرطبیعی"]])),
+      label("طحال", select(s.spleen,v=>set("spleen",v), [["normal","طبیعی"],["enlarged","بزرگ‌شده"],["focal","ضایعه فوکال"]])),
+      label("طول طحال (mm)", input({type:"number",value:s.spleenLength,onChange:e=>set("spleenLength",e.target.value)}))
+    ),
+    s.pancreas==="abnormal" ? label("شرح یافته پانکراس", input({value:s.pancreasNote,onChange:e=>set("pancreasNote",e.target.value),placeholder:"شرح مختصر و دقیق"})) : null,
+    s.spleen==="focal" ? label("شرح یافته طحال", input({value:s.spleenNote,onChange:e=>set("spleenNote",e.target.value),placeholder:"محل، اندازه و مشخصات ضایعه"})) : null
+  );
+}
+exports.PancreasSpleenCard = PancreasSpleenCard;
+
+const pelvisInitial = { position:"anteverted", ul:"",uap:"",ut:"", myometrium:"normal", endometrium:"", rl:"",rap:"",rt:"", ll:"",lap:"",lt:"", ovaryMode:"normal", cystSide:"right", cystSize:"", cystType:"simple", pcomSide:"bilateral", freeFluid:"none", custom:"", followup:false };
+function buildFemalePelvis(s){
+  const f=[]; const i=[]; const r=[];
+  const pos=s.position==="anteverted"?"آنت‌ورت":"رتروورت"; const ud=dims(s.ul,s.uap,s.ut);
+  f.push(`رحم در وضعیت ${pos} قرار دارد${ud?` و ابعاد آن حدود ${ud} است`:""}.`);
+  if(s.myometrium==="normal") f.push("اکوی میومتر هموژن است و ضایعه فوکال بارزی مشاهده نشد.");
+  if(s.myometrium==="heterogeneous") { f.push("اکوی میومتر هتروژن است."); i.push("هتروژنیسیته میومتر."); }
+  if(s.myometrium==="fibroid") { f.push(s.custom?`در میومتر: ${s.custom}`:"نمایی به نفع میوم رحمی مشاهده شد."); i.push("میوم رحمی؛ مطابق شرح گزارش."); }
+  if(s.endometrium) f.push(`ضخامت اندومتر حدود ${fa(s.endometrium)} میلی‌متر است.`);
+  const rv=volume(s.rl,s.rap,s.rt), lv=volume(s.ll,s.lap,s.lt);
+  const rd=dims(s.rl,s.rap,s.rt), ld=dims(s.ll,s.lap,s.lt);
+  f.push(`تخمدان راست${rd?` با ابعاد ${rd}`:""}${rv!==null?` و حجم تقریبی ${fa(rv)} سی‌سی`:""} مشاهده شد.`);
+  f.push(`تخمدان چپ${ld?` با ابعاد ${ld}`:""}${lv!==null?` و حجم تقریبی ${fa(lv)} سی‌سی`:""} مشاهده شد.`);
+  if(s.ovaryMode==="normal") f.push("اکوی هر دو تخمدان طبیعی است و ضایعه فوکال بارزی در آن‌ها مشاهده نشد.");
+  if(s.ovaryMode==="cyst") { const side=s.cystSide==="right"?"راست":"چپ"; const type=s.cystType==="simple"?"ساده":"هموراژیک‌نما"; f.push(`یک کیست ${type} در تخمدان ${side}${s.cystSize?` به قطر ${fa(s.cystSize)} میلی‌متر`:""} مشاهده شد.`); i.push(`کیست ${type} تخمدان ${side}.`); if(s.followup) r.push("پیگیری سونوگرافیک بر اساس سن، علائم بالینی و نظر متخصص زنان توصیه می‌شود."); }
+  if(s.ovaryMode==="pcom") { const side=s.pcomSide==="bilateral"?"دوطرفه":(s.pcomSide==="right"?"سمت راست":"سمت چپ"); f.push(`نمای مورفولوژیک پلی‌کیستیک در تخمدان‌های ${side} مشاهده شد.`); i.push("نمای مورفولوژیک پلی‌کیستیک تخمدان؛ تطابق با معیارهای بالینی و آزمایشگاهی توصیه می‌شود."); }
+  if(s.freeFluid==="none") f.push("مایع آزاد پاتولوژیک در لگن مشاهده نشد.");
+  if(s.freeFluid==="mild") f.push("مقدار مختصری مایع آزاد در کلدوساک مشاهده شد.");
+  if(s.freeFluid==="moderate") { f.push("مقدار متوسط مایع آزاد در لگن مشاهده شد."); i.push("مایع آزاد لگنی."); }
+  if(s.custom && s.myometrium!=="fibroid") f.push(s.custom);
+  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در رحم و ضمائم مشاهده نشد.", recommendation:unique(r).join("\n")};
+}
+function FemalePelvisCard({onReportChange}){
+  const [s,setS]=React.useState(pelvisInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v}));
+  const report=React.useMemo(()=>buildFemalePelvis(s),[s]); useEmit(report,onReportChange);
+  return h("div", {style:cardStyle}, h(CardHeader,{title:"رحم و ضمائم",onReset:()=>setS(pelvisInitial)}),
+    h("div", {style:groupStyle}, h("h3",null,"رحم و اندومتر"), h("div",{style:gridStyle},
+      label("وضعیت رحم",select(s.position,v=>set("position",v),[["anteverted","Anteverted"],["retroverted","Retroverted"]])),
+      label("طول رحم (mm)",input({type:"number",value:s.ul,onChange:e=>set("ul",e.target.value)})),
+      label("AP رحم (mm)",input({type:"number",value:s.uap,onChange:e=>set("uap",e.target.value)})),
+      label("عرض رحم (mm)",input({type:"number",value:s.ut,onChange:e=>set("ut",e.target.value)})),
+      label("میومتر",select(s.myometrium,v=>set("myometrium",v),[["normal","هموژن و طبیعی"],["heterogeneous","هتروژن"],["fibroid","میوم / ضایعه فوکال"]])),
+      label("ضخامت اندومتر (mm)",input({type:"number",value:s.endometrium,onChange:e=>set("endometrium",e.target.value)}))
+    )),
+    h("div", {style:groupStyle}, h("h3",null,"تخمدان‌ها"), h("div",{style:gridStyle},
+      label("طول تخمدان راست",input({type:"number",value:s.rl,onChange:e=>set("rl",e.target.value)})), label("AP راست",input({type:"number",value:s.rap,onChange:e=>set("rap",e.target.value)})), label("عرض راست",input({type:"number",value:s.rt,onChange:e=>set("rt",e.target.value)})),
+      label("طول تخمدان چپ",input({type:"number",value:s.ll,onChange:e=>set("ll",e.target.value)})), label("AP چپ",input({type:"number",value:s.lap,onChange:e=>set("lap",e.target.value)})), label("عرض چپ",input({type:"number",value:s.lt,onChange:e=>set("lt",e.target.value)})),
+      label("یافته تخمدان",select(s.ovaryMode,v=>set("ovaryMode",v),[["normal","طبیعی"],["cyst","کیست تخمدان"],["pcom","نمای PCOM"]])),
+      label("مایع آزاد",select(s.freeFluid,v=>set("freeFluid",v),[["none","مشاهده نشد"],["mild","مختصر"],["moderate","متوسط"]]))
+    ),
+      s.ovaryMode==="cyst" ? h("div",{style:gridStyle}, label("سمت",select(s.cystSide,v=>set("cystSide",v),[["right","راست"],["left","چپ"]])), label("نوع",select(s.cystType,v=>set("cystType",v),[["simple","ساده"],["hemorrhagic","هموراژیک‌نما"]])), label("قطر (mm)",input({type:"number",value:s.cystSize,onChange:e=>set("cystSize",e.target.value)})), checkbox(s.followup,v=>set("followup",v),"افزودن توصیه پیگیری")) : null,
+      s.ovaryMode==="pcom" ? label("سمت PCOM",select(s.pcomSide,v=>set("pcomSide",v),[["bilateral","دوطرفه"],["right","راست"],["left","چپ"]])) : null
+    ),
+    label("یافته اضافی / توضیح پزشک", input({value:s.custom,onChange:e=>set("custom",e.target.value),placeholder:"اختیاری"}))
+  );
+}
+exports.FemalePelvisCard = FemalePelvisCard;
+
+const thyroidInitial = { rl:"",rap:"",rt:"", ll:"",lap:"",lt:"", isthmus:"", parenchyma:"normal", vascularity:"normal", nodule:false, nSide:"right", nLocation:"mid", nl:"",nap:"",nt:"", composition:"solid", echo:"isoechoic", margin:"smooth", foci:"none", tirads:"none", nodes:false, custom:"" };
+function buildThyroid(s){
+  const f=[]; const i=[]; const r=[]; const rd=dims(s.rl,s.rap,s.rt), ld=dims(s.ll,s.lap,s.lt);
+  f.push(`لوب راست تیروئید${rd?` با ابعاد ${rd}`:""} و لوب چپ${ld?` با ابعاد ${ld}`:""} مشاهده شد${s.isthmus?`؛ ضخامت ایسموس حدود ${fa(s.isthmus)} میلی‌متر است`:""}.`);
+  if(s.parenchyma==="normal") f.push("اکوی پارانشیم تیروئید هموژن و طبیعی است.");
+  if(s.parenchyma==="heterogeneous") { f.push("اکوی پارانشیم تیروئید به‌صورت منتشر هتروژن است."); i.push("هتروژنیسیته منتشر پارانشیم تیروئید."); }
+  if(s.parenchyma==="thyroiditis") { f.push(`اکوی پارانشیم تیروئید کاهش‌یافته و هتروژن است${s.vascularity==="increased"?" و افزایش واسکولاریته منتشر مشاهده می‌شود":""}.`); i.push("نمای سونوگرافیک به نفع تیروئیدیت؛ تطابق با یافته‌های آزمایشگاهی توصیه می‌شود."); r.push("بررسی TSH و در صورت نیاز سایر تست‌های عملکرد تیروئید توصیه می‌شود."); }
+  if(s.parenchyma!=="thyroiditis") f.push(s.vascularity==="increased"?"افزایش منتشر واسکولاریته پارانشیم تیروئید مشاهده شد.":"واسکولاریته پارانشیم تیروئید در محدوده طبیعی است.");
+  if(s.nodule){ const side=s.nSide==="right"?"لوب راست":"لوب چپ"; const loc={upper:"قطب فوقانی",mid:"قسمت میانی",lower:"قطب تحتانی"}[s.nLocation]; const nd=dims(s.nl,s.nap,s.nt); const comp={solid:"جامد",mixed:"مختلط جامد ـ کیستیک",cystic:"کیستیک"}[s.composition]; const echo={hypoechoic:"هایپواکو",isoechoic:"ایزو اکو",hyperechoic:"هایپراکو",anechoic:"آنه‌کو"}[s.echo]; const margin={smooth:"حدود صاف",irregular:"حدود نامنظم",extrathyroidal:"شواهد گسترش خارج تیروئیدی"}[s.margin]; const foci={none:"بدون فوکوس اکوژن مشکوک",macro:"همراه با ماکروکلسیفیکاسیون",punctate:"همراه با فوکوس‌های اکوژن نقطه‌ای"}[s.foci]; f.push(`یک ندول ${comp} و ${echo} در ${loc} ${side}${nd?` به ابعاد ${nd}`:""}، با ${margin} و ${foci} مشاهده شد${s.tirads!=="none"?` (ACR TI-RADS ${s.tirads})`:""}.`); i.push(`ندول تیروئید${s.tirads!=="none"?`، ACR TI-RADS ${s.tirads}`:""}.`); if(s.tirads!=="none") r.push("اقدام بعدی بر اساس اندازه ندول، رده ACR TI-RADS و شرایط بالینی بیمار تعیین شود."); }
+  if(s.nodes) { f.push("لنف‌نود با نمای مشکوک در زنجیره‌های گردنی مشاهده شد."); i.push("لنفادنوپاتی مشکوک گردنی."); r.push("ارزیابی تکمیلی و تطابق با یافته‌های بالینی توصیه می‌شود."); } else f.push("لنف‌نود پاتولوژیک واضح در نواحی قابل بررسی گردن مشاهده نشد.");
+  if(s.custom) f.push(s.custom);
+  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در سونوگرافی تیروئید مشاهده نشد.", recommendation:unique(r).join("\n")};
+}
+function ThyroidCard({onReportChange}){
+  const [s,setS]=React.useState(thyroidInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v})); const report=React.useMemo(()=>buildThyroid(s),[s]); useEmit(report,onReportChange);
+  return h("div",{style:cardStyle}, h(CardHeader,{title:"سونوگرافی تیروئید",onReset:()=>setS(thyroidInitial)}),
+    h("div",{style:groupStyle}, h("h3",null,"ابعاد و پارانشیم"), h("div",{style:gridStyle},
+      label("طول لوب راست",input({type:"number",value:s.rl,onChange:e=>set("rl",e.target.value)})), label("AP راست",input({type:"number",value:s.rap,onChange:e=>set("rap",e.target.value)})), label("عرض راست",input({type:"number",value:s.rt,onChange:e=>set("rt",e.target.value)})),
+      label("طول لوب چپ",input({type:"number",value:s.ll,onChange:e=>set("ll",e.target.value)})), label("AP چپ",input({type:"number",value:s.lap,onChange:e=>set("lap",e.target.value)})), label("عرض چپ",input({type:"number",value:s.lt,onChange:e=>set("lt",e.target.value)})),
+      label("ایسموس (mm)",input({type:"number",value:s.isthmus,onChange:e=>set("isthmus",e.target.value)})),
+      label("پارانشیم",select(s.parenchyma,v=>set("parenchyma",v),[["normal","طبیعی"],["heterogeneous","هتروژن منتشر"],["thyroiditis","تیروئیدیت‌نما"]])),
+      label("واسکولاریته",select(s.vascularity,v=>set("vascularity",v),[["normal","طبیعی"],["increased","افزایش‌یافته"]]))
+    )),
+    h("div",{style:groupStyle}, checkbox(s.nodule,v=>set("nodule",v),"ندول تیروئید وجود دارد"), s.nodule ? h("div",{style:gridStyle},
+      label("سمت",select(s.nSide,v=>set("nSide",v),[["right","راست"],["left","چپ"]])), label("محل",select(s.nLocation,v=>set("nLocation",v),[["upper","فوقانی"],["mid","میانی"],["lower","تحتانی"]])),
+      label("طول ندول",input({type:"number",value:s.nl,onChange:e=>set("nl",e.target.value)})), label("AP ندول",input({type:"number",value:s.nap,onChange:e=>set("nap",e.target.value)})), label("عرض ندول",input({type:"number",value:s.nt,onChange:e=>set("nt",e.target.value)})),
+      label("ترکیب",select(s.composition,v=>set("composition",v),[["solid","جامد"],["mixed","مختلط"],["cystic","کیستیک"]])), label("اکو",select(s.echo,v=>set("echo",v),[["hypoechoic","هایپواکو"],["isoechoic","ایزواکو"],["hyperechoic","هایپراکو"],["anechoic","آنه‌کو"]])),
+      label("حدود",select(s.margin,v=>set("margin",v),[["smooth","صاف"],["irregular","نامنظم"],["extrathyroidal","گسترش خارج تیروئیدی"]])), label("فوکوس اکوژن",select(s.foci,v=>set("foci",v),[["none","ندارد"],["macro","ماکروکلسیفیکاسیون"],["punctate","نقطه‌ای"]])),
+      label("ACR TI-RADS (تعیین توسط پزشک)",select(s.tirads,v=>set("tirads",v),[["none","ثبت نشود"],["TR1","TR1"],["TR2","TR2"],["TR3","TR3"],["TR4","TR4"],["TR5","TR5"]]))
+    ) : null),
+    checkbox(s.nodes,v=>set("nodes",v),"لنف‌نود مشکوک گردنی مشاهده شد"), label("توضیح اضافی",input({value:s.custom,onChange:e=>set("custom",e.target.value),placeholder:"اختیاری"}))
+  );
+}
+exports.ThyroidCard = ThyroidCard;
+
+const scrotalInitial = { rl:"",rap:"",rt:"", ll:"",lap:"",lt:"", recho:"normal",lecho:"normal", rflow:"normal",lflow:"normal", repi:"normal",lepi:"normal", rhydro:"none",lhydro:"none", cyst:false,cystSide:"right",cystSize:"", lesion:false,lesionSide:"right",lesionSize:"",lesionNote:"" };
+function buildScrotal(s){
+  const f=[]; const i=[]; const r=[]; const rv=volume(s.rl,s.rap,s.rt,0.71), lv=volume(s.ll,s.lap,s.lt,0.71); const rd=dims(s.rl,s.rap,s.rt), ld=dims(s.ll,s.lap,s.lt);
+  f.push(`بیضه راست${rd?` با ابعاد ${rd}`:""}${rv!==null?` و حجم تقریبی ${fa(rv)} سی‌سی`:""} و بیضه چپ${ld?` با ابعاد ${ld}`:""}${lv!==null?` و حجم تقریبی ${fa(lv)} سی‌سی`:""} مشاهده شدند.`);
+  const echoText=x=>x==="normal"?"هموژن و طبیعی":"هتروژن"; f.push(`اکوی پارانشیم بیضه راست ${echoText(s.recho)} و بیضه چپ ${echoText(s.lecho)} است.`); if(s.recho!=="normal"||s.lecho!=="normal") i.push("هتروژنیسیته پارانشیم بیضه؛ مطابق شرح گزارش.");
+  const flowText={normal:"طبیعی",increased:"افزایش‌یافته",decreased:"کاهش‌یافته",absent:"قابل مشاهده نیست"}; f.push(`جریان خون بیضه راست ${flowText[s.rflow]} و بیضه چپ ${flowText[s.lflow]} است.`);
+  if(s.rflow==="increased"||s.lflow==="increased") i.push("افزایش پرفیوژن بیضه؛ تطابق با یافته‌های التهابی توصیه می‌شود.");
+  if(s.rflow==="decreased"||s.lflow==="decreased"||s.rflow==="absent"||s.lflow==="absent") { i.push("کاهش یا عدم مشاهده جریان خون بیضه؛ تورشن باید بر اساس علائم بالینی فوراً رد شود."); r.push("در صورت درد حاد اسکروتوم، ارزیابی فوری اورولوژی توصیه می‌شود."); }
+  const epiText=x=>x==="normal"?"طبیعی":"بزرگ و پرخون"; f.push(`اپیدیدیم راست ${epiText(s.repi)} و اپیدیدیم چپ ${epiText(s.lepi)} است.`); if(s.repi!=="normal"||s.lepi!=="normal") i.push("اپیدیدیمیت؛ تطابق با علائم بالینی توصیه می‌شود.");
+  const hydro=(side,val)=>{ if(val!=="none"){ const d={mild:"مختصر",moderate:"متوسط",large:"زیاد"}[val]; f.push(`هیدروسل ${d} در سمت ${side} مشاهده شد.`); i.push(`هیدروسل سمت ${side}.`); } };
+  hydro("راست",s.rhydro); hydro("چپ",s.lhydro);
+  if(s.cyst){ const side=s.cystSide==="right"?"راست":"چپ"; f.push(`یک کیست ساده اپیدیدیم در سمت ${side}${s.cystSize?` به قطر ${fa(s.cystSize)} میلی‌متر`:""} مشاهده شد.`); i.push(`کیست اپیدیدیم سمت ${side}.`); }
+  if(s.lesion){ const side=s.lesionSide==="right"?"راست":"چپ"; f.push(`در پارانشیم بیضه ${side} یک ضایعه فوکال${s.lesionSize?` به قطر ${fa(s.lesionSize)} میلی‌متر`:""}${s.lesionNote?` با مشخصات: ${s.lesionNote}`:""} مشاهده شد.`); i.push(`ضایعه فوکال داخل بیضه ${side}.`); r.push("ارزیابی اورولوژی و تصمیم‌گیری برای بررسی تکمیلی توصیه می‌شود."); }
+  if(!s.lesion) f.push("ضایعه فوکال داخل‌بیضه‌ای بارزی مشاهده نشد.");
+  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در سونوگرافی اسکروتوم مشاهده نشد.", recommendation:unique(r).join("\n")};
+}
+function ScrotalCard({onReportChange}){
+  const [s,setS]=React.useState(scrotalInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v})); const report=React.useMemo(()=>buildScrotal(s),[s]); useEmit(report,onReportChange);
+  return h("div",{style:cardStyle}, h(CardHeader,{title:"سونوگرافی بیضه‌ها و اسکروتوم",onReset:()=>setS(scrotalInitial)}), h("p",{style:muted},"برای درجه‌بندی تخصصی واریکوسل از بخش Color Doppler Clinic استفاده شود."),
+    h("div",{style:groupStyle},h("h3",null,"بیضه‌ها"),h("div",{style:gridStyle},
+      label("طول راست",input({type:"number",value:s.rl,onChange:e=>set("rl",e.target.value)})),label("AP راست",input({type:"number",value:s.rap,onChange:e=>set("rap",e.target.value)})),label("عرض راست",input({type:"number",value:s.rt,onChange:e=>set("rt",e.target.value)})),
+      label("طول چپ",input({type:"number",value:s.ll,onChange:e=>set("ll",e.target.value)})),label("AP چپ",input({type:"number",value:s.lap,onChange:e=>set("lap",e.target.value)})),label("عرض چپ",input({type:"number",value:s.lt,onChange:e=>set("lt",e.target.value)})),
+      label("اکوی راست",select(s.recho,v=>set("recho",v),[["normal","طبیعی"],["heterogeneous","هتروژن"]])),label("اکوی چپ",select(s.lecho,v=>set("lecho",v),[["normal","طبیعی"],["heterogeneous","هتروژن"]])),
+      label("پرفیوژن راست",select(s.rflow,v=>set("rflow",v),[["normal","طبیعی"],["increased","افزایش‌یافته"],["decreased","کاهش‌یافته"],["absent","مشاهده نشد"]])),label("پرفیوژن چپ",select(s.lflow,v=>set("lflow",v),[["normal","طبیعی"],["increased","افزایش‌یافته"],["decreased","کاهش‌یافته"],["absent","مشاهده نشد"]]))
+    )),
+    h("div",{style:groupStyle},h("h3",null,"اپیدیدیم و یافته‌های همراه"),h("div",{style:gridStyle},
+      label("اپیدیدیم راست",select(s.repi,v=>set("repi",v),[["normal","طبیعی"],["inflamed","بزرگ و پرخون"]])),label("اپیدیدیم چپ",select(s.lepi,v=>set("lepi",v),[["normal","طبیعی"],["inflamed","بزرگ و پرخون"]])),
+      label("هیدروسل راست",select(s.rhydro,v=>set("rhydro",v),[["none","ندارد"],["mild","مختصر"],["moderate","متوسط"],["large","زیاد"]])),label("هیدروسل چپ",select(s.lhydro,v=>set("lhydro",v),[["none","ندارد"],["mild","مختصر"],["moderate","متوسط"],["large","زیاد"]]))
+    ), checkbox(s.cyst,v=>set("cyst",v),"کیست اپیدیدیم"), s.cyst?h("div",{style:gridStyle},label("سمت",select(s.cystSide,v=>set("cystSide",v),[["right","راست"],["left","چپ"]])),label("قطر (mm)",input({type:"number",value:s.cystSize,onChange:e=>set("cystSize",e.target.value)}))):null,
+    checkbox(s.lesion,v=>set("lesion",v),"ضایعه فوکال داخل بیضه"), s.lesion?h("div",{style:gridStyle},label("سمت",select(s.lesionSide,v=>set("lesionSide",v),[["right","راست"],["left","چپ"]])),label("قطر (mm)",input({type:"number",value:s.lesionSize,onChange:e=>set("lesionSize",e.target.value)})),label("مشخصات",input({value:s.lesionNote,onChange:e=>set("lesionNote",e.target.value),placeholder:"اکو، حدود، واسکولاریته و..."}))):null)
+  );
+}
+exports.ScrotalCard = ScrotalCard;
+
+function herniaSideInitial(){ return {status:"none", type:"indirect", content:"fat", neck:"", sac:"", reducibility:"reducible", valsalva:true, vascularity:"preserved"}; }
+const inguinalInitial = { right:herniaSideInitial(), left:herniaSideInitial(), nodes:false, nodeSide:"right", nodeSize:"" };
+function buildInguinal(s){
+  const f=[]; const i=[]; const r=[];
+  function side(key,labelText){ const x=s[key]; if(x.status==="none"){ f.push(`در ناحیه اینگوینال سمت ${labelText}، شواهدی از فتق در حالت استراحت یا حین مانور Valsalva مشاهده نشد.`); return; }
+    const type=x.type==="direct"?"مستقیم":(x.type==="indirect"?"غیرمستقیم":"با نوع نامشخص"); const content={fat:"چربی",bowel:"لوپ روده",mixed:"چربی و لوپ روده"}[x.content]; const red={reducible:"قابل جااندازی",partial:"تا حدی قابل جااندازی",nonreducible:"غیرقابل جااندازی"}[x.reducibility];
+    f.push(`فتق اینگوینال ${type} در سمت ${labelText} با محتوای ${content}${x.neck?` و قطر گردن حدود ${fa(x.neck)} میلی‌متر`:""}${x.sac?` و حداکثر ابعاد ساک حدود ${fa(x.sac)} میلی‌متر`:""} مشاهده شد؛ فتق ${red} است${x.valsalva?" و با مانور Valsalva برجسته‌تر می‌شود":""}.`);
+    if(x.vascularity==="preserved") f.push(`جریان خون محتوای فتق سمت ${labelText} حفظ شده است.`); else { f.push(`کاهش جریان خون در محتوای فتق سمت ${labelText} مشاهده شد.`); r.push("با توجه به کاهش جریان خون یا احتمال گیر افتادگی، ارزیابی فوری جراحی توصیه می‌شود."); }
+    i.push(`فتق اینگوینال ${type} سمت ${labelText}${x.reducibility==="nonreducible"?"، غیرقابل جااندازی":""}.`); if(x.reducibility==="nonreducible") r.push("تطابق فوری با علائم بالینی از نظر incarceration/strangulation توصیه می‌شود.");
+  }
+  side("right","راست"); side("left","چپ");
+  if(s.nodes){ const sideText=s.nodeSide==="right"?"راست":"چپ"; f.push(`چند لنف‌نود اینگوینال با نمای واکنشی در سمت ${sideText}${s.nodeSize?` تا حداکثر قطر کوتاه ${fa(s.nodeSize)} میلی‌متر`:""} مشاهده شد.`); }
+  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"شواهدی از فتق اینگوینال در دو سمت مشاهده نشد.", recommendation:unique(r).join("\n")};
+}
+function InguinalCard({onReportChange}){
+  const [s,setS]=React.useState(inguinalInitial); const setSide=(side,k,v)=>setS(p=>Object.assign({},p,{[side]:Object.assign({},p[side],{[k]:v})})); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v})); const report=React.useMemo(()=>buildInguinal(s),[s]); useEmit(report,onReportChange);
+  function sideUI(side,title){ const x=s[side]; return h("div",{style:groupStyle},h("h3",null,title), label("وضعیت",select(x.status,v=>setSide(side,"status",v),[["none","فتق مشاهده نشد"],["hernia","فتق وجود دارد"]])), x.status==="hernia"?h("div",{style:gridStyle},
+    label("نوع",select(x.type,v=>setSide(side,"type",v),[["indirect","غیرمستقیم"],["direct","مستقیم"],["unspecified","نامشخص"]])), label("محتوا",select(x.content,v=>setSide(side,"content",v),[["fat","چربی"],["bowel","روده"],["mixed","چربی و روده"]])),
+    label("قطر گردن (mm)",input({type:"number",value:x.neck,onChange:e=>setSide(side,"neck",e.target.value)})), label("حداکثر اندازه ساک (mm)",input({type:"number",value:x.sac,onChange:e=>setSide(side,"sac",e.target.value)})),
+    label("قابلیت جااندازی",select(x.reducibility,v=>setSide(side,"reducibility",v),[["reducible","قابل جااندازی"],["partial","نسبی"],["nonreducible","غیرقابل جااندازی"]])), label("جریان خون محتوا",select(x.vascularity,v=>setSide(side,"vascularity",v),[["preserved","حفظ شده"],["reduced","کاهش‌یافته"]])), checkbox(x.valsalva,v=>setSide(side,"valsalva",v),"با Valsalva برجسته‌تر می‌شود")
+  ):null); }
+  return h("div",{style:cardStyle},h(CardHeader,{title:"سونوگرافی نواحی اینگوینال",onReset:()=>setS({right:herniaSideInitial(),left:herniaSideInitial(),nodes:false,nodeSide:"right",nodeSize:""})}), sideUI("right","سمت راست"),sideUI("left","سمت چپ"), h("div",{style:groupStyle},checkbox(s.nodes,v=>set("nodes",v),"لنف‌نود واکنشی اینگوینال"),s.nodes?h("div",{style:gridStyle},label("سمت",select(s.nodeSide,v=>set("nodeSide",v),[["right","راست"],["left","چپ"]])),label("قطر کوتاه (mm)",input({type:"number",value:s.nodeSize,onChange:e=>set("nodeSize",e.target.value)}))):null));
+}
+exports.InguinalCard = InguinalCard;
+
+};
+
 __modules["src/components/Ultrasound.jsx"] = function(module, exports, require){
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault = (this && this.__importDefault) || function (mod) { return (mod && mod.__esModule) ? mod : { "default": mod }; };
 Object.defineProperty(exports, "__esModule", { value: true });
-const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = require("react");
-const KidneyCard_jsx_1 = __importDefault(require("./Kidney/KidneyCard.jsx"));
-const LiverCard_jsx_1 = __importDefault(require("./Liver/LiverCard.jsx"));
-const ProstateCard_jsx_1 = __importDefault(require("./Prostate/ProstateCard.jsx"));
-const ReportOutput_jsx_1 = __importDefault(require("./Common/ReportOutput.jsx"));
-const emptyReport = { finding: "", impression: "", recommendation: "" };
-function uniqueLines(items) {
-    return [...new Set(items
-            .flatMap((item) => (item || "").split("\n"))
-            .map((item) => item.trim())
-            .filter(Boolean))];
-}
-function Ultrasound({ goBack }) {
-    const [activeOrgan, setActiveOrgan] = (0, react_1.useState)("kidney");
-    const [kidneyReport, setKidneyReport] = (0, react_1.useState)(emptyReport);
-    const [liverReport, setLiverReport] = (0, react_1.useState)(emptyReport);
-    const [prostateReport, setProstateReport] = (0, react_1.useState)(emptyReport);
-    const [included, setIncluded] = (0, react_1.useState)({ liver: true, kidney: true, prostate: false });
-    const reports = (0, react_1.useMemo)(() => ({ liver: liverReport, kidney: kidneyReport, prostate: prostateReport }), [kidneyReport, liverReport, prostateReport]);
-    const combinedReport = (0, react_1.useMemo)(() => {
-        const order = ["liver", "kidney", "prostate"];
-        const selected = order.filter((key) => included[key]).map((key) => reports[key]);
-        return {
-            finding: uniqueLines(selected.map((item) => item.finding)).join("\n"),
-            impression: uniqueLines(selected.map((item) => item.impression)).join("\n"),
-            recommendation: uniqueLines(selected.map((item) => item.recommendation)).join("\n"),
-        };
-    }, [included, reports]);
-    const quickBtn = (active) => ({
-        padding: "10px 16px",
-        margin: "4px",
-        borderRadius: "8px",
-        border: active ? "2px solid #38bdf8" : "1px solid #64748b",
-        background: active ? "#0369a1" : "#334155",
-        color: "white",
-        cursor: "pointer",
-    });
-    const presetBtn = {
-        padding: "8px 12px",
-        borderRadius: "8px",
-        border: "1px solid #64748b",
-        background: "#334155",
-        color: "white",
-        cursor: "pointer",
-    };
-    const applyPreset = (preset) => {
-        if (preset === "abdomen")
-            setIncluded({ liver: true, kidney: true, prostate: false });
-        if (preset === "maleAbdomenPelvis")
-            setIncluded({ liver: true, kidney: true, prostate: true });
-        if (preset === "urinary")
-            setIncluded({ liver: false, kidney: true, prostate: false });
-        if (preset === "liver")
-            setIncluded({ liver: true, kidney: false, prostate: false });
-    };
-    const toggleIncluded = (key) => {
-        setIncluded((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
-    return ((0, jsx_runtime_1.jsxs)("div", { style: { minHeight: "100vh", background: "#0f172a", color: "white", direction: "rtl", padding: "clamp(16px, 4vw, 32px)" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: goBack, children: "\u0628\u0627\u0632\u06AF\u0634\u062A" }), (0, jsx_runtime_1.jsx)("h1", { children: "HN Ultrasound Report Engine" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1" }, children: "\u0646\u0633\u062E\u0647 \u06F0.\u06F4 \u2014 \u06AF\u0632\u0627\u0631\u0634 \u062A\u062C\u0645\u06CC\u0639\u06CC \u0628\u0627 Urinary Engine v2\u060C \u06A9\u06CC\u0633\u062A \u0648 \u0633\u0646\u06AF \u0686\u0646\u062F\u06AF\u0627\u0646\u0647\u060C ADPKD \u0648 \u0627\u0644\u06AF\u0648\u0647\u0627\u06CC \u067E\u06CC\u0634\u0631\u0641\u062A\u0647 \u0645\u062B\u0627\u0646\u0647." }), (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px", marginBottom: "18px" }, children: [(0, jsx_runtime_1.jsx)("h2", { style: { marginTop: 0 }, children: "\u0646\u0648\u0639 \u06AF\u0632\u0627\u0631\u0634 \u0646\u0647\u0627\u06CC\u06CC" }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", style: presetBtn, onClick: () => applyPreset("abdomen"), children: "\u0634\u06A9\u0645" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: presetBtn, onClick: () => applyPreset("maleAbdomenPelvis"), children: "\u0634\u06A9\u0645 \u0648 \u0644\u06AF\u0646 \u0622\u0642\u0627\u06CC\u0627\u0646" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: presetBtn, onClick: () => applyPreset("urinary"), children: "\u0633\u06CC\u0633\u062A\u0645 \u0627\u062F\u0631\u0627\u0631\u06CC" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: presetBtn, onClick: () => applyPreset("liver"), children: "\u06A9\u0628\u062F \u0648 \u0635\u0641\u0631\u0627" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "14px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: included.liver, onChange: () => toggleIncluded("liver") }), " \u06A9\u0628\u062F \u0648 \u0633\u06CC\u0633\u062A\u0645 \u0635\u0641\u0631\u0627\u0648\u06CC \u062F\u0631 \u06AF\u0632\u0627\u0631\u0634 \u0646\u0647\u0627\u06CC\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: included.kidney, onChange: () => toggleIncluded("kidney") }), " \u06A9\u0644\u06CC\u0647\u060C \u062D\u0627\u0644\u0628 \u0648 \u0645\u062B\u0627\u0646\u0647 \u062F\u0631 \u06AF\u0632\u0627\u0631\u0634 \u0646\u0647\u0627\u06CC\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: included.prostate, onChange: () => toggleIncluded("prostate") }), " \u067E\u0631\u0648\u0633\u062A\u0627\u062A \u0648 PVR \u062F\u0631 \u06AF\u0632\u0627\u0631\u0634 \u0646\u0647\u0627\u06CC\u06CC"] })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "4px" }, children: [(0, jsx_runtime_1.jsx)("button", { type: "button", style: quickBtn(activeOrgan === "kidney"), onClick: () => setActiveOrgan("kidney"), children: "\u06A9\u0644\u06CC\u0647\u060C \u062D\u0627\u0644\u0628 \u0648 \u0645\u062B\u0627\u0646\u0647" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: quickBtn(activeOrgan === "liver"), onClick: () => setActiveOrgan("liver"), children: "\u06A9\u0628\u062F \u0648 \u0633\u06CC\u0633\u062A\u0645 \u0635\u0641\u0631\u0627\u0648\u06CC" }), (0, jsx_runtime_1.jsx)("button", { type: "button", style: quickBtn(activeOrgan === "prostate"), onClick: () => setActiveOrgan("prostate"), children: "\u067E\u0631\u0648\u0633\u062A\u0627\u062A \u0648 PVR" })] }), (0, jsx_runtime_1.jsx)("div", { style: { display: activeOrgan === "kidney" ? "block" : "none" }, children: (0, jsx_runtime_1.jsx)(KidneyCard_jsx_1.default, { onReportChange: setKidneyReport, showPreview: false }) }), (0, jsx_runtime_1.jsx)("div", { style: { display: activeOrgan === "liver" ? "block" : "none" }, children: (0, jsx_runtime_1.jsx)(LiverCard_jsx_1.default, { onReportChange: setLiverReport, showPreview: false }) }), (0, jsx_runtime_1.jsx)("div", { style: { display: activeOrgan === "prostate" ? "block" : "none" }, children: (0, jsx_runtime_1.jsx)(ProstateCard_jsx_1.default, { onReportChange: setProstateReport, showPreview: false }) }), (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "2px solid #38bdf8", borderRadius: "14px", padding: "18px", marginTop: "24px" }, children: [(0, jsx_runtime_1.jsx)("h2", { style: { marginTop: 0 }, children: "\u06AF\u0632\u0627\u0631\u0634 \u0646\u0647\u0627\u06CC\u06CC \u0628\u06CC\u0645\u0627\u0631" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1", marginTop: 0 }, children: "\u062A\u0645\u0627\u0645 \u0628\u062E\u0634\u200C\u0647\u0627\u06CC \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u062F\u0631 \u0627\u06CC\u0646 \u0642\u0633\u0645\u062A \u06A9\u0646\u0627\u0631 \u0647\u0645 \u0642\u0631\u0627\u0631 \u0645\u06CC\u200C\u06AF\u06CC\u0631\u0646\u062F\u061B \u0641\u0642\u0637 \u0647\u0645\u06CC\u0646 \u06AF\u0632\u0627\u0631\u0634 \u0631\u0627 \u06CC\u06A9\u200C\u0628\u0627\u0631 \u06A9\u067E\u06CC \u06A9\u0646\u06CC\u062F." }), (0, jsx_runtime_1.jsx)(ReportOutput_jsx_1.default, { ...combinedReport })] })] }));
+const React = require("react");
+const h = React.createElement;
+const KidneyCard = __importDefault(require("./Kidney/KidneyCard.jsx")).default;
+const LiverCard = __importDefault(require("./Liver/LiverCard.jsx")).default;
+const ProstateCard = __importDefault(require("./Prostate/ProstateCard.jsx")).default;
+const ReportOutput = __importDefault(require("./Common/ReportOutput.jsx")).default;
+const Extra = require("./Workflow/ExamCards.jsx");
+
+const emptyReport = {finding:"",impression:"",recommendation:""};
+const exams = [
+  {id:"maleAbdomenPelvis", icon:"👨", title:"شکم و لگن آقایان", description:"کبد، کیسه صفرا، مجاری صفراوی، پانکراس، طحال، کلیه‌ها، مثانه، پروستات و PVR", organs:["liver","pancreasSpleen","kidney","prostate"]},
+  {id:"femaleAbdomenPelvis", icon:"👩", title:"شکم و لگن خانم‌ها", description:"کبد، کیسه صفرا، مجاری صفراوی، پانکراس، طحال، کلیه‌ها، مثانه، رحم و تخمدان‌ها", organs:["liver","pancreasSpleen","kidney","femalePelvis"]},
+  {id:"hepatobiliary", icon:"🟤", title:"کبد و مجاری صفراوی", description:"کبد، کیسه صفرا، مجاری صفراوی و CBD", organs:["liver"]},
+  {id:"urinaryProstate", icon:"🩺", title:"کلیه، مثانه، پروستات و PVR", description:"کلیه‌ها و مجاری ادراری، مثانه پر و خالی، پروستات و باقی‌مانده ادرار", organs:["kidney","prostate"]},
+  {id:"kidneyBladder", icon:"💧", title:"کلیه و مثانه بدون پروستات", description:"کلیه‌ها، حالب‌ها و مثانه؛ بدون نمایش فرم پروستات", organs:["kidney"]},
+  {id:"scrotal", icon:"⚕️", title:"بیضه‌ها و اسکروتوم", description:"ابعاد و حجم بیضه‌ها، پرفیوژن، اپیدیدیم، هیدروسل و ضایعات فوکال", organs:["scrotal"]},
+  {id:"inguinal", icon:"↔️", title:"نواحی اینگوینال", description:"بررسی فتق راست و چپ، Valsalva، قابلیت جااندازی و جریان خون محتوا", organs:["inguinal"]},
+  {id:"thyroid", icon:"🦋", title:"تیروئید", description:"ابعاد لوب‌ها، پارانشیم، واسکولاریته، ندول و لنف‌نودهای گردنی", organs:["thyroid"]},
+  {id:"femalePelvis", icon:"♀️", title:"رحم و ضمائم", description:"رحم، اندومتر، تخمدان‌ها و مایع آزاد لگنی", organs:["femalePelvis"]}
+];
+const organTitles = {liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",scrotal:"بیضه‌ها و اسکروتوم",inguinal:"ناحیه اینگوینال"};
+function lines(text){ return (text||"").split("\n").map(x=>x.trim()).filter(Boolean); }
+function unique(arr){ return [...new Set(arr)]; }
+function isGenericNormal(line){ return /یافته پاتولوژیک بارزی|شواهدی از فتق اینگوینال در دو سمت مشاهده نشد/.test(line); }
+function sameReport(a,b){ return a.finding===b.finding && a.impression===b.impression && a.recommendation===b.recommendation; }
+function Ultrasound({goBack}){
+  const [examId,setExamId]=React.useState(null);
+  const [activeOrgan,setActiveOrgan]=React.useState(null);
+  const [sessionKey,setSessionKey]=React.useState(1);
+  const [reports,setReports]=React.useState({});
+  const exam=React.useMemo(()=>exams.find(x=>x.id===examId)||null,[examId]);
+  const update=React.useCallback((key,report)=>setReports(prev=>{ const next=report||emptyReport; return prev[key]&&sameReport(prev[key],next)?prev:Object.assign({},prev,{[key]:next}); }),[]);
+  const cbLiver=React.useCallback(r=>update("liver",r),[update]);
+  const cbPancreas=React.useCallback(r=>update("pancreasSpleen",r),[update]);
+  const cbKidney=React.useCallback(r=>update("kidney",r),[update]);
+  const cbProstate=React.useCallback(r=>update("prostate",r),[update]);
+  const cbPelvis=React.useCallback(r=>update("femalePelvis",r),[update]);
+  const cbThyroid=React.useCallback(r=>update("thyroid",r),[update]);
+  const cbScrotal=React.useCallback(r=>update("scrotal",r),[update]);
+  const cbInguinal=React.useCallback(r=>update("inguinal",r),[update]);
+  const callbacks={liver:cbLiver,pancreasSpleen:cbPancreas,kidney:cbKidney,prostate:cbProstate,femalePelvis:cbPelvis,thyroid:cbThyroid,scrotal:cbScrotal,inguinal:cbInguinal};
+  const selectExam=(id)=>{ const x=exams.find(e=>e.id===id); setExamId(id); setActiveOrgan(x.organs[0]); setReports({}); setSessionKey(k=>k+1); window.scrollTo({top:0,behavior:"smooth"}); };
+  const resetPatient=()=>{ setReports({}); setSessionKey(k=>k+1); if(exam) setActiveOrgan(exam.organs[0]); };
+  const combined=React.useMemo(()=>{ if(!exam) return emptyReport; const selected=exam.organs.map(k=>reports[k]).filter(Boolean); const finding=unique(selected.flatMap(x=>lines(x.finding))).join("\n"); let impressions=unique(selected.flatMap(x=>lines(x.impression))).filter(x=>!isGenericNormal(x)); const recommendation=unique(selected.flatMap(x=>lines(x.recommendation))).join("\n"); return {finding, impression:impressions.length?impressions.join("\n"):"یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد.", recommendation}; },[exam,reports]);
+  const pageStyle={minHeight:"100vh",background:"#0f172a",color:"white",direction:"rtl",padding:"clamp(16px, 4vw, 32px)"};
+  const examCard={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"18px",color:"white",textAlign:"right",cursor:"pointer",minHeight:"150px",transition:"0.2s"};
+  const tabStyle=(active)=>({padding:"10px 15px",borderRadius:"9px",border:active?"2px solid #38bdf8":"1px solid #64748b",background:active?"#0369a1":"#334155",color:"white",cursor:"pointer"});
+  function renderOrgan(key){ const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false}; if(key==="liver") return h(LiverCard,props); if(key==="pancreasSpleen") return h(Extra.PancreasSpleenCard,props); if(key==="kidney") return h(KidneyCard,props); if(key==="prostate") return h(ProstateCard,props); if(key==="femalePelvis") return h(Extra.FemalePelvisCard,props); if(key==="thyroid") return h(Extra.ThyroidCard,props); if(key==="scrotal") return h(Extra.ScrotalCard,props); if(key==="inguinal") return h(Extra.InguinalCard,props); return null; }
+  if(!exam){ return h("div",{style:pageStyle}, h("button",{type:"button",onClick:goBack},"بازگشت"), h("h1",null,"HN Ultrasound Workflow"), h("p",{style:{color:"#cbd5e1"}},"نسخه ۰.۶ — ابتدا عنوان دقیق سونوگرافی روی برگه پذیرش را انتخاب کنید؛ فقط فرم‌های مربوط به همان بررسی نمایش داده می‌شوند."), h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}}, exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description))))); }
+  return h("div",{style:pageStyle},
+    h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}}, h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
+    h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
+    exam.organs.length>1?h("div",{style:{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"18px"}},exam.organs.map(k=>h("button",{key:k,type:"button",style:tabStyle(activeOrgan===k),onClick:()=>setActiveOrgan(k)},organTitles[k]))):null,
+    h("div",null,exam.organs.map(k=>h("div",{key:k,style:{display:activeOrgan===k?"block":"none"}},renderOrgan(k)))),
+    h("section",{style:{background:"#1e293b",border:"2px solid #38bdf8",borderRadius:"14px",padding:"18px",marginTop:"24px"}},h("h2",{style:{marginTop:0}},`گزارش نهایی — ${exam.title}`),h("p",{style:{color:"#cbd5e1",marginTop:0}},"گزارش فقط از بخش‌های مربوط به همین نوع سونوگرافی ساخته می‌شود."),h(ReportOutput,combined))
+  );
 }
 exports.default = Ultrasound;
 
