@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v1.1 - Responsive Clickable Landing Page" />
-  <title>HN Radiology Suite v1.1</title>
+  <meta name="description" content="HN Radiology Suite v1.3 - Normal Templates + RTL Word" />
+  <title>HN Radiology Suite v1.3</title>
   <style>
 * {
   box-sizing: border-box;
@@ -73,7 +73,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v1.2 - Editable final report + DOCX export and Word archive; preserves v1.1 landing page and all prior engines */
+/* HN Radiology Suite v1.3 - Editable final report + DOCX export and Word archive; preserves v1.1 landing page and all prior engines */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -503,24 +503,24 @@ exports.default = ColorDopplerClinic;
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/\"/g, "&quot;").replace(/'/g, "&apos;");
   const runXml = (text, options = {}) => {
-    const bold = options.bold ? "<w:b/>" : "";
+    const bold = options.bold ? '<w:b w:val="1"/><w:bCs w:val="1"/>' : "";
     const size = options.size || 24;
-    return `<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:rtl/>${bold}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
+    return `<w:r><w:rPr><w:rFonts w:ascii="B Yekan" w:hAnsi="B Yekan" w:eastAsia="B Yekan" w:cs="B Yekan"/><w:rtl w:val="1"/>${bold}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
   };
   const paragraphXml = (text, options = {}) => {
     const align = options.center ? "center" : (options.left ? "left" : "right");
     const after = options.after == null ? 140 : options.after;
     const lines = String(text == null ? "" : text).split(/\r?\n/);
     const runs = lines.map((line, index) => `${index ? "<w:r><w:br/></w:r>" : ""}${runXml(line || " ", options)}`).join("");
-    return `<w:p><w:pPr><w:bidi/><w:jc w:val="${align}"/><w:spacing w:after="${after}" w:line="360" w:lineRule="auto"/></w:pPr>${runs}</w:p>`;
+    return `<w:p><w:pPr><w:bidi w:val="1"/><w:jc w:val="${align}"/><w:spacing w:after="${after}" w:line="360" w:lineRule="auto"/></w:pPr>${runs}</w:p>`;
   };
   const createDocumentXml = data => {
     const title = data.examTitle || "گزارش سونوگرافی";
     const body = [];
-    body.push(paragraphXml(title, { bold: true, size: 32, center: true, after: 240 }));
+    body.push(paragraphXml(title, { bold: true, size: 32, after: 240 }));
     body.push(paragraphXml(`Patient ID: ${data.patientId || "------"}`, { bold: true, size: 23, after: 70 }));
     body.push(paragraphXml(`تاریخ و ساعت: ${data.createdAtText || ""}`, { size: 22, after: 70 }));
-    body.push(paragraphXml(`نوع بررسی: ${title}`, { size: 22, after: 220 }));
+    body.push(paragraphXml(`نوع بررسی: ${title}`, { bold: true, size: 22, after: 220 }));
     if (String(data.finding || "").trim()) {
       body.push(paragraphXml("یافته‌ها", { bold: true, size: 25, after: 80 }));
       body.push(paragraphXml(String(data.finding).trim(), { size: 24, after: 220 }));
@@ -536,7 +536,7 @@ exports.default = ColorDopplerClinic;
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join("")}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   };
   const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:bidi/><w:jc w:val="right"/><w:spacing w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>`;
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="B Yekan" w:hAnsi="B Yekan" w:eastAsia="B Yekan" w:cs="B Yekan"/><w:rtl w:val="1"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:bidi w:val="1"/><w:jc w:val="right"/><w:spacing w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/><w:pPr><w:bidi w:val="1"/><w:jc w:val="right"/></w:pPr><w:rPr><w:rFonts w:ascii="B Yekan" w:hAnsi="B Yekan" w:eastAsia="B Yekan" w:cs="B Yekan"/><w:rtl w:val="1"/></w:rPr></w:style></w:styles>`;
   const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
   const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -782,7 +782,7 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", exam
         h("textarea", { value: editableImpression, onChange: markEdited(setEditableImpression), style: Object.assign({}, textareaStyle, { minHeight: "92px", fontWeight: "bold" }), rows: 4, spellCheck: false, "aria-label": "نتیجه‌گیری" }),
         h("h4", { style: { fontWeight: "bold" } }, "پیشنهاد"),
         h("textarea", { value: editableRecommendation, onChange: markEdited(setEditableRecommendation), style: Object.assign({}, textareaStyle, { minHeight: "82px", fontWeight: "bold" }), rows: 3, spellCheck: false, placeholder: "در صورت نیاز پیشنهاد را وارد یا ویرایش کنید", "aria-label": "پیشنهاد" }),
-        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, "در فایل Word، عنوان گزارش با فونت Arial و به‌صورت Bold ثبت می‌شود و بخش‌های نتیجه‌گیری و پیشنهاد نیز Bold هستند. فایل ورد داخل آرشیو مرورگر ذخیره می‌شود؛ پشتیبان‌گیری دوره‌ای فراموش نشود.")
+        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, "در فایل Word، تمام متن‌ها راست‌چین و با فونت B Yekan تنظیم می‌شوند؛ نوع سونوگرافی، نتیجه‌گیری و پیشنهاد نیز به‌صورت Bold ثبت خواهند شد. فایل ورد داخل آرشیو مرورگر ذخیره می‌شود؛ پشتیبان‌گیری دوره‌ای فراموش نشود.")
     );
 }
 exports.default = ReportOutput;
@@ -842,15 +842,11 @@ function MyReports({ goBack }) {
     };
     const downloadWord = item => {
         try {
-            let base64 = item.docxBase64;
-            let nextReports = reports;
-            if (!base64) {
-                base64 = createWordBase64(item);
-                nextReports = reports.map(x => x.id === item.id ? Object.assign({}, x, { docxBase64: base64, wordFileName: `${item.patientId}.docx`, archiveFormat: "docx" }) : x);
-                writeReports(nextReports); setReports(nextReports);
-            }
+            const base64 = createWordBase64(item);
+            const nextReports = reports.map(x => x.id === item.id ? Object.assign({}, x, { docxBase64: base64, wordFileName: `${item.patientId}.docx`, archiveFormat: "docx" }) : x);
+            writeReports(nextReports); setReports(nextReports);
             window.HNWord.downloadBase64(base64, item.wordFileName || `${item.patientId}.docx`);
-            flash(`فایل ${item.patientId}.docx آماده شد`, 3000);
+            flash(`فایل ${item.patientId}.docx با قالب جدید آماده شد`, 3000);
         }
         catch (_a) { flash("بازکردن فایل ورد انجام نشد", 3200); }
     };
@@ -994,7 +990,7 @@ function Home({ goUltrasound, goDoppler, goReports }) {
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "▣"), h("div", null, h("strong", null, "آرشیو محلی"), h("small", null, "Patient ID، تاریخ و گزارش‌های ذخیره‌شده"))),
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "✓"), h("div", null, h("strong", null, "استاندارد و به‌روز"), h("small", null, "بر پایه Phrase Bank تأییدشده")))
                 ),
-                h("div", { className: "hn-version" }, "نسخه ۱.۱ — Responsive Clickable Landing Page + Patient ID Local Archive")
+                h("div", { className: "hn-version" }, "نسخه ۱.۳ — Normal Templates + RTL Word")
             )
         ),
         loginOpen && h("div", { className: "hn-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-labelledby": "login-title", onClick: () => setLoginOpen(false) },
@@ -1962,8 +1958,9 @@ function buildFemalePelvis(s,examId){
     }
   }
   const rightHasCyst=s.cysts.some(x=>x.side==="right"), leftHasCyst=s.cysts.some(x=>x.side==="left");
-  ovarianStatusReport("right",s,f,i,r,rightHasCyst);
-  ovarianStatusReport("left",s,f,i,r,leftHasCyst);
+  const generalAbdomenNormalOvaries=examId==="femaleAbdomenPelvis"&&!rightHasCyst&&!leftHasCyst&&s.rightStatus==="normal"&&s.leftStatus==="normal"&&!s.rightDominant&&!s.leftDominant;
+  if(generalAbdomenNormalOvaries) f.push("تخمدان‌ها با ابعاد و پترن فولیکولار نرمال رویت شدند.");
+  else { ovarianStatusReport("right",s,f,i,r,rightHasCyst); ovarianStatusReport("left",s,f,i,r,leftHasCyst); }
   s.cysts.forEach((x,idx)=>{
     f.push(ovarianLesionSentence(x,idx,allowOrads,r));
     const side=adnexSideText(x.side);
@@ -2264,25 +2261,26 @@ const freeSections={
 };
 function lines(text){return(text||"").split("\n").map(x=>x.trim()).filter(Boolean);}function unique(arr){return[...new Set(arr)];}function isGenericNormal(line){return/یافته پاتولوژیک بارزی|شواهدی از فتق اینگوینال در دو سمت مشاهده نشد/.test(line);}function sameReport(a,b){return a.finding===b.finding&&a.impression===b.impression&&a.recommendation===b.recommendation;}
 function Ultrasound({goBack}){
- const [examId,setExamId]=React.useState(null),[activeOrgan,setActiveOrgan]=React.useState(null),[sessionKey,setSessionKey]=React.useState(1),[reports,setReports]=React.useState({}),[customNotes,setCustomNotes]=React.useState({});
+ const [examId,setExamId]=React.useState(null),[activeOrgan,setActiveOrgan]=React.useState(null),[sessionKey,setSessionKey]=React.useState(1),[reports,setReports]=React.useState({}),[customNotes,setCustomNotes]=React.useState({}),[paraaorticMode,setParaaorticMode]=React.useState("normal");
  const exam=React.useMemo(()=>exams.find(x=>x.id===examId)||null,[examId]);
  const update=React.useCallback((key,report)=>setReports(prev=>{const next=report||emptyReport;return prev[key]&&sameReport(prev[key],next)?prev:Object.assign({},prev,{[key]:next});}),[]);
  const callbacks={};["liver","pancreasSpleen","kidney","prostate","femalePelvis","thyroid","scrotal","inguinal"].forEach(k=>callbacks[k]=r=>update(k,r));
  const updateCustom=(id,field,value)=>setCustomNotes(prev=>Object.assign({},prev,{[id]:Object.assign({finding:"",impression:"",recommendation:""},prev[id]||{}, {[field]:value})}));
- const selectExam=id=>{const x=exams.find(e=>e.id===id);setExamId(id);setActiveOrgan(x.organs[0]);setReports({});setCustomNotes({});setSessionKey(k=>k+1);window.scrollTo({top:0,behavior:"smooth"});};
- const resetPatient=()=>{setReports({});setCustomNotes({});setSessionKey(k=>k+1);if(exam)setActiveOrgan(exam.organs[0]);};
+ const selectExam=id=>{const x=exams.find(e=>e.id===id);setExamId(id);setActiveOrgan(x.organs[0]);setReports({});setCustomNotes({});setParaaorticMode("normal");setSessionKey(k=>k+1);window.scrollTo({top:0,behavior:"smooth"});};
+ const resetPatient=()=>{setReports({});setCustomNotes({});setParaaorticMode("normal");setSessionKey(k=>k+1);if(exam)setActiveOrgan(exam.organs[0]);};
  const customReports=React.useMemo(()=>{if(!exam)return[];return exam.organs.flatMap(k=>(freeSections[k]||[]).map(s=>customNotes[s[0]]||emptyReport)).filter(r=>r.finding.trim()||r.impression.trim()||r.recommendation.trim());},[exam,customNotes]);
- const combined=React.useMemo(()=>{if(!exam)return emptyReport;const selected=exam.organs.map(k=>reports[k]).filter(Boolean).concat(customReports);const finding=unique(selected.flatMap(x=>lines(x.finding))).join("\n");let impressions=unique(selected.flatMap(x=>lines(x.impression))).filter(x=>!isGenericNormal(x));const recommendation=unique(selected.flatMap(x=>lines(x.recommendation))).join("\n");const hasCustomFinding=customReports.some(x=>x.finding.trim());return{finding,impression:impressions.length?impressions.join("\n"):(hasCustomFinding?"":"یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد."),recommendation};},[exam,reports,customReports]);
+ const combined=React.useMemo(()=>{if(!exam)return emptyReport;const isGeneralAbdomenPelvis=examId==="maleAbdomenPelvis"||examId==="femaleAbdomenPelvis";const paraaorticReport=isGeneralAbdomenPelvis?{finding:paraaorticMode==="limited"?"فضای پاراآورتیک به‌علت سایه‌های گازی قابل ارزیابی نیست.":"در فضای پاراآورتیک، یافته پاتولوژیک واضح یا ضایعه فضاگیر واضحی مشاهده نشد.",impression:"",recommendation:""}:null;const selected=exam.organs.map(k=>reports[k]).filter(Boolean).concat(customReports).concat(paraaorticReport?[paraaorticReport]:[]);const finding=unique(selected.flatMap(x=>lines(x.finding))).join("\n");let impressions=unique(selected.flatMap(x=>lines(x.impression))).filter(x=>!isGenericNormal(x));if(examId==="maleAbdomenPelvis")impressions=impressions.filter(x=>!(/^پروستات با حجم تقریبی .* و نمای طبیعی\.$/.test(x)||x==="نمای طبیعی پروستات."||x==="تخلیه مثانه مناسب است."||x==="PVR در محدوده قابل قبول اندازه‌گیری شد."||x==="یافته پاتولوژیک واضحی مشاهده نمی‌شود."));const recommendation=unique(selected.flatMap(x=>lines(x.recommendation))).join("\n");const hasCustomFinding=customReports.some(x=>x.finding.trim());return{finding,impression:impressions.length?impressions.join("\n"):(hasCustomFinding?"":"یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد."),recommendation};},[exam,examId,reports,customReports,paraaorticMode]);
  const pageStyle={minHeight:"100vh",background:"#0f172a",color:"white",direction:"rtl",padding:"clamp(16px, 4vw, 32px)"},examCard={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"18px",color:"white",textAlign:"right",cursor:"pointer",minHeight:"150px",transition:"0.2s"},tabStyle=active=>({padding:"10px 15px",borderRadius:"9px",border:active?"2px solid #38bdf8":"1px solid #64748b",background:active?"#0369a1":"#334155",color:"white",cursor:"pointer"});
  function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۱.۰ — Patient ID شش‌رقمی، ثبت خودکار تاریخ و ساعت و آرشیو محلی گزارش‌ها."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۱.۳ — گزارش‌های نرمال اصلاح‌شده، فضای پاراآورتیک و خروجی Word راست‌چین."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
   exam.organs.length>1?h("div",{style:{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"18px"}},exam.organs.map(k=>h("button",{key:k,type:"button",style:tabStyle(activeOrgan===k),onClick:()=>setActiveOrgan(k)},organTitles[k]))):null,
   h("div",null,exam.organs.map(k=>h("div",{key:k,style:{display:activeOrgan===k?"block":"none"}},renderOrgan(k),k!=="liver"?renderFreeSections(k):null))),
+  (examId==="maleAbdomenPelvis"||examId==="femaleAbdomenPelvis")?h("section",{style:{background:"#172033",border:"1px solid #475569",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("h2",{style:{marginTop:0,fontSize:"18px"}},"فضای پاراآورتیک"),h("label",{style:{display:"grid",gap:"7px",maxWidth:"520px"}},"وضعیت ارزیابی",h("select",{value:paraaorticMode,onChange:e=>setParaaorticMode(e.target.value),style:{width:"100%",padding:"10px",borderRadius:"8px",background:"#f8fafc",color:"#0f172a"}},h("option",{value:"normal"},"طبیعی — بدون ضایعه فضاگیر واضح"),h("option",{value:"limited"},"غیرقابل ارزیابی به‌علت سایه‌های گازی")))):null,
   h("section",{style:{background:"#1e293b",border:"2px solid #38bdf8",borderRadius:"14px",padding:"18px",marginTop:"24px"}},h("h2",{style:{marginTop:0}},`گزارش نهایی — ${exam.title}`),h("p",{style:{color:"#cbd5e1",marginTop:0}},"گزارش فقط از بخش‌های مربوط به همین نوع سونوگرافی ساخته می‌شود و متن‌های آزاد هر ارگان نیز در محل مناسب وارد می‌شوند."),h(ReportOutput,Object.assign({},combined,{examTitle:exam.title,sessionKey})))
  );
 }
