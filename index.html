@@ -73,7 +73,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v1.1 - Responsive clickable landing page; preserves v1.0 report engines and local archive */
+/* HN Radiology Suite v1.2 - Editable final report + DOCX export and Word archive; preserves v1.1 landing page and all prior engines */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -435,20 +435,168 @@ exports.default = ColorDopplerClinic;
 
 };
 
+/* HN Word DOCX helper — self-contained, no external libraries */
+(function(){
+  if (window.HNWord) return;
+  const enc = new TextEncoder();
+  const crcTable = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+  const crc32 = bytes => {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  };
+  const u16 = n => new Uint8Array([n & 255, (n >>> 8) & 255]);
+  const u32 = n => new Uint8Array([n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255]);
+  const concat = arrays => {
+    const total = arrays.reduce((sum, a) => sum + a.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    arrays.forEach(a => { out.set(a, offset); offset += a.length; });
+    return out;
+  };
+  const dosDateTime = date => {
+    const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+    const year = Math.max(1980, d.getFullYear());
+    const time = ((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((Math.floor(d.getSeconds() / 2)) & 31);
+    const day = ((year - 1980) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31);
+    return { time, day };
+  };
+  const zipStore = files => {
+    const locals = [];
+    const centrals = [];
+    let offset = 0;
+    const dt = dosDateTime(new Date());
+    files.forEach(file => {
+      const name = enc.encode(file.name);
+      const data = typeof file.data === "string" ? enc.encode(file.data) : file.data;
+      const crc = crc32(data);
+      const local = concat([
+        u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(dt.time), u16(dt.day),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name, data
+      ]);
+      locals.push(local);
+      const central = concat([
+        u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(dt.time), u16(dt.day),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0),
+        u32(0), u32(offset), name
+      ]);
+      centrals.push(central);
+      offset += local.length;
+    });
+    const centralBytes = concat(centrals);
+    const localBytes = concat(locals);
+    const eocd = concat([
+      u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+      u32(centralBytes.length), u32(localBytes.length), u16(0)
+    ]);
+    return concat([localBytes, centralBytes, eocd]);
+  };
+  const xmlEscape = value => String(value == null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;").replace(/'/g, "&apos;");
+  const runXml = (text, options = {}) => {
+    const bold = options.bold ? "<w:b/>" : "";
+    const size = options.size || 24;
+    return `<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:rtl/>${bold}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
+  };
+  const paragraphXml = (text, options = {}) => {
+    const align = options.center ? "center" : (options.left ? "left" : "right");
+    const after = options.after == null ? 140 : options.after;
+    const lines = String(text == null ? "" : text).split(/\r?\n/);
+    const runs = lines.map((line, index) => `${index ? "<w:r><w:br/></w:r>" : ""}${runXml(line || " ", options)}`).join("");
+    return `<w:p><w:pPr><w:bidi/><w:jc w:val="${align}"/><w:spacing w:after="${after}" w:line="360" w:lineRule="auto"/></w:pPr>${runs}</w:p>`;
+  };
+  const createDocumentXml = data => {
+    const title = data.examTitle || "گزارش سونوگرافی";
+    const body = [];
+    body.push(paragraphXml(title, { bold: true, size: 32, center: true, after: 240 }));
+    body.push(paragraphXml(`Patient ID: ${data.patientId || "------"}`, { bold: true, size: 23, after: 70 }));
+    body.push(paragraphXml(`تاریخ و ساعت: ${data.createdAtText || ""}`, { size: 22, after: 70 }));
+    body.push(paragraphXml(`نوع بررسی: ${title}`, { size: 22, after: 220 }));
+    if (String(data.finding || "").trim()) {
+      body.push(paragraphXml("یافته‌ها", { bold: true, size: 25, after: 80 }));
+      body.push(paragraphXml(String(data.finding).trim(), { size: 24, after: 220 }));
+    }
+    if (String(data.impression || "").trim()) {
+      body.push(paragraphXml("نتیجه‌گیری", { bold: true, size: 25, after: 80 }));
+      body.push(paragraphXml(String(data.impression).trim(), { bold: true, size: 24, after: 220 }));
+    }
+    if (String(data.recommendation || "").trim()) {
+      body.push(paragraphXml("پیشنهاد", { bold: true, size: 25, after: 80 }));
+      body.push(paragraphXml(String(data.recommendation).trim(), { bold: true, size: 24, after: 220 }));
+    }
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join("")}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  };
+  const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:bidi/><w:jc w:val="right"/><w:spacing w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>`;
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
+  const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const documentRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+  const createDocxBytes = data => zipStore([
+    { name: "[Content_Types].xml", data: contentTypes },
+    { name: "_rels/.rels", data: rootRels },
+    { name: "word/document.xml", data: createDocumentXml(data) },
+    { name: "word/styles.xml", data: stylesXml },
+    { name: "word/_rels/document.xml.rels", data: documentRels }
+  ]);
+  const toBase64 = bytes => {
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    return btoa(binary);
+  };
+  const fromBase64 = base64 => {
+    const binary = atob(base64 || "");
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  };
+  const downloadBytes = (bytes, fileName) => {
+    const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    if (navigator.msSaveOrOpenBlob) { navigator.msSaveOrOpenBlob(blob, fileName); return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = fileName; a.style.display = "none";
+    document.body.appendChild(a); a.click(); a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+  const downloadBase64 = (base64, fileName) => downloadBytes(fromBase64(base64), fileName);
+  window.HNWord = { createDocxBytes, toBase64, fromBase64, downloadBytes, downloadBase64 };
+})();
+
 __modules["src/components/Common/ReportOutput.jsx"] = function(module, exports, require){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const h = React.createElement;
 const STORAGE_KEY = "hnRadiologyReportsV1";
-const sectionStyle = {
-    background: "#0f172a",
-    border: "1px solid #334155",
+const textareaStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    background: "#ffffff",
+    color: "#0f172a",
+    border: "1px solid #64748b",
     borderRadius: "10px",
     padding: "14px",
     whiteSpace: "pre-wrap",
     lineHeight: 2,
-    minHeight: "64px",
+    minHeight: "120px",
+    resize: "vertical",
+    direction: "rtl",
+    textAlign: "right",
+    fontFamily: "Arial, Tahoma, sans-serif",
+    fontSize: "15px"
 };
 const inputStyle = {
     width: "180px",
@@ -479,25 +627,38 @@ function readReports() {
     }
     catch (_a) { return []; }
 }
-function writeReports(items) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
+function writeReports(items) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
 function ReportOutput({ finding = "", impression = "", recommendation = "", examTitle = "گزارش سونوگرافی", sessionKey = 0 }) {
     const [copyStatus, setCopyStatus] = React.useState("");
     const [patientId, setPatientId] = React.useState("");
     const [createdAt, setCreatedAt] = React.useState(() => new Date());
+    const [editableFinding, setEditableFinding] = React.useState(finding || "");
+    const [editableImpression, setEditableImpression] = React.useState(impression || "");
+    const [editableRecommendation, setEditableRecommendation] = React.useState(recommendation || "");
+    const [manuallyEdited, setManuallyEdited] = React.useState(false);
     React.useEffect(() => {
         setPatientId("");
         setCreatedAt(new Date());
         setCopyStatus("");
+        setEditableFinding(finding || "");
+        setEditableImpression(impression || "");
+        setEditableRecommendation(recommendation || "");
+        setManuallyEdited(false);
     }, [sessionKey]);
+    React.useEffect(() => {
+        if (!manuallyEdited) {
+            setEditableFinding(finding || "");
+            setEditableImpression(impression || "");
+            setEditableRecommendation(recommendation || "");
+        }
+    }, [finding, impression, recommendation, manuallyEdited]);
     const reportBody = React.useMemo(() => {
         const sections = [];
-        if (finding.trim()) sections.push(`یافته‌ها:\n${finding.trim()}`);
-        if (impression.trim()) sections.push(`نتیجه‌گیری:\n${impression.trim()}`);
-        if (recommendation.trim()) sections.push(`پیشنهاد:\n${recommendation.trim()}`);
+        if (editableFinding.trim()) sections.push(`یافته‌ها:\n${editableFinding.trim()}`);
+        if (editableImpression.trim()) sections.push(`نتیجه‌گیری:\n${editableImpression.trim()}`);
+        if (editableRecommendation.trim()) sections.push(`پیشنهاد:\n${editableRecommendation.trim()}`);
         return sections.join("\n\n");
-    }, [finding, impression, recommendation]);
+    }, [editableFinding, editableImpression, editableRecommendation]);
     const validPatientId = /^\d{6}$/.test(patientId);
     const buildFullReport = (date = createdAt) => {
         const header = [
@@ -507,57 +668,89 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", exam
         ].join("\n");
         return reportBody ? `${header}\n\n${reportBody}` : header;
     };
-    const onPatientIdChange = (event) => {
+    const wordData = (date = createdAt) => ({
+        patientId,
+        createdAtText: formatDate(date),
+        examTitle,
+        finding: editableFinding.trim(),
+        impression: editableImpression.trim(),
+        recommendation: editableRecommendation.trim()
+    });
+    const onPatientIdChange = event => {
         const next = String(event.target.value || "").replace(/\D/g, "").slice(0, 6);
         if (!patientId && next) setCreatedAt(new Date());
-        setPatientId(next);
-        setCopyStatus("");
+        setPatientId(next); setCopyStatus("");
     };
-    const flash = (text, ms = 2200) => {
+    const flash = (text, ms = 2400) => {
         setCopyStatus(text);
         window.setTimeout(() => setCopyStatus(""), ms);
     };
-    const copyText = async (text) => {
+    const markEdited = setter => event => {
+        setter(String(event.target.value || ""));
+        setManuallyEdited(true);
+        setCopyStatus("");
+    };
+    const resetGeneratedText = () => {
+        setEditableFinding(finding || "");
+        setEditableImpression(impression || "");
+        setEditableRecommendation(recommendation || "");
+        setManuallyEdited(false);
+        flash("متن تولیدشده بازیابی شد");
+    };
+    const copyText = async text => {
         try { await navigator.clipboard.writeText(text); }
         catch (_a) {
             const textarea = document.createElement("textarea");
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textarea);
+            textarea.value = text; document.body.appendChild(textarea); textarea.select();
+            document.execCommand("copy"); document.body.removeChild(textarea);
         }
     };
+    const validate = () => {
+        if (!validPatientId) { flash("Patient ID باید دقیقاً شش رقم باشد"); return false; }
+        if (!reportBody.trim()) { flash("متن گزارش هنوز خالی است"); return false; }
+        return true;
+    };
     const copyReport = async () => {
-        if (!validPatientId) { flash("Patient ID باید دقیقاً شش رقم باشد"); return; }
-        if (!reportBody.trim()) { flash("متن گزارش هنوز خالی است"); return; }
+        if (!validate()) return;
         await copyText(buildFullReport());
-        flash("گزارش همراه Patient ID کپی شد");
+        flash("گزارش ویرایش‌شده کپی شد");
+    };
+    const exportWord = () => {
+        if (!validate()) return;
+        try {
+            const bytes = window.HNWord.createDocxBytes(wordData());
+            window.HNWord.downloadBytes(bytes, `${patientId}.docx`);
+            flash("فایل ورد ساخته شد؛ فایل دانلودشده را با Word باز کنید", 3500);
+        }
+        catch (_a) { flash("ساخت فایل ورد انجام نشد", 3500); }
     };
     const saveReport = () => {
-        if (!validPatientId) { flash("Patient ID باید دقیقاً شش رقم باشد"); return; }
-        if (!reportBody.trim()) { flash("متن گزارش هنوز خالی است"); return; }
+        if (!validate()) return;
         try {
             const now = new Date();
+            const bytes = window.HNWord.createDocxBytes(wordData(now));
             const item = {
                 id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 patientId,
                 examTitle,
                 createdAt: now.toISOString(),
-                finding: finding.trim(),
-                impression: impression.trim(),
-                recommendation: recommendation.trim(),
-                fullReport: buildFullReport(now)
+                finding: editableFinding.trim(),
+                impression: editableImpression.trim(),
+                recommendation: editableRecommendation.trim(),
+                fullReport: buildFullReport(now),
+                wordFileName: `${patientId}.docx`,
+                docxBase64: window.HNWord.toBase64(bytes),
+                archiveFormat: "docx"
             };
             const items = readReports();
-            items.unshift(item);
-            writeReports(items);
+            items.unshift(item); writeReports(items);
             setCreatedAt(now);
             window.dispatchEvent(new CustomEvent("hn-reports-updated"));
-            flash("گزارش در همین مرورگر ذخیره شد");
+            flash(`گزارش و فایل ورد ${patientId}.docx در آرشیو ذخیره شد`, 3400);
         }
-        catch (_a) { flash("ذخیره گزارش انجام نشد؛ فضای مرورگر را بررسی کنید", 3500); }
+        catch (_a) { flash("ذخیره انجام نشد؛ فضای حافظه مرورگر را بررسی کنید", 3800); }
     };
+    const actionStyle = { padding: "9px 14px", cursor: "pointer" };
     return h("div", { style: { marginTop: "24px" } },
         h("div", { style: { background: "#172033", border: "1px solid #475569", borderRadius: "12px", padding: "14px", marginBottom: "16px" } },
             h("div", { style: { display: "flex", gap: "14px", alignItems: "end", flexWrap: "wrap" } },
@@ -571,24 +764,25 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", exam
                 )
             )
         ),
-        h("div", { style: { display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" } },
-            h("h3", { style: { margin: 0 } }, "پیش‌نمایش گزارش"),
-            h("button", { type: "button", onClick: copyReport, style: { padding: "8px 14px", cursor: "pointer" } }, "کپی گزارش"),
-            h("button", { type: "button", onClick: saveReport, style: { padding: "8px 14px", cursor: "pointer", background: "#0284c7", color: "white", border: "1px solid #38bdf8" } }, "ذخیره در گزارش‌های من"),
-            copyStatus && h("span", { style: { color: copyStatus.includes("ذخیره شد") || copyStatus.includes("کپی شد") || copyStatus.includes("معتبر") ? "#86efac" : "#fbbf24" } }, copyStatus)
+        h("div", { style: { display: "flex", gap: "9px", alignItems: "center", flexWrap: "wrap" } },
+            h("h3", { style: { margin: 0 } }, "گزارش نهایی قابل ویرایش"),
+            h("button", { type: "button", onClick: copyReport, style: actionStyle }, "کپی گزارش"),
+            h("button", { type: "button", onClick: exportWord, style: Object.assign({}, actionStyle, { background: "#166534", color: "white", border: "1px solid #4ade80" }) }, "خروجی Word"),
+            h("button", { type: "button", onClick: saveReport, style: Object.assign({}, actionStyle, { background: "#0284c7", color: "white", border: "1px solid #38bdf8" }) }, "ذخیره Word در گزارش‌های من"),
+            h("button", { type: "button", onClick: resetGeneratedText, disabled: !manuallyEdited, style: actionStyle }, "بازنشانی متن تولیدشده"),
+            copyStatus && h("span", { style: { color: copyStatus.includes("ذخیره") || copyStatus.includes("کپی") || copyStatus.includes("ساخته شد") || copyStatus.includes("بازیابی") ? "#86efac" : "#fbbf24" } }, copyStatus)
         ),
+        manuallyEdited && h("p", { style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0 } }, "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید."),
         h("div", { style: { marginTop: "14px", padding: "12px 14px", borderRadius: "10px", background: "#082f49", border: "1px solid #0ea5e9", whiteSpace: "pre-wrap", lineHeight: 1.9 } },
             `Patient ID: ${patientId || "------"}\nتاریخ و ساعت: ${formatDate(createdAt)}\nنوع بررسی: ${examTitle}`
         ),
-        h("h4", null, "یافته‌ها"),
-        h("div", { style: sectionStyle }, finding || "—"),
-        h("h4", null, "نتیجه‌گیری"),
-        h("div", { style: sectionStyle }, impression || "—"),
-        recommendation && h(React.Fragment, null,
-            h("h4", null, "پیشنهاد"),
-            h("div", { style: sectionStyle }, recommendation)
-        ),
-        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, "گزارش‌ها فقط در حافظه همین مرورگر ذخیره می‌شوند. برای جلوگیری از حذف ناخواسته، از صفحه «گزارش‌های من» فایل پشتیبان بگیرید.")
+        h("h4", { style: { fontWeight: "bold" } }, "یافته‌ها"),
+        h("textarea", { value: editableFinding, onChange: markEdited(setEditableFinding), style: textareaStyle, rows: 7, spellCheck: false, "aria-label": "یافته‌ها" }),
+        h("h4", { style: { fontWeight: "bold" } }, "نتیجه‌گیری"),
+        h("textarea", { value: editableImpression, onChange: markEdited(setEditableImpression), style: Object.assign({}, textareaStyle, { minHeight: "92px", fontWeight: "bold" }), rows: 4, spellCheck: false, "aria-label": "نتیجه‌گیری" }),
+        h("h4", { style: { fontWeight: "bold" } }, "پیشنهاد"),
+        h("textarea", { value: editableRecommendation, onChange: markEdited(setEditableRecommendation), style: Object.assign({}, textareaStyle, { minHeight: "82px", fontWeight: "bold" }), rows: 3, spellCheck: false, placeholder: "در صورت نیاز پیشنهاد را وارد یا ویرایش کنید", "aria-label": "پیشنهاد" }),
+        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, "در فایل Word، عنوان گزارش با فونت Arial و به‌صورت Bold ثبت می‌شود و بخش‌های نتیجه‌گیری و پیشنهاد نیز Bold هستند. فایل ورد داخل آرشیو مرورگر ذخیره می‌شود؛ پشتیبان‌گیری دوره‌ای فراموش نشود.")
     );
 }
 exports.default = ReportOutput;
@@ -616,6 +810,17 @@ function formatDate(iso) {
     }
     catch (_a) { return date.toLocaleString("fa-IR"); }
 }
+function createWordBase64(item) {
+    const bytes = window.HNWord.createDocxBytes({
+        patientId: String(item.patientId || "------"),
+        createdAtText: formatDate(item.createdAt || new Date().toISOString()),
+        examTitle: item.examTitle || "گزارش سونوگرافی",
+        finding: String(item.finding || (!item.impression && !item.recommendation ? item.fullReport || "" : "")),
+        impression: String(item.impression || ""),
+        recommendation: String(item.recommendation || "")
+    });
+    return window.HNWord.toBase64(bytes);
+}
 function MyReports({ goBack }) {
     const [reports, setReports] = React.useState(() => readReports());
     const [search, setSearch] = React.useState("");
@@ -627,7 +832,7 @@ function MyReports({ goBack }) {
         return () => window.removeEventListener("hn-reports-updated", update);
     }, []);
     const filtered = reports.filter(item => !search.trim() || String(item.patientId || "").includes(search.trim()) || String(item.examTitle || "").includes(search.trim()));
-    const flash = text => { setStatus(text); window.setTimeout(() => setStatus(""), 2000); };
+    const flash = (text, ms = 2300) => { setStatus(text); window.setTimeout(() => setStatus(""), ms); };
     const copy = async text => {
         try { await navigator.clipboard.writeText(text); }
         catch (_a) {
@@ -635,8 +840,22 @@ function MyReports({ goBack }) {
         }
         flash("گزارش کپی شد");
     };
+    const downloadWord = item => {
+        try {
+            let base64 = item.docxBase64;
+            let nextReports = reports;
+            if (!base64) {
+                base64 = createWordBase64(item);
+                nextReports = reports.map(x => x.id === item.id ? Object.assign({}, x, { docxBase64: base64, wordFileName: `${item.patientId}.docx`, archiveFormat: "docx" }) : x);
+                writeReports(nextReports); setReports(nextReports);
+            }
+            window.HNWord.downloadBase64(base64, item.wordFileName || `${item.patientId}.docx`);
+            flash(`فایل ${item.patientId}.docx آماده شد`, 3000);
+        }
+        catch (_a) { flash("بازکردن فایل ورد انجام نشد", 3200); }
+    };
     const remove = id => {
-        if (!window.confirm("این گزارش از حافظه همین مرورگر حذف شود؟")) return;
+        if (!window.confirm("این گزارش و فایل Word آن از حافظه همین مرورگر حذف شود؟")) return;
         const next = reports.filter(x => x.id !== id);
         writeReports(next); setReports(next); flash("گزارش حذف شد");
     };
@@ -645,7 +864,7 @@ function MyReports({ goBack }) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url; a.download = `HN-Radiology-Reports-${new Date().toISOString().slice(0,10)}.json`; a.click();
-        URL.revokeObjectURL(url); flash("فایل پشتیبان ساخته شد");
+        URL.revokeObjectURL(url); flash("فایل پشتیبان همراه اسناد Word ساخته شد", 3000);
     };
     const importBackup = event => {
         const file = event.target.files && event.target.files[0];
@@ -655,7 +874,7 @@ function MyReports({ goBack }) {
             try {
                 const incoming = JSON.parse(String(reader.result || "[]"));
                 if (!Array.isArray(incoming)) throw new Error("invalid");
-                const valid = incoming.filter(x => x && /^\d{6}$/.test(String(x.patientId || "")) && x.fullReport);
+                const valid = incoming.filter(x => x && /^\d{6}$/.test(String(x.patientId || "")) && (x.fullReport || x.docxBase64));
                 const merged = [...valid, ...reports].filter((item, index, arr) => arr.findIndex(x => x.id === item.id) === index).sort((a,b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
                 writeReports(merged); setReports(merged); flash(`${valid.length} گزارش بازیابی شد`);
             }
@@ -672,19 +891,21 @@ function MyReports({ goBack }) {
             h("button", { type: "button", onClick: exportBackup, disabled: !reports.length, style: { background: "#0369a1", color: "white" } }, "دانلود فایل پشتیبان"),
             h("button", { type: "button", onClick: () => fileInput.current && fileInput.current.click() }, "بازیابی فایل پشتیبان"),
             h("input", { ref: fileInput, type: "file", accept: ".json,application/json", onChange: importBackup, style: { display: "none" } }),
-            status && h("span", { style: { color: "#86efac" } }, status)
+            status && h("span", { style: { color: status.includes("نشد") || status.includes("معتبر نیست") ? "#fbbf24" : "#86efac" } }, status)
         ),
         h("h1", null, "گزارش‌های من"),
-        h("p", { style: { color: "#cbd5e1", lineHeight: 1.9 } }, "جست‌وجو و مشاهده گزارش‌های ذخیره‌شده در همین مرورگر. این آرشیو با مرورگر یا دستگاه دیگر همگام نمی‌شود."),
+        h("p", { style: { color: "#cbd5e1", lineHeight: 1.9 } }, "هر گزارش به‌همراه فایل Word با نام Patient ID در همین مرورگر نگهداری می‌شود. این آرشیو با مرورگر یا دستگاه دیگر همگام نمی‌شود."),
         h("input", { value: search, onChange: e => setSearch(String(e.target.value || "").replace(/[^0-9\u0600-\u06FFa-zA-Z ]/g, "")), placeholder: "جست‌وجو با Patient ID یا نوع بررسی", style: { width: "min(520px, 100%)", padding: "11px 13px", borderRadius: "9px", border: "1px solid #64748b", fontSize: "15px" } }),
         h("div", { style: { marginTop: "15px", color: "#7dd3fc" } }, `${filtered.length} گزارش از ${reports.length} گزارش ذخیره‌شده`),
         !filtered.length ? h("div", { style: card }, "گزارشی مطابق جست‌وجو موجود نیست.") : filtered.map(item => h("details", { key: item.id, style: card },
             h("summary", { style: { cursor: "pointer", fontWeight: "bold", lineHeight: 1.9 } }, `Patient ID: ${item.patientId} — ${item.examTitle || "گزارش سونوگرافی"} — ${formatDate(item.createdAt)}`),
+            h("div", { style: { marginTop: "10px", color: "#86efac", fontFamily: "Arial, Tahoma, sans-serif" } }, `فایل Word: ${item.wordFileName || `${item.patientId}.docx`}${item.docxBase64 ? " — ذخیره‌شده در آرشیو" : " — هنگام دانلود ساخته می‌شود"}`),
             h("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "14px 0" } },
                 h("button", { type: "button", onClick: () => copy(item.fullReport || "") }, "کپی گزارش"),
+                h("button", { type: "button", onClick: () => downloadWord(item), style: { background: "#166534", color: "white", border: "1px solid #4ade80" } }, "دانلود / بازکردن Word"),
                 h("button", { type: "button", onClick: () => remove(item.id), style: { border: "1px solid #ef4444", color: "#fecaca", background: "#7f1d1d" } }, "حذف")
             ),
-            h("pre", { style: { whiteSpace: "pre-wrap", lineHeight: 2, background: "#0f172a", border: "1px solid #475569", borderRadius: "10px", padding: "14px", fontFamily: "Tahoma, Arial, sans-serif", overflowWrap: "anywhere" } }, item.fullReport || "")
+            h("pre", { style: { whiteSpace: "pre-wrap", lineHeight: 2, background: "#0f172a", border: "1px solid #475569", borderRadius: "10px", padding: "14px", fontFamily: "Arial, Tahoma, sans-serif", overflowWrap: "anywhere" } }, item.fullReport || "")
         ))
     );
 }
