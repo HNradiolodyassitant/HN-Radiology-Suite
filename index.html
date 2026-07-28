@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v2.1 - ACR TI-RADS & Dual Pregnancy Output" />
-  <title>HN Radiology Suite v2.1</title>
+  <meta name="description" content="HN Radiology Suite v2.2 - ACR TI-RADS & Dual Pregnancy Output" />
+  <title>HN Radiology Suite v2.2</title>
   <style>
 * {
   box-sizing: border-box;
@@ -73,7 +73,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v2.1 - ACR TI-RADS & Dual Pregnancy Output + Lower Limb Venous Engines */
+/* HN Radiology Suite v2.2 - ACR TI-RADS & Dual Pregnancy Output + Lower Limb Venous Engines */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -1302,7 +1302,362 @@ function FgrEngine(){
   if(report.recommendation)faLines.push(`پیشنهاد: ${report.recommendation}`);if(report.recommendation)enLines.push(`Recommendation: ${report.recommendation}`);
   return chooseLanguage(state.language,faLines.join("\n"),enLines.join("\n"));
  },[state,computed,days,report]);
- const printGrowthCharts=()=>{if(!efwChart&&!acChart)return;const w=window.open("","_blank","width=1200,height=900");if(!w)return;w.document.write(`<html><head><title>HN Growth Charts</title><style>body{font-family:Arial;padding:24px}img{width:100%;max-width:1100px;display:block;margin:0 auto 24px}h2{text-align:center}</style></head><body><h2>Fetal Growth Charts</h2>${efwChart?`<img src="${efwChart}">`:""}${acChart?`<img src="${acChart}">`:""}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();};
+ const printGrowthCharts=()=>{if(!efwChart&&!acChart)return;const w=window.open("","_blank","width=1200,height=900");if(!w)return;w.document.write(`<html><head><title>HN Growth Charts</title><style>body{font-family:Arial;padding:24px}img{width:100%;max-width:1100px;display:block;margin:0 auto 24px}h2{text-align:center}</style></head><body><h2>Fetal Growth Charts</h2>${efwChart?`<img src="${efwChart}">`:""}${acChart?`<img src="${acChart}">`:""}<script>window.onload=()=>window.print()<\/script>
+<script id="hn-voice-assistant-v22">
+(function () {
+  'use strict';
+  if (window.__HNVoiceAssistantV22Loaded) return;
+  window.__HNVoiceAssistantV22Loaded = true;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const state = {
+    open: false,
+    listening: false,
+    keepListening: false,
+    recognition: null,
+    lastEditable: null,
+    mode: 'active',
+    lang: localStorage.getItem('hnVoiceLang') || 'fa-IR',
+    note: '',
+    interim: ''
+  };
+
+  const faDigits = '۰۱۲۳۴۵۶۷۸۹';
+  const arDigits = '٠١٢٣٤٥٦٧٨٩';
+  const toLatinDigits = (value) => String(value || '')
+    .replace(/[۰-۹]/g, d => String(faDigits.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String(arDigits.indexOf(d)));
+
+  function normalizeFa(value) {
+    return toLatinDigits(value)
+      .replace(/ي/g, 'ی').replace(/ك/g, 'ک')
+      .replace(/ۀ/g, 'ه').replace(/ة/g, 'ه')
+      .replace(/\u200c/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  const numberWords = {
+    'صفر':0,'یک':1,'يه':1,'یه':1,'دو':2,'سه':3,'چهار':4,'پنج':5,'شش':6,'شیش':6,'هفت':7,'هشت':8,'نه':9,
+    'ده':10,'یازده':11,'دوازده':12,'سیزده':13,'چهارده':14,'پانزده':15,'شانزده':16,'هفده':17,'هجده':18,'نوزده':19,
+    'بیست':20,'سی':30,'چهل':40,'پنجاه':50,'شصت':60,'هفتاد':70,'هشتاد':80,'نود':90,
+    'صد':100,'یکصد':100,'دویست':200,'سیصد':300,'چهارصد':400,'پانصد':500,'ششصد':600,'هفتصد':700,'هشتصد':800,'نهصد':900
+  };
+
+  function parsePersianNumber(raw) {
+    let text = normalizeFa(raw)
+      .replace(/میلی ?متر|سانتی ?متر|میلیمتر|سانتیمتر|گرم|درصد|هفته|روز|سی سی|میلی ?لیتر/gi, ' ')
+      .replace(/منفی/g, ' - ')
+      .replace(/\s+/g, ' ').trim();
+    const direct = text.match(/-?\d+(?:[\.,]\d+)?/);
+    if (direct) return Number(direct[0].replace(',', '.'));
+    if (!text) return null;
+    const parts = text.split(/\s+ممیز\s+/);
+    const parseInteger = (chunk) => {
+      const tokens = chunk.split(/\s+/).filter(t => t && t !== 'و');
+      let total = 0, current = 0, seen = false, negative = false;
+      for (const token0 of tokens) {
+        const token = token0.trim();
+        if (token === '-') { negative = true; continue; }
+        if (token === 'هزار') { total += (current || 1) * 1000; current = 0; seen = true; continue; }
+        if (Object.prototype.hasOwnProperty.call(numberWords, token)) { current += numberWords[token]; seen = true; continue; }
+        const n = Number(token);
+        if (Number.isFinite(n)) { current += n; seen = true; }
+      }
+      if (!seen) return null;
+      const result = total + current;
+      return negative ? -result : result;
+    };
+    const integerPart = parseInteger(parts[0]);
+    if (integerPart === null) return null;
+    if (parts.length === 1) return integerPart;
+    const decimalTokens = parts[1].split(/\s+/).filter(t => t && t !== 'و');
+    let decimalString = '';
+    for (const token of decimalTokens) {
+      if (Object.prototype.hasOwnProperty.call(numberWords, token) && numberWords[token] >= 0 && numberWords[token] <= 9) decimalString += String(numberWords[token]);
+      else {
+        const parsed = parseInteger(token);
+        if (parsed !== null) decimalString += String(Math.abs(parsed));
+      }
+    }
+    if (!decimalString) return integerPart;
+    return Number(`${integerPart}.${decimalString}`);
+  }
+
+  function isEditable(el) {
+    if (!el || el.disabled || el.readOnly) return false;
+    if (el.tagName === 'TEXTAREA') return true;
+    if (el.tagName !== 'INPUT') return false;
+    const type = String(el.type || 'text').toLowerCase();
+    return ['text','number','search','tel','url','email'].includes(type);
+  }
+
+  function visible(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+  }
+
+  function describeTarget(el) {
+    if (!el) return 'هیچ فیلدی انتخاب نشده';
+    if (el.getAttribute('aria-label')) return el.getAttribute('aria-label');
+    if (el.placeholder) return el.placeholder;
+    const label = el.closest('label');
+    if (label) {
+      const text = Array.from(label.childNodes).filter(n => n !== el).map(n => n.textContent || '').join(' ').replace(/\s+/g,' ').trim();
+      if (text) return text.slice(0, 70);
+    }
+    return el.type === 'number' ? 'فیلد عددی' : 'فیلد متنی';
+  }
+
+  function findFinalReport() {
+    const candidates = Array.from(document.querySelectorAll('textarea[aria-label="گزارش نهایی"], textarea'));
+    return candidates.find(el => el.getAttribute('aria-label') === 'گزارش نهایی' && visible(el)) || candidates.reverse().find(visible) || null;
+  }
+
+  function currentTarget() {
+    if (state.mode === 'report') return findFinalReport();
+    if (state.mode === 'note') return null;
+    if (isEditable(document.activeElement) && visible(document.activeElement)) return document.activeElement;
+    if (isEditable(state.lastEditable) && visible(state.lastEditable)) return state.lastEditable;
+    return null;
+  }
+
+  function setNativeValue(el, value) {
+    if (!el) return;
+    const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (descriptor && descriptor.set) descriptor.set.call(el, value); else el.value = value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function insertAtCursor(el, text) {
+    if (!el) return false;
+    if (String(el.type || '').toLowerCase() === 'number') {
+      const number = parsePersianNumber(text);
+      if (number === null || !Number.isFinite(number)) {
+        setStatus('عدد قابل تشخیص نبود؛ دوباره فقط عدد را بگویید.', 'warn');
+        return false;
+      }
+      setNativeValue(el, String(number));
+      el.focus();
+      return true;
+    }
+    const value = String(el.value || '');
+    const start = Number.isInteger(el.selectionStart) ? el.selectionStart : value.length;
+    const end = Number.isInteger(el.selectionEnd) ? el.selectionEnd : value.length;
+    const prefix = value.slice(0, start);
+    const suffix = value.slice(end);
+    const spacer = prefix && !/[\s\n(«]$/.test(prefix) && !/^[،.:؛؟)\n]/.test(text) ? ' ' : '';
+    const next = prefix + spacer + text + suffix;
+    setNativeValue(el, next);
+    const cursor = (prefix + spacer + text).length;
+    try { el.focus(); el.setSelectionRange(cursor, cursor); } catch (_) {}
+    return true;
+  }
+
+  function clearTarget() {
+    const target = currentTarget();
+    if (state.mode === 'note') { state.note = ''; updateNote(); setStatus('یادداشت پاک شد', 'ok'); return; }
+    if (!target) { setStatus('ابتدا روی یک فیلد کلیک کنید', 'warn'); return; }
+    setNativeValue(target, ''); target.focus(); setStatus('فیلد پاک شد', 'ok');
+  }
+
+  function deleteLastWord() {
+    const target = currentTarget();
+    if (state.mode === 'note') {
+      state.note = state.note.replace(/\s*\S+\s*$/, '').trimEnd(); updateNote(); setStatus('کلمه آخر حذف شد', 'ok'); return;
+    }
+    if (!target) { setStatus('ابتدا روی یک فیلد کلیک کنید', 'warn'); return; }
+    const next = String(target.value || '').replace(/\s*\S+\s*$/, '').trimEnd();
+    setNativeValue(target, next); target.focus(); setStatus('کلمه آخر حذف شد', 'ok');
+  }
+
+  function punctuate(raw) {
+    let t = normalizeFa(raw);
+    const replacements = [
+      [/پاراگراف جدید/g, '\n\n'], [/خط جدید/g, '\n'], [/نقطه/g, '.'], [/ویرگول/g, '،'], [/دو نقطه/g, ':'],
+      [/نقطه ویرگول/g, '؛'], [/علامت سوال/g, '؟'], [/پرانتز باز/g, '('], [/پرانتز بسته/g, ')'], [/گیومه باز/g, '«'], [/گیومه بسته/g, '»']
+    ];
+    replacements.forEach(([pattern, value]) => { t = t.replace(pattern, value); });
+    return t.replace(/\s+([،.:؛؟)»])/g, '$1').replace(/([(«])\s+/g, '$1').trim();
+  }
+
+  async function copyReportByCommand() {
+    const report = findFinalReport();
+    if (!report || !String(report.value || '').trim()) { setStatus('گزارش نهایی پیدا نشد یا خالی است', 'warn'); return; }
+    try { await navigator.clipboard.writeText(String(report.value).trim()); setStatus('گزارش کپی شد', 'ok'); }
+    catch (_) { report.focus(); report.select(); document.execCommand('copy'); setStatus('گزارش کپی شد', 'ok'); }
+  }
+
+  function handleFinal(raw) {
+    const normalized = normalizeFa(raw);
+    if (!normalized) return;
+    if (/^(توقف ضبط|میکروفن توقف|ضبط را متوقف کن)$/.test(normalized)) { stopListening(); return; }
+    if (/^(پاک کن|پاک کردن فیلد|فیلد را پاک کن)$/.test(normalized)) { clearTarget(); return; }
+    if (/^(حذف آخر|حذف کلمه آخر)$/.test(normalized)) { deleteLastWord(); return; }
+    if (/^(کپی گزارش|گزارش را کپی کن)$/.test(normalized)) { copyReportByCommand(); return; }
+    const text = punctuate(raw);
+    if (state.mode === 'note') {
+      state.note = (state.note + (state.note && !state.note.endsWith('\n') ? ' ' : '') + text).trimStart();
+      updateNote(); setStatus('به یادداشت صوتی اضافه شد', 'ok'); return;
+    }
+    const target = currentTarget();
+    if (!target) { setStatus('ابتدا روی فیلد موردنظر کلیک کنید یا حالت «گزارش نهایی» را انتخاب کنید.', 'warn'); return; }
+    state.lastEditable = target;
+    if (insertAtCursor(target, text)) setStatus(`در «${describeTarget(target)}» ثبت شد`, 'ok');
+    updateTarget();
+  }
+
+  function startListening() {
+    if (!SpeechRecognition) { setStatus('تشخیص گفتار در این مرورگر فعال نیست. نسخه HTTPS را با Chrome یا Edge باز کنید.', 'error'); return; }
+    if (state.listening) return;
+    if (state.mode !== 'note' && !currentTarget()) { setStatus('ابتدا روی یک فیلد کلیک کنید یا حالت «گزارش نهایی» را انتخاب کنید.', 'warn'); return; }
+    if (!state.recognition) {
+      const r = new SpeechRecognition();
+      r.continuous = true;
+      r.interimResults = true;
+      r.maxAlternatives = 1;
+      r.onstart = () => { state.listening = true; updateListening(); setStatus('در حال شنیدن…', 'ok'); };
+      r.onresult = event => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) handleFinal(transcript); else interim += transcript;
+        }
+        state.interim = interim;
+        updateInterim();
+      };
+      r.onerror = event => {
+        const map = { 'not-allowed':'اجازه میکروفن داده نشد', 'audio-capture':'میکروفن در دسترس نیست', 'no-speech':'صدایی دریافت نشد', 'network':'خطای سرویس تشخیص گفتار' };
+        setStatus(map[event.error] || `خطای صدا: ${event.error}`, event.error === 'no-speech' ? 'warn' : 'error');
+      };
+      r.onend = () => {
+        state.listening = false; updateListening(); state.interim = ''; updateInterim();
+        if (state.keepListening) setTimeout(() => { try { r.lang = state.lang; r.start(); } catch (_) {} }, 350);
+      };
+      state.recognition = r;
+    }
+    state.keepListening = true;
+    state.recognition.lang = state.lang;
+    try { state.recognition.start(); }
+    catch (_) { setStatus('میکروفن در حال راه‌اندازی است؛ یک لحظه بعد دوباره بزنید.', 'warn'); }
+  }
+
+  function stopListening() {
+    state.keepListening = false;
+    if (state.recognition) { try { state.recognition.stop(); } catch (_) {} }
+    state.listening = false; updateListening(); state.interim = ''; updateInterim(); setStatus('ضبط متوقف شد', 'neutral');
+  }
+
+  const css = `
+#hnv-root{position:fixed;left:18px;bottom:18px;z-index:2147483000;direction:rtl;font-family:Tahoma,Arial,sans-serif;color:#e2e8f0}
+#hnv-fab{width:62px;height:62px;border-radius:50%;border:1px solid rgba(125,211,252,.5);background:linear-gradient(145deg,#0369a1,#0f172a);color:#fff;font-size:27px;box-shadow:0 18px 55px rgba(0,0,0,.5);cursor:pointer;display:grid;place-items:center;margin-right:auto}
+#hnv-fab.listening{background:linear-gradient(145deg,#dc2626,#7f1d1d);animation:hnvPulse 1.25s infinite}
+#hnv-panel{width:min(390px,calc(100vw - 28px));background:#0b1f33;border:1px solid rgba(125,211,252,.35);border-radius:18px;padding:16px;box-shadow:0 25px 90px rgba(0,0,0,.62);margin-bottom:10px;display:none}
+#hnv-panel.open{display:block}
+.hnv-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.hnv-head strong{font-size:16px}.hnv-close{background:transparent;color:#cbd5e1;border:0;font-size:22px;cursor:pointer;padding:2px 7px}
+.hnv-status{margin:10px 0;padding:10px 12px;border-radius:11px;background:#102a43;border:1px solid #284d68;font-size:12px;line-height:1.8}.hnv-status.ok{border-color:#166534;color:#bbf7d0}.hnv-status.warn{border-color:#a16207;color:#fde68a}.hnv-status.error{border-color:#991b1b;color:#fecaca}
+.hnv-target{font-size:12px;color:#bae6fd;margin:8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hnv-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.hnv-row button,.hnv-row select{background:#132d46;color:#e2e8f0;border:1px solid #3b607c;border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit}.hnv-row button.active{background:#075985;border-color:#38bdf8}.hnv-row button.primary{background:#166534;border-color:#4ade80}.hnv-row button.stop{background:#7f1d1d;border-color:#f87171}
+#hnv-interim{min-height:34px;margin-top:10px;color:#94a3b8;font-size:12px;line-height:1.8;background:#071827;border-radius:9px;padding:7px 9px}
+#hnv-note{display:none;width:100%;min-height:95px;margin-top:9px;background:#fff;color:#0f172a;border:1px solid #64748b;border-radius:9px;padding:9px;resize:vertical;direction:rtl;text-align:right;font-family:inherit}.hnv-note-mode #hnv-note{display:block}
+.hnv-help{margin-top:10px;color:#94a3b8;font-size:11px;line-height:1.8}.hnv-privacy{margin-top:9px;padding:8px 9px;border-radius:9px;background:#3f1d0b;color:#fed7aa;font-size:11px;line-height:1.7}
+@keyframes hnvPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.45),0 18px 55px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 12px rgba(248,113,113,0),0 18px 55px rgba(0,0,0,.5)}}
+@media(max-width:640px){#hnv-root{left:10px;bottom:10px}#hnv-fab{width:56px;height:56px}#hnv-panel{width:calc(100vw - 20px);max-height:76vh;overflow:auto}}
+`;
+
+  const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+  const root = document.createElement('div'); root.id = 'hnv-root';
+  root.innerHTML = `
+    <section id="hnv-panel" role="dialog" aria-label="دستیار صوتی HN">
+      <div class="hnv-head"><strong>🎙️ دستیار صوتی HN</strong><button id="hnv-close" class="hnv-close" type="button">×</button></div>
+      <div id="hnv-status" class="hnv-status">روی یک فیلد کلیک کنید، سپس «شروع ضبط» را بزنید.</div>
+      <div id="hnv-target" class="hnv-target">فیلد فعال: هیچ فیلدی انتخاب نشده</div>
+      <div class="hnv-row" id="hnv-modes">
+        <button type="button" data-mode="active" class="active">فیلد فعال</button>
+        <button type="button" data-mode="report">گزارش نهایی</button>
+        <button type="button" data-mode="note">یادداشت صوتی</button>
+      </div>
+      <div class="hnv-row">
+        <select id="hnv-lang" aria-label="زبان تشخیص گفتار"><option value="fa-IR">فارسی</option><option value="en-US">English</option></select>
+        <button id="hnv-start" type="button" class="primary">شروع ضبط</button>
+        <button id="hnv-stop" type="button" class="stop">توقف</button>
+        <button id="hnv-clear" type="button">پاک‌کردن</button>
+      </div>
+      <div id="hnv-interim">متن موقت صدا اینجا دیده می‌شود.</div>
+      <textarea id="hnv-note" placeholder="یادداشت صوتی آزاد…"></textarea>
+      <div class="hnv-row"><button id="hnv-copy-note" type="button">کپی یادداشت</button></div>
+      <div class="hnv-help">دستورها: «خط جدید»، «نقطه»، «ویرگول»، «پاک کن»، «حذف آخر»، «کپی گزارش»، «توقف ضبط». برای عددها روی فیلد عددی کلیک و فقط عدد را بیان کنید.</div>
+      <div class="hnv-privacy">تا زمانی که مسیر پردازش صدا در کلینیک تأیید نشده، نام بیمار، کد ملی و Patient ID را دیکته نکنید.</div>
+    </section>
+    <button id="hnv-fab" type="button" title="دستیار صوتی — میانبر Alt+M">🎙️</button>`;
+  document.body.appendChild(root);
+
+  const panel = document.getElementById('hnv-panel');
+  const fab = document.getElementById('hnv-fab');
+  const statusEl = document.getElementById('hnv-status');
+  const targetEl = document.getElementById('hnv-target');
+  const interimEl = document.getElementById('hnv-interim');
+  const noteEl = document.getElementById('hnv-note');
+  const langEl = document.getElementById('hnv-lang');
+  langEl.value = state.lang;
+
+  function setStatus(text, kind = 'neutral') { statusEl.textContent = text; statusEl.className = `hnv-status ${kind}`.trim(); }
+  function updateTarget() {
+    const target = currentTarget();
+    targetEl.textContent = state.mode === 'note' ? 'حالت فعال: یادداشت صوتی آزاد' : `فیلد فعال: ${describeTarget(target)}`;
+  }
+  function updateInterim() { interimEl.textContent = state.interim ? `در حال شنیدن: ${state.interim}` : 'متن موقت صدا اینجا دیده می‌شود.'; }
+  function updateNote() { noteEl.value = state.note; }
+  function updateListening() {
+    fab.classList.toggle('listening', state.listening);
+    fab.textContent = state.listening ? '■' : '🎙️';
+    document.getElementById('hnv-start').disabled = state.listening;
+    document.getElementById('hnv-stop').disabled = !state.listening;
+  }
+  function openPanel() { state.open = true; panel.classList.add('open'); updateTarget(); }
+  function closePanel() { state.open = false; panel.classList.remove('open'); }
+  function setMode(mode) {
+    state.mode = mode;
+    document.querySelectorAll('#hnv-modes button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    panel.classList.toggle('hnv-note-mode', mode === 'note');
+    updateTarget();
+    if (mode === 'report' && !findFinalReport()) setStatus('ابتدا وارد یک فرم شوید تا باکس گزارش نهایی ساخته شود.', 'warn');
+    else setStatus(mode === 'note' ? 'یادداشت صوتی آزاد فعال است.' : 'حالت انتخاب شد؛ شروع ضبط را بزنید.', 'neutral');
+  }
+
+  document.addEventListener('focusin', event => {
+    if (isEditable(event.target) && !event.target.closest('#hnv-root')) { state.lastEditable = event.target; if (state.mode === 'active') updateTarget(); }
+  }, true);
+  fab.addEventListener('click', () => { if (!state.open) openPanel(); else if (state.listening) stopListening(); else startListening(); });
+  document.getElementById('hnv-close').addEventListener('click', closePanel);
+  document.getElementById('hnv-start').addEventListener('click', startListening);
+  document.getElementById('hnv-stop').addEventListener('click', stopListening);
+  document.getElementById('hnv-clear').addEventListener('click', clearTarget);
+  document.getElementById('hnv-copy-note').addEventListener('click', async () => {
+    if (!state.note.trim()) { setStatus('یادداشت خالی است', 'warn'); return; }
+    try { await navigator.clipboard.writeText(state.note.trim()); setStatus('یادداشت کپی شد', 'ok'); }
+    catch (_) { noteEl.focus(); noteEl.select(); document.execCommand('copy'); setStatus('یادداشت کپی شد', 'ok'); }
+  });
+  noteEl.addEventListener('input', e => { state.note = e.target.value; });
+  langEl.addEventListener('change', e => { state.lang = e.target.value; localStorage.setItem('hnVoiceLang', state.lang); if (state.listening) { stopListening(); setTimeout(startListening, 450); } });
+  document.querySelectorAll('#hnv-modes button').forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
+  document.addEventListener('keydown', event => {
+    if (event.altKey && String(event.key).toLowerCase() === 'm') { event.preventDefault(); openPanel(); state.listening ? stopListening() : startListening(); }
+    if (event.key === 'Escape' && state.open && !state.listening) closePanel();
+  });
+  window.addEventListener('beforeunload', stopListening);
+  updateListening(); updateTarget(); updateNote();
+  if (!SpeechRecognition) setStatus('این مرورگر SpeechRecognition ندارد. نسخه HTTPS نرم‌افزار را در Chrome یا Edge باز کنید.', 'error');
+  if (location.hash.toLowerCase().includes('voice')) openPanel();
+  window.HNVoiceAssistant = { open: openPanel, start: startListening, stop: stopListening, setMode };
+})();
+</script>
+
+</body></html>`);w.document.close();};
  const wordExtras=React.useMemo(()=>({tables:[{title:state.language==="en"?"Fetal biometry and percentile table":"جدول بیومتری و صدک‌های جنین",headers:state.language==="en"?["Parameter","Measurement","Equivalent GA","Standard percentile","Z-score","Device percentile"]:["پارامتر","اندازه","سن معادل","صدک استاندارد","Z-score","صدک دستگاه"],rows:tableRows.map(r=>[r[0],r[1],r[2],r[3],r[4],r[5]])},{title:state.language==="en"?"Growth interpretation summary":"خلاصه تفسیر رشد",headers:state.language==="en"?["Item","Result"]:["آیتم","نتیجه"],rows:summaryRows}],images:[efwChart?{title:state.language==="en"?"EFW growth chart":"نمودار رشد EFW",dataUrl:efwChart,width:1100,height:560}:null,acChart?{title:state.language==="en"?"AC growth chart":"نمودار رشد AC",dataUrl:acChart,width:1100,height:560}:null].filter(Boolean)}),[state.language,tableRows,summaryRows,efwChart,acChart]);
  const updatePrev=(id,key,val)=>setState(p=>({...p,previousScans:p.previousScans.map(x=>x.id===id?{...x,[key]:val}:x)}));
  return h("div",null,
@@ -1667,7 +2022,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v2.1"),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v2.2"),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
@@ -1694,7 +2049,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "▣"), h("div", null, h("strong", null, "آرشیو محلی"), h("small", null, "Patient ID، تاریخ و گزارش‌های ذخیره‌شده"))),
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "✓"), h("div", null, h("strong", null, "استاندارد و به‌روز"), h("small", null, "بر پایه Phrase Bank تأییدشده")))
                 ),
-                h("div", { className: "hn-version" }, "نسخه ۲.۰ — Soft Tissue & Inguinal Engine")
+                h("div", { className: "hn-version" }, "نسخه ۲.۲ — Voice Assistant")
             )
         ),
         loginOpen && h("div", { className: "hn-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-labelledby": "login-title", onClick: () => setLoginOpen(false) },
@@ -3244,7 +3599,7 @@ function Ultrasound({goBack}){
  function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="softTissue")return h(Extra.SoftTissueCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۲.۰ — افزودن موتور سونوگرافی نسج نرم و بازطراحی گزارش فتق اینگوینال مستقیم و غیرمستقیم."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۲.۲ — افزودن موتور سونوگرافی نسج نرم و بازطراحی گزارش فتق اینگوینال مستقیم و غیرمستقیم."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
