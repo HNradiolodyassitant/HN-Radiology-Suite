@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v1.9 - Workflow Refinements" />
-  <title>HN Radiology Suite v1.9</title>
+  <meta name="description" content="HN Radiology Suite v2.0 - Soft Tissue & Inguinal Engine" />
+  <title>HN Radiology Suite v2.0</title>
   <style>
 * {
   box-sizing: border-box;
@@ -73,7 +73,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v1.9 - Workflow Refinements + Lower Limb Venous Engines */
+/* HN Radiology Suite v2.0 - Soft Tissue & Inguinal Engine + Lower Limb Venous Engines */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -1648,7 +1648,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v1.9"),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v2.0"),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
@@ -1675,7 +1675,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "▣"), h("div", null, h("strong", null, "آرشیو محلی"), h("small", null, "Patient ID، تاریخ و گزارش‌های ذخیره‌شده"))),
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "✓"), h("div", null, h("strong", null, "استاندارد و به‌روز"), h("small", null, "بر پایه Phrase Bank تأییدشده")))
                 ),
-                h("div", { className: "hn-version" }, "نسخه ۱.۹ — Workflow Refinements")
+                h("div", { className: "hn-version" }, "نسخه ۲.۰ — Soft Tissue & Inguinal Engine")
             )
         ),
         loginOpen && h("div", { className: "hn-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-labelledby": "login-title", onClick: () => setLoginOpen(false) },
@@ -2369,7 +2369,7 @@ exports.default = ProstateCard;
 __modules["src/components/Workflow/ExamCards.jsx"] = function(module, exports, require){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.InguinalCard = exports.ScrotalCard = exports.ThyroidCard = exports.FemalePelvisCard = exports.PancreasSpleenCard = void 0;
+exports.InguinalCard = exports.SoftTissueCard = exports.ScrotalCard = exports.ThyroidCard = exports.FemalePelvisCard = exports.PancreasSpleenCard = void 0;
 const React = require("react");
 const h = React.createElement;
 
@@ -2908,28 +2908,170 @@ function ScrotalCard({onReportChange}){
 }
 exports.ScrotalCard = ScrotalCard;
 
-function herniaSideInitial(){ return {status:"none", type:"indirect", content:"fat", neck:"", sac:"", reducibility:"reducible", valsalva:true, vascularity:"preserved"}; }
+const softTissueInitial = {
+  location:"",
+  sebaceous:false,
+  cystL:"", cystAP:"", cystT:"", cystDepth:"",
+  skinTract:false,
+  reactiveNodes:false,
+  nodeLocation:"", nodeSAD:""
+};
+function softTissueDimensions(s){
+  const values=[s.cystL,s.cystAP,s.cystT].filter(v=>num(v)!==null);
+  if(values.length===3) return `${fa(s.cystL)} × ${fa(s.cystAP)} × ${fa(s.cystT)} میلی‌متر`;
+  if(values.length===2) return `${fa(values[0])} × ${fa(values[1])} میلی‌متر`;
+  if(values.length===1) return `${fa(values[0])} میلی‌متر`;
+  return "";
+}
+function buildSoftTissue(s){
+  const f=[]; const i=[]; const r=[];
+  const location=String(s.location||"").trim();
+  if(!s.sebaceous && !s.reactiveNodes){
+    f.push(`یافته پاتولوژیک بارزی در نسج نرم${location?` ناحیه ${location}`:""} مشاهده نشد. شواهدی به نفع هماتوم، کالکشن، آبسه یا ضایعه فضاگیر مشاهده نشد.`);
+  }
+  if(s.sebaceous){
+    const d=softTissueDimensions(s);
+    let sentence=`یک ضایعه کیستیک با حدود مشخص${d?` به ابعاد ${d}`:""}${location?` در ناحیه ${location}`:""}${s.cystDepth?` در فاصله حدود ${fa(s.cystDepth)} میلی‌متر از سطح پوست`:""} مشاهده شد که دارای posterior acoustic enhancement است و در درجه اول مطرح‌کننده کیست سباسه می‌باشد.`;
+    if(s.skinTract) sentence += " یک تراکت ظریف از ضایعه تا سطح پوست مشاهده می‌شود و ضایعه به نظر دارای ارتباط با سطح پوست است.";
+    f.push(sentence);
+    i.push("ضایعه کیستیک سطحی با نمای سونوگرافیک مطرح‌کننده کیست سباسه.");
+  }
+  if(s.reactiveNodes){
+    f.push(`چند لنف‌نود با نمای واکنشی (hypoechoic، بیضوی، با حدود مشخص و کانتور منظم)${s.nodeSAD?` تا حداکثر قطر کوتاه ${fa(s.nodeSAD)} میلی‌متر`:""}${String(s.nodeLocation||"").trim()?` در ${String(s.nodeLocation).trim()}`:(location?` در ناحیه ${location}`:"")} مشاهده شدند.`);
+    i.push("لنف‌نودهای با نمای واکنشی.");
+  }
+  return {finding:f.join("\n"),impression:i.length?unique(i).join("\n"):"یافته پاتولوژیک بارزی در نسج نرم مشاهده نشد.",recommendation:r.join("\n")};
+}
+function SoftTissueCard({onReportChange}){
+  const [s,setS]=React.useState(softTissueInitial); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v}));
+  const report=React.useMemo(()=>buildSoftTissue(s),[s]); useEmit(report,onReportChange);
+  return h("div",{style:cardStyle},
+    h(CardHeader,{title:"سونوگرافی نسج نرم",onReset:()=>setS(softTissueInitial)}),
+    h("div",{style:groupStyle},
+      label("محل بررسی",input({value:s.location,onChange:e=>set("location",e.target.value),placeholder:"مثلاً دیواره شکم، پشت گردن، ناحیه گلوتئال و..."})),
+      h("p",{style:muted},"در صورت انتخاب‌نشدن یافته پاتولوژیک، متن نرمال نسج نرم به‌صورت خودکار تولید می‌شود.")
+    ),
+    h("div",{style:groupStyle},
+      checkbox(s.sebaceous,v=>set("sebaceous",v),"ضایعه کیستیک مطرح‌کننده کیست سباسه"),
+      s.sebaceous?h("div",null,
+        h("div",{style:gridStyle},
+          label("طول (mm)",input({type:"number",value:s.cystL,onChange:e=>set("cystL",e.target.value)})),
+          label("AP (mm)",input({type:"number",value:s.cystAP,onChange:e=>set("cystAP",e.target.value)})),
+          label("عرض (mm)",input({type:"number",value:s.cystT,onChange:e=>set("cystT",e.target.value)})),
+          label("فاصله از سطح پوست (mm)",input({type:"number",value:s.cystDepth,onChange:e=>set("cystDepth",e.target.value)}))
+        ),
+        h("div",{style:{marginTop:"10px"}},checkbox(s.skinTract,v=>set("skinTract",v),"تراکت و ارتباط با سطح پوست مشاهده می‌شود"))
+      ):null
+    ),
+    h("div",{style:groupStyle},
+      checkbox(s.reactiveNodes,v=>set("reactiveNodes",v),"لنف‌نودهای با نمای واکنشی"),
+      s.reactiveNodes?h("div",{style:gridStyle},
+        label("محل لنف‌نودها",input({value:s.nodeLocation,onChange:e=>set("nodeLocation",e.target.value),placeholder:"مثلاً آگزیلاری راست، گردنی، اینگوینال چپ"})),
+        label("حداکثر SAD (mm)",input({type:"number",value:s.nodeSAD,onChange:e=>set("nodeSAD",e.target.value)}))
+      ):null
+    )
+  );
+}
+exports.SoftTissueCard = SoftTissueCard;
+
+function herniaSideInitial(){ return {status:"none", type:"indirect", content:"fat", neck:"", sacL:"", sacAP:"", reducibility:"reducible", valsalva:true, standing:true, supineReduction:true, vascularity:"preserved", noComplication:true}; }
 const inguinalInitial = { right:herniaSideInitial(), left:herniaSideInitial(), nodes:false, nodeSide:"right", nodeSize:"" };
+function inguinalSacDimensions(x){
+  if(num(x.sacL)!==null && num(x.sacAP)!==null) return `${fa(x.sacL)} × ${fa(x.sacAP)} میلی‌متر`;
+  if(num(x.sacL)!==null) return `${fa(x.sacL)} میلی‌متر`;
+  if(num(x.sacAP)!==null) return `${fa(x.sacAP)} میلی‌متر`;
+  return "";
+}
 function buildInguinal(s){
   const f=[]; const i=[]; const r=[];
-  function side(key,labelText){ const x=s[key]; if(x.status==="none"){ f.push(`در ناحیه اینگوینال سمت ${labelText}، شواهدی از فتق در حالت استراحت یا حین مانور Valsalva مشاهده نشد.`); return; }
-    const type=x.type==="direct"?"مستقیم":(x.type==="indirect"?"غیرمستقیم":"با نوع نامشخص"); const content={fat:"چربی",bowel:"لوپ روده",mixed:"چربی و لوپ روده"}[x.content]; const red={reducible:"قابل جااندازی",partial:"تا حدی قابل جااندازی",nonreducible:"غیرقابل جااندازی"}[x.reducibility];
-    f.push(`فتق اینگوینال ${type} در سمت ${labelText} با محتوای ${content}${x.neck?` و قطر گردن حدود ${fa(x.neck)} میلی‌متر`:""}${x.sac?` و حداکثر ابعاد ساک حدود ${fa(x.sac)} میلی‌متر`:""} مشاهده شد؛ فتق ${red} است${x.valsalva?" و با مانور Valsalva برجسته‌تر می‌شود":""}.`);
-    if(x.vascularity==="preserved") f.push(`جریان خون محتوای فتق سمت ${labelText} حفظ شده است.`); else { f.push(`کاهش جریان خون در محتوای فتق سمت ${labelText} مشاهده شد.`); r.push("با توجه به کاهش جریان خون یا احتمال گیر افتادگی، ارزیابی فوری جراحی توصیه می‌شود."); }
-    i.push(`فتق اینگوینال ${type} سمت ${labelText}${x.reducibility==="nonreducible"?"، غیرقابل جااندازی":""}.`); if(x.reducibility==="nonreducible") r.push("تطابق فوری با علائم بالینی از نظر incarceration/strangulation توصیه می‌شود.");
+  function reductionSentence(x){
+    if(x.reducibility==="reducible"){
+      if(x.type==="indirect" && x.supineReduction) return "در حالت خوابیده و با فشار پروب قابل جااندازی است.";
+      return "با فشار پروب به داخل حفره پریتوئن قابل جااندازی است.";
+    }
+    if(x.reducibility==="partial") return "با فشار پروب به‌طور نسبی قابل جااندازی است.";
+    return "با فشار پروب قابل جااندازی نیست.";
+  }
+  function side(key,labelText){
+    const x=s[key];
+    if(x.status==="none"){
+      f.push(`در بررسی ناحیه اینگوینال سمت ${labelText} با و بدون مانور Valsalva، شواهدی به نفع دیفکت یا هرنی مشاهده نشد.`);
+      return;
+    }
+    const sac=inguinalSacDimensions(x);
+    const sidePhrase=`سمت ${labelText}`;
+    if(x.type==="direct"){
+      let sentence=`در ${sidePhrase}، تصویر دیفکت${x.neck?` به قطر ${fa(x.neck)} میلی‌متر`:""} در مدیال عروق اپی‌گاستریک تحتانی مشاهده می‌شود که از طریق آن ساک هرنی${sac?` به حداکثر ابعاد ${sac}`:""} مشهود است.`;
+      if(x.valsalva) sentence += " یافته با مانور Valsalva تشدید می‌شود.";
+      sentence += ` ${reductionSentence(x)} مجموع شواهد مطرح‌کننده هرنی اینگوینال مستقیم ${sidePhrase} می‌باشد.`;
+      f.push(sentence);
+      i.push(`هرنی اینگوینال مستقیم ${sidePhrase}${x.reducibility==="nonreducible"?"، غیرقابل جااندازی":""}.`);
+    } else if(x.type==="indirect"){
+      const content={fat:"چربی مزانتریک",bowel:"قسمتی از لوپ روده باریک",mixed:"چربی مزانتریک و قسمتی از لوپ روده باریک"}[x.content]||"چربی مزانتریک";
+      let sentence=`در ${sidePhrase}، تصویر دیفکت${x.neck?` با قطر گردن ${fa(x.neck)} میلی‌متر`:""} در لترال عروق اپی‌گاستریک تحتانی مشاهده می‌شود که از طریق آن ساک هرنی حاوی ${content}${sac?` به حداکثر ابعاد ${sac}`:""} مشهود است.`;
+      if(x.standing && x.valsalva) sentence += " یافته در حالت ایستاده و با مانور Valsalva تشدید می‌شود.";
+      else if(x.valsalva) sentence += " یافته با مانور Valsalva تشدید می‌شود.";
+      else if(x.standing) sentence += " یافته در حالت ایستاده تشدید می‌شود.";
+      sentence += ` ${reductionSentence(x)} مجموع شواهد مطرح‌کننده هرنی اینگوینال غیرمستقیم ${sidePhrase} می‌باشد.`;
+      f.push(sentence);
+      i.push(`هرنی اینگوینال غیرمستقیم ${sidePhrase}${x.reducibility==="nonreducible"?"، غیرقابل جااندازی":""}.`);
+    } else {
+      f.push(`در ${sidePhrase}، ساک هرنی${x.neck?` با قطر گردن ${fa(x.neck)} میلی‌متر`:""}${sac?` و حداکثر ابعاد ${sac}`:""} مشاهده شد. ${reductionSentence(x)}`);
+      i.push(`هرنی اینگوینال ${sidePhrase} با نوع نامشخص.`);
+    }
+    const uncomplicated=x.noComplication && x.reducibility!=="nonreducible" && x.vascularity==="preserved";
+    if(uncomplicated) f.push(`در حال حاضر شواهدی به نفع incarceration یا strangulation در هرنی ${sidePhrase} مشاهده نشد.`);
+    if(x.vascularity==="reduced"){
+      f.push(`کاهش جریان خون در محتوای هرنی ${sidePhrase} مشاهده شد.`);
+      r.push("با توجه به کاهش جریان خون محتوای هرنی، ارزیابی فوری جراحی توصیه می‌شود.");
+    }
+    if(x.reducibility==="nonreducible") r.push("با توجه به غیرقابل جااندازی‌بودن هرنی، تطابق فوری با علائم بالینی از نظر incarceration/strangulation توصیه می‌شود.");
   }
   side("right","راست"); side("left","چپ");
-  if(s.nodes){ const sideText=s.nodeSide==="right"?"راست":"چپ"; f.push(`چند لنف‌نود اینگوینال با نمای واکنشی در سمت ${sideText}${s.nodeSize?` تا حداکثر قطر کوتاه ${fa(s.nodeSize)} میلی‌متر`:""} مشاهده شد.`); }
-  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"شواهدی از فتق اینگوینال در دو سمت مشاهده نشد.", recommendation:unique(r).join("\n")};
+  if(s.nodes){
+    const sideText=s.nodeSide==="right"?"راست":"چپ";
+    f.push(`چند لنف‌نود اینگوینال با نمای واکنشی در سمت ${sideText}${s.nodeSize?` تا حداکثر قطر کوتاه ${fa(s.nodeSize)} میلی‌متر`:""} مشاهده شد.`);
+  }
+  return {finding:f.join("\n"), impression:i.length?unique(i).join("\n"):"شواهدی به نفع هرنی اینگوینال مشاهده نشد.", recommendation:unique(r).join("\n")};
 }
 function InguinalCard({onReportChange}){
   const [s,setS]=React.useState(inguinalInitial); const setSide=(side,k,v)=>setS(p=>Object.assign({},p,{[side]:Object.assign({},p[side],{[k]:v})})); const set=(k,v)=>setS(p=>Object.assign({},p,{[k]:v})); const report=React.useMemo(()=>buildInguinal(s),[s]); useEmit(report,onReportChange);
-  function sideUI(side,title){ const x=s[side]; return h("div",{style:groupStyle},h("h3",null,title), label("وضعیت",select(x.status,v=>setSide(side,"status",v),[["none","فتق مشاهده نشد"],["hernia","فتق وجود دارد"]])), x.status==="hernia"?h("div",{style:gridStyle},
-    label("نوع",select(x.type,v=>setSide(side,"type",v),[["indirect","غیرمستقیم"],["direct","مستقیم"],["unspecified","نامشخص"]])), label("محتوا",select(x.content,v=>setSide(side,"content",v),[["fat","چربی"],["bowel","روده"],["mixed","چربی و روده"]])),
-    label("قطر گردن (mm)",input({type:"number",value:x.neck,onChange:e=>setSide(side,"neck",e.target.value)})), label("حداکثر اندازه ساک (mm)",input({type:"number",value:x.sac,onChange:e=>setSide(side,"sac",e.target.value)})),
-    label("قابلیت جااندازی",select(x.reducibility,v=>setSide(side,"reducibility",v),[["reducible","قابل جااندازی"],["partial","نسبی"],["nonreducible","غیرقابل جااندازی"]])), label("جریان خون محتوا",select(x.vascularity,v=>setSide(side,"vascularity",v),[["preserved","حفظ شده"],["reduced","کاهش‌یافته"]])), checkbox(x.valsalva,v=>setSide(side,"valsalva",v),"با Valsalva برجسته‌تر می‌شود")
-  ):null); }
-  return h("div",{style:cardStyle},h(CardHeader,{title:"سونوگرافی نواحی اینگوینال",onReset:()=>setS({right:herniaSideInitial(),left:herniaSideInitial(),nodes:false,nodeSide:"right",nodeSize:""})}), sideUI("right","سمت راست"),sideUI("left","سمت چپ"), h("div",{style:groupStyle},checkbox(s.nodes,v=>set("nodes",v),"لنف‌نود واکنشی اینگوینال"),s.nodes?h("div",{style:gridStyle},label("سمت",select(s.nodeSide,v=>set("nodeSide",v),[["right","راست"],["left","چپ"]])),label("قطر کوتاه (mm)",input({type:"number",value:s.nodeSize,onChange:e=>set("nodeSize",e.target.value)}))):null));
+  function sideUI(side,title){
+    const x=s[side];
+    return h("div",{style:groupStyle},
+      h("h3",null,title),
+      label("وضعیت",select(x.status,v=>setSide(side,"status",v),[["none","فتق مشاهده نشد"],["hernia","فتق وجود دارد"]])),
+      x.status==="hernia"?h("div",null,
+        h("div",{style:gridStyle},
+          label("نوع",select(x.type,v=>setSide(side,"type",v),[["direct","مستقیم"],["indirect","غیرمستقیم"],["unspecified","نامشخص"]])),
+          x.type==="indirect"?label("محتوا",select(x.content,v=>setSide(side,"content",v),[["fat","چربی مزانتریک"],["bowel","قسمتی از لوپ روده باریک"],["mixed","چربی مزانتریک و لوپ روده باریک"]])):null,
+          label(x.type==="direct"?"قطر دیفکت (mm)":"قطر گردن (mm)",input({type:"number",value:x.neck,onChange:e=>setSide(side,"neck",e.target.value)})),
+          label("طول ساک (mm)",input({type:"number",value:x.sacL,onChange:e=>setSide(side,"sacL",e.target.value)})),
+          label("AP ساک (mm)",input({type:"number",value:x.sacAP,onChange:e=>setSide(side,"sacAP",e.target.value)})),
+          label("قابلیت جااندازی",select(x.reducibility,v=>setSide(side,"reducibility",v),[["reducible","قابل جااندازی"],["partial","تا حدی قابل جااندازی"],["nonreducible","غیرقابل جااندازی"]])),
+          label("جریان خون محتوا",select(x.vascularity,v=>setSide(side,"vascularity",v),[["preserved","حفظ شده"],["reduced","کاهش‌یافته"]]))
+        ),
+        h("div",{style:{display:"flex",flexWrap:"wrap",gap:"16px",marginTop:"12px"}},
+          checkbox(x.valsalva,v=>setSide(side,"valsalva",v),"با مانور Valsalva تشدید می‌شود"),
+          x.type==="indirect"?checkbox(x.standing,v=>setSide(side,"standing",v),"در حالت ایستاده تشدید می‌شود"):null,
+          x.type==="indirect"?checkbox(x.supineReduction,v=>setSide(side,"supineReduction",v),"در حالت خوابیده و با فشار پروب جااندازی می‌شود"):null,
+          checkbox(x.noComplication,v=>setSide(side,"noComplication",v),"شواهدی از incarceration/strangulation مشاهده نشد")
+        )
+      ):null
+    );
+  }
+  return h("div",{style:cardStyle},
+    h(CardHeader,{title:"سونوگرافی نواحی اینگوینال",onReset:()=>setS({right:herniaSideInitial(),left:herniaSideInitial(),nodes:false,nodeSide:"right",nodeSize:""})}),
+    sideUI("right","سمت راست"),
+    sideUI("left","سمت چپ"),
+    h("div",{style:groupStyle},
+      checkbox(s.nodes,v=>set("nodes",v),"لنف‌نود واکنشی اینگوینال"),
+      s.nodes?h("div",{style:gridStyle},
+        label("سمت",select(s.nodeSide,v=>set("nodeSide",v),[["right","راست"],["left","چپ"]])),
+        label("قطر کوتاه (mm)",input({type:"number",value:s.nodeSize,onChange:e=>set("nodeSize",e.target.value)}))
+      ):null
+    )
+  );
 }
 exports.InguinalCard = InguinalCard;
 
@@ -2954,11 +3096,12 @@ const exams=[
 {id:"urinaryProstate",icon:"🩺",title:"کلیه، مثانه، پروستات و PVR",description:"کلیه‌ها و مجاری ادراری، مثانه پر و خالی، پروستات و باقی‌مانده ادرار",organs:["kidney","prostate"]},
 {id:"kidneyBladder",icon:"💧",title:"کلیه و مثانه بدون پروستات",description:"کلیه‌ها، حالب‌ها و مثانه؛ بدون نمایش فرم پروستات",organs:["kidney"]},
 {id:"scrotal",icon:"⚕️",title:"بیضه‌ها و اسکروتوم",description:"ابعاد و حجم بیضه‌ها، پرفیوژن، اپیدیدیم، هیدروسل و ضایعات فوکال",organs:["scrotal"]},
+{id:"softTissue",icon:"🩹",title:"نسج نرم",description:"بررسی هماتوم، کالکشن، آبسه، ضایعات کیستیک سطحی و لنف‌نودهای واکنشی",organs:["softTissue"]},
 {id:"inguinal",icon:"↔️",title:"نواحی اینگوینال",description:"بررسی فتق راست و چپ، Valsalva، قابلیت جااندازی و جریان خون محتوا",organs:["inguinal"]},
 {id:"thyroid",icon:"🦋",title:"تیروئید",description:"ابعاد لوب‌ها، پارانشیم، واسکولاریته، ندول و لنف‌نودهای گردنی",organs:["thyroid"]},
 {id:"femalePelvis",icon:"♀️",title:"رحم و ضمائم",description:"رحم، اندومتر، FIGO میوم‌ها، آدنومیوز، تخمدان‌ها، PCOM و ضایعات آدنکس",organs:["femalePelvis"]}
 ];
-const organTitles={liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",scrotal:"بیضه‌ها و اسکروتوم",inguinal:"ناحیه اینگوینال"};
+const organTitles={liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",scrotal:"بیضه‌ها و اسکروتوم",softTissue:"نسج نرم",inguinal:"ناحیه اینگوینال"};
 const freeSections={
   pancreasSpleen:[["pancreas","پانکراس"],["spleen","طحال"]],
   kidney:[["rightKidney","کلیه راست"],["leftKidney","کلیه چپ"],["ureters","حالب‌ها"],["bladder","مثانه"]],
@@ -2966,24 +3109,25 @@ const freeSections={
   femalePelvis:[["uterus","رحم و اندومتر"],["rightOvary","تخمدان راست"],["leftOvary","تخمدان چپ"],["adnexa","ضمائم و لگن"]],
   thyroid:[["thyroidRight","لوب راست تیروئید"],["thyroidLeft","لوب چپ تیروئید"],["thyroidIsthmus","ایسموس"],["cervicalNodes","لنف‌نودهای گردنی"]],
   scrotal:[["rightTestis","بیضه راست"],["leftTestis","بیضه چپ"],["rightEpididymis","اپیدیدیم راست"],["leftEpididymis","اپیدیدیم چپ"],["spermaticCords","طناب‌های اسپرماتیک و سایر یافته‌ها"]],
+  softTissue:[["softTissueOther","نسج نرم"]],
   inguinal:[["rightInguinal","ناحیه اینگوینال راست"],["leftInguinal","ناحیه اینگوینال چپ"]]
 };
-function lines(text){return(text||"").split("\n").map(x=>x.trim()).filter(Boolean);}function unique(arr){return[...new Set(arr)];}function isGenericNormal(line){return/یافته پاتولوژیک بارزی|شواهدی از فتق اینگوینال در دو سمت مشاهده نشد/.test(line);}function sameReport(a,b){return a.finding===b.finding&&a.impression===b.impression&&a.recommendation===b.recommendation;}
+function lines(text){return(text||"").split("\n").map(x=>x.trim()).filter(Boolean);}function unique(arr){return[...new Set(arr)];}function isGenericNormal(line){return/یافته پاتولوژیک بارزی|شواهدی (?:از|به نفع) (?:فتق|هرنی) اینگوینال(?: در دو سمت)? مشاهده نشد/.test(line);}function sameReport(a,b){return a.finding===b.finding&&a.impression===b.impression&&a.recommendation===b.recommendation;}
 function Ultrasound({goBack}){
  const [examId,setExamId]=React.useState(null),[activeOrgan,setActiveOrgan]=React.useState(null),[sessionKey,setSessionKey]=React.useState(1),[reports,setReports]=React.useState({}),[customNotes,setCustomNotes]=React.useState({}),[paraaorticMode,setParaaorticMode]=React.useState("normal"),[generalFreeFluid,setGeneralFreeFluid]=React.useState("none");
  const exam=React.useMemo(()=>exams.find(x=>x.id===examId)||null,[examId]);
  const update=React.useCallback((key,report)=>setReports(prev=>{const next=report||emptyReport;return prev[key]&&sameReport(prev[key],next)?prev:Object.assign({},prev,{[key]:next});}),[]);
- const callbacks={};["liver","pancreasSpleen","kidney","prostate","femalePelvis","thyroid","scrotal","inguinal"].forEach(k=>callbacks[k]=r=>update(k,r));
+ const callbacks={};["liver","pancreasSpleen","kidney","prostate","femalePelvis","thyroid","scrotal","softTissue","inguinal"].forEach(k=>callbacks[k]=r=>update(k,r));
  const updateCustom=(id,field,value)=>setCustomNotes(prev=>Object.assign({},prev,{[id]:Object.assign({finding:"",impression:"",recommendation:""},prev[id]||{}, {[field]:value})}));
  const selectExam=id=>{const x=exams.find(e=>e.id===id);setExamId(id);setActiveOrgan(x.organs[0]);setReports({});setCustomNotes({});setParaaorticMode("normal");setGeneralFreeFluid("none");setSessionKey(k=>k+1);window.scrollTo({top:0,behavior:"smooth"});};
  const resetPatient=()=>{setReports({});setCustomNotes({});setParaaorticMode("normal");setGeneralFreeFluid("none");setSessionKey(k=>k+1);if(exam)setActiveOrgan(exam.organs[0]);};
  const customReports=React.useMemo(()=>{if(!exam)return[];return exam.organs.flatMap(k=>(freeSections[k]||[]).map(s=>customNotes[s[0]]||emptyReport)).filter(r=>r.finding.trim()||r.impression.trim()||r.recommendation.trim());},[exam,customNotes]);
  const combined=React.useMemo(()=>{if(!exam)return emptyReport;const isGeneralAbdomenPelvis=examId==="maleAbdomenPelvis"||examId==="femaleAbdomenPelvis";const paraaorticReport=isGeneralAbdomenPelvis?{finding:paraaorticMode==="limited"?"فضای پاراآورتیک به‌علت سایه‌های گازی قابل ارزیابی نیست.":"در فضای پاراآورتیک، یافته پاتولوژیک واضح یا ضایعه فضاگیر واضحی مشاهده نشد.",impression:"",recommendation:""}:null;const freeFluidReport=isGeneralAbdomenPelvis?({none:{finding:"مایع آزاد پاتولوژیک در فضای شکم و لگن مشاهده نشد.",impression:"",recommendation:""},mild:{finding:"مقدار مختصری مایع آزاد در فضای شکم و لگن مشاهده شد.",impression:"مایع آزاد مختصر در فضای شکم و لگن.",recommendation:""},moderate:{finding:"مقدار متوسط مایع آزاد در فضای شکم و لگن مشاهده شد.",impression:"مایع آزاد در فضای شکم و لگن.",recommendation:""},large:{finding:"مقدار قابل‌توجهی مایع آزاد در فضای شکم و لگن مشاهده شد.",impression:"آسیت / مایع آزاد قابل‌توجه در فضای شکم و لگن.",recommendation:""}}[generalFreeFluid]||null):null;const selected=exam.organs.map(k=>reports[k]).filter(Boolean).concat(customReports).concat(paraaorticReport?[paraaorticReport]:[]).concat(freeFluidReport?[freeFluidReport]:[]);const finding=unique(selected.flatMap(x=>lines(x.finding))).join("\n");let impressions=unique(selected.flatMap(x=>lines(x.impression))).filter(x=>!isGenericNormal(x));if(examId==="maleAbdomenPelvis")impressions=impressions.filter(x=>!(/^پروستات با حجم تقریبی .* و نمای طبیعی\.$/.test(x)||x==="نمای طبیعی پروستات."||x==="تخلیه مثانه مناسب است."||x==="PVR در محدوده قابل قبول اندازه‌گیری شد."||x==="یافته پاتولوژیک واضحی مشاهده نمی‌شود."));const recommendation=unique(selected.flatMap(x=>lines(x.recommendation))).join("\n");const hasCustomFinding=customReports.some(x=>x.finding.trim());return{finding,impression:impressions.length?impressions.join("\n"):(hasCustomFinding?"":"یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد."),recommendation};},[exam,examId,reports,customReports,paraaorticMode,generalFreeFluid]);
  const pageStyle={minHeight:"100vh",width:"100%",boxSizing:"border-box",overflowX:"hidden",background:"#0f172a",color:"white",direction:"rtl",padding:"clamp(16px, 4vw, 32px)"},examCard={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"18px",color:"white",textAlign:"right",cursor:"pointer",minHeight:"150px",transition:"0.2s"},tabStyle=active=>({padding:"10px 15px",borderRadius:"9px",border:active?"2px solid #38bdf8":"1px solid #64748b",background:active?"#0369a1":"#334155",color:"white",cursor:"pointer"});
- function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
+ function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="softTissue")return h(Extra.SoftTissueCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۱.۹ — اصلاح گردش‌کار گزارش، تکمیل کبد و کیسه صفرا، مثانه، بیضه‌ها و گزارش نهایی یکپارچه."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۲.۰ — افزودن موتور سونوگرافی نسج نرم و بازطراحی گزارش فتق اینگوینال مستقیم و غیرمستقیم."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
