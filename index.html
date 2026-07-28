@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v1.8 - Pregnancy Dating & CRL EDD" />
-  <title>HN Radiology Suite v1.8</title>
+  <meta name="description" content="HN Radiology Suite v1.9 - Workflow Refinements" />
+  <title>HN Radiology Suite v1.9</title>
   <style>
 * {
   box-sizing: border-box;
@@ -73,7 +73,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
 <body>
   <div id="root"></div>
   <script>
-/* HN Radiology Suite v1.8 - Pregnancy Dating & CRL EDD + Lower Limb Venous Engines */
+/* HN Radiology Suite v1.9 - Workflow Refinements + Lower Limb Venous Engines */
 (function(){
 'use strict';
 const process = { env: { NODE_ENV: 'production' } };
@@ -273,7 +273,7 @@ function buildVaricoceleReport(state) {
     const rightVolume = calculateTesticularVolume(state.testes.right.length, state.testes.right.width, state.testes.right.height);
     const leftVolume = calculateTesticularVolume(state.testes.left.length, state.testes.left.width, state.testes.left.height);
     if (state.scrotalBaselineNormal) {
-        findings.push("هر دو بیضه از نظر اندازه و اکوتکچر طبیعی بوده و جریان خون داخل‌بیضه‌ای دو طرف حفظ شده است. اپیدیدیم‌های دو طرف نمای طبیعی دارند و هیدروسل قابل‌توجهی مشاهده نشد.");
+        findings.push("هر دو بیضه از نظر اندازه و اکوتکچر طبیعی بوده و جریان خون داخل‌بیضه‌ای دو طرف حفظ شده است. اپیدیدیم‌های دو طرف نمای طبیعی دارند و هیدروسل قابل‌توجهی مشاهده نشد. شواهدی به نفع تورشن در بیضه‌ها رویت نشد.");
     }
     const rightDimensionText = testisDimensionText("راست", state.testes.right, rightVolume);
     const leftDimensionText = testisDimensionText("چپ", state.testes.left, leftVolume);
@@ -406,7 +406,7 @@ function VaricoceleCard() {
     }));
     const reset = () => setState(initialState);
     const activeSides = state.examMode === "bilateral" ? ["left", "right"] : state.examMode === "normal" ? [] : [state.examMode];
-    return ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: "18px" }, children: (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "18px" }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", alignItems: "center" }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { style: { margin: 0 }, children: "Varicocele Doppler Engine" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1", marginBottom: 0 }, children: "Sarteschi/Liguori grading \u2014 \u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0627\u0633\u062A\u0627\u0646\u062F\u0627\u0631\u062F \u062F\u0631 Supine/Standing \u0648 \u062D\u06CC\u0646 Valsalva" })] }), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: reset, style: { ...buttonStyle, background: "#7f1d1d", border: "1px solid #ef4444" }, children: "\u067E\u0627\u06A9\u200C\u06A9\u0631\u062F\u0646 \u0641\u0631\u0645" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { ...panelStyle }, children: [(0, jsx_runtime_1.jsx)("h3", { style: { marginTop: 0 }, children: "\u0646\u062A\u06CC\u062C\u0647 \u0628\u0631\u0631\u0633\u06CC \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644" }), (0, jsx_runtime_1.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [
+    return ((0, jsx_runtime_1.jsx)("div", { style: { marginTop: "18px" }, children: (0, jsx_runtime_1.jsxs)("section", { style: { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "18px" }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", alignItems: "center" }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { style: { margin: 0 }, children: "سونوگرافی و کالر داپلر بیضه‌ها و واریکوسل" }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1", marginBottom: 0 }, children: "Sarteschi/Liguori grading \u2014 \u0627\u0646\u062F\u0627\u0632\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0627\u0633\u062A\u0627\u0646\u062F\u0627\u0631\u062F \u062F\u0631 Supine/Standing \u0648 \u062D\u06CC\u0646 Valsalva" })] }), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: reset, style: { ...buttonStyle, background: "#7f1d1d", border: "1px solid #ef4444" }, children: "\u067E\u0627\u06A9\u200C\u06A9\u0631\u062F\u0646 \u0641\u0631\u0645" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { ...panelStyle }, children: [(0, jsx_runtime_1.jsx)("h3", { style: { marginTop: 0 }, children: "\u0646\u062A\u06CC\u062C\u0647 \u0628\u0631\u0631\u0633\u06CC \u0648\u0627\u0631\u06CC\u06A9\u0648\u0633\u0644" }), (0, jsx_runtime_1.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" }, children: [
                                 ["normal", "بدون واریکوسل"],
                                 ["left", "واریکوسل چپ"],
                                 ["right", "واریکوسل راست"],
@@ -1348,7 +1348,6 @@ __modules["src/components/Common/ReportOutput.jsx"] = function(module, exports, 
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const h = React.createElement;
-const STORAGE_KEY = "hnRadiologyReportsV1";
 const textareaStyle = {
     width: "100%",
     boxSizing: "border-box",
@@ -1356,203 +1355,118 @@ const textareaStyle = {
     color: "#0f172a",
     border: "1px solid #64748b",
     borderRadius: "10px",
-    padding: "14px",
+    padding: "16px",
     whiteSpace: "pre-wrap",
     lineHeight: 2,
-    minHeight: "120px",
+    minHeight: "390px",
     resize: "vertical",
     direction: "rtl",
     textAlign: "right",
     fontFamily: "Arial, Tahoma, sans-serif",
     fontSize: "15px"
 };
-const inputStyle = {
-    width: "180px",
-    maxWidth: "100%",
-    padding: "10px 12px",
-    borderRadius: "9px",
-    border: "1px solid #64748b",
-    background: "#f8fafc",
-    color: "#0f172a",
-    direction: "ltr",
-    textAlign: "center",
-    fontSize: "17px",
-    letterSpacing: "2px"
-};
-function formatDate(date) {
-    try {
-        return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
-            year: "numeric", month: "2-digit", day: "2-digit",
-            hour: "2-digit", minute: "2-digit", hour12: false
-        }).format(date);
-    }
-    catch (_a) { return date.toLocaleString("fa-IR"); }
+function buildGeneratedReport(finding, impression, recommendation) {
+    const sections = [];
+    if (String(finding || "").trim()) sections.push(`یافته‌ها:\n${String(finding).trim()}`);
+    if (String(impression || "").trim()) sections.push(`نتیجه‌گیری:\n${String(impression).trim()}`);
+    if (String(recommendation || "").trim()) sections.push(`پیشنهاد:\n${String(recommendation).trim()}`);
+    return sections.join("\n\n");
 }
-function readReports() {
-    try {
-        const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        return Array.isArray(value) ? value : [];
-    }
-    catch (_a) { return []; }
+function splitReportText(value) {
+    const text = String(value || "").trim();
+    const labels = [
+        { key: "finding", label: "یافته‌ها:" },
+        { key: "impression", label: "نتیجه‌گیری:" },
+        { key: "recommendation", label: "پیشنهاد:" }
+    ];
+    const found = labels.map(item => ({ ...item, index: text.indexOf(item.label) })).filter(item => item.index >= 0).sort((a,b)=>a.index-b.index);
+    if (!found.length) return { finding: text, impression: "", recommendation: "" };
+    const result = { finding: "", impression: "", recommendation: "" };
+    found.forEach((item, idx) => {
+        const from = item.index + item.label.length;
+        const to = idx + 1 < found.length ? found[idx + 1].index : text.length;
+        result[item.key] = text.slice(from, to).trim();
+    });
+    return result;
 }
-function writeReports(items) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
-function ReportOutput({ finding = "", impression = "", recommendation = "", examTitle = "گزارش سونوگرافی", sessionKey = 0, wordExtras = null }) {
+function fileStamp(date = new Date()) {
+    const pad = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+function ReportOutput({ finding = "", impression = "", recommendation = "", sessionKey = 0, wordExtras = null }) {
+    const generatedReport = React.useMemo(() => buildGeneratedReport(finding, impression, recommendation), [finding, impression, recommendation]);
     const [copyStatus, setCopyStatus] = React.useState("");
-    const [patientId, setPatientId] = React.useState("");
-    const [createdAt, setCreatedAt] = React.useState(() => new Date());
-    const [editableFinding, setEditableFinding] = React.useState(finding || "");
-    const [editableImpression, setEditableImpression] = React.useState(impression || "");
-    const [editableRecommendation, setEditableRecommendation] = React.useState(recommendation || "");
+    const [editableReport, setEditableReport] = React.useState(generatedReport);
     const [manuallyEdited, setManuallyEdited] = React.useState(false);
     React.useEffect(() => {
-        setPatientId("");
-        setCreatedAt(new Date());
         setCopyStatus("");
-        setEditableFinding(finding || "");
-        setEditableImpression(impression || "");
-        setEditableRecommendation(recommendation || "");
+        setEditableReport(generatedReport);
         setManuallyEdited(false);
     }, [sessionKey]);
     React.useEffect(() => {
-        if (!manuallyEdited) {
-            setEditableFinding(finding || "");
-            setEditableImpression(impression || "");
-            setEditableRecommendation(recommendation || "");
-        }
-    }, [finding, impression, recommendation, manuallyEdited]);
-    const reportBody = React.useMemo(() => {
-        const sections = [];
-        if (editableFinding.trim()) sections.push(`یافته‌ها:\n${editableFinding.trim()}`);
-        if (editableImpression.trim()) sections.push(`نتیجه‌گیری:\n${editableImpression.trim()}`);
-        if (editableRecommendation.trim()) sections.push(`پیشنهاد:\n${editableRecommendation.trim()}`);
-        return sections.join("\n\n");
-    }, [editableFinding, editableImpression, editableRecommendation]);
-    const validPatientId = /^\d{6}$/.test(patientId);
-    const buildFullReport = (date = createdAt) => {
-        const header = [
-            `Patient ID: ${patientId || "------"}`,
-            `تاریخ و ساعت: ${formatDate(date)}`,
-            `نوع بررسی: ${examTitle}`
-        ].join("\n");
-        return reportBody ? `${header}\n\n${reportBody}` : header;
-    };
-    const wordData = (date = createdAt) => ({
-        patientId,
-        createdAtText: formatDate(date),
-        examTitle,
-        finding: editableFinding.trim(),
-        impression: editableImpression.trim(),
-        recommendation: editableRecommendation.trim(),
-        tables: wordExtras && Array.isArray(wordExtras.tables) ? wordExtras.tables : [],
-        images: wordExtras && Array.isArray(wordExtras.images) ? wordExtras.images : []
-    });
-    const onPatientIdChange = event => {
-        const next = String(event.target.value || "").replace(/\D/g, "").slice(0, 6);
-        if (!patientId && next) setCreatedAt(new Date());
-        setPatientId(next); setCopyStatus("");
-    };
-    const flash = (text, ms = 2400) => {
-        setCopyStatus(text);
+        if (!manuallyEdited) setEditableReport(generatedReport);
+    }, [generatedReport, manuallyEdited]);
+    const flash = (value, ms = 2400) => {
+        setCopyStatus(value);
         window.setTimeout(() => setCopyStatus(""), ms);
     };
-    const markEdited = setter => event => {
-        setter(String(event.target.value || ""));
-        setManuallyEdited(true);
-        setCopyStatus("");
-    };
-    const resetGeneratedText = () => {
-        setEditableFinding(finding || "");
-        setEditableImpression(impression || "");
-        setEditableRecommendation(recommendation || "");
-        setManuallyEdited(false);
-        flash("متن تولیدشده بازیابی شد");
-    };
-    const copyText = async text => {
-        try { await navigator.clipboard.writeText(text); }
+    const copyText = async value => {
+        try { await navigator.clipboard.writeText(value); }
         catch (_a) {
             const textarea = document.createElement("textarea");
-            textarea.value = text; document.body.appendChild(textarea); textarea.select();
+            textarea.value = value; document.body.appendChild(textarea); textarea.select();
             document.execCommand("copy"); document.body.removeChild(textarea);
         }
     };
     const validate = () => {
-        if (!validPatientId) { flash("Patient ID باید دقیقاً شش رقم باشد"); return false; }
-        if (!reportBody.trim()) { flash("متن گزارش هنوز خالی است"); return false; }
+        if (!editableReport.trim()) { flash("متن گزارش هنوز خالی است"); return false; }
         return true;
     };
     const copyReport = async () => {
         if (!validate()) return;
-        await copyText(buildFullReport());
-        flash("گزارش ویرایش‌شده کپی شد");
+        await copyText(editableReport.trim());
+        flash("گزارش کپی شد");
     };
     const exportWord = () => {
         if (!validate()) return;
         try {
-            const bytes = window.HNWord.createDocxBytes(wordData());
-            window.HNWord.downloadBytes(bytes, `${patientId}.docx`);
-            flash("فایل ورد ساخته شد؛ فایل دانلودشده را با Word باز کنید", 3500);
+            const sections = splitReportText(editableReport);
+            const bytes = window.HNWord.createDocxBytes({
+                finding: sections.finding,
+                impression: sections.impression,
+                recommendation: sections.recommendation,
+                tables: wordExtras && Array.isArray(wordExtras.tables) ? wordExtras.tables : [],
+                images: wordExtras && Array.isArray(wordExtras.images) ? wordExtras.images : []
+            });
+            window.HNWord.downloadBytes(bytes, `HN_Report_${fileStamp()}.docx`);
+            flash("فایل Word ساخته شد", 3200);
         }
-        catch (_a) { flash("ساخت فایل ورد انجام نشد", 3500); }
+        catch (_a) { flash("ساخت فایل Word انجام نشد", 3500); }
     };
-    const saveReport = () => {
-        if (!validate()) return;
-        try {
-            const now = new Date();
-            const bytes = window.HNWord.createDocxBytes(wordData(now));
-            const item = {
-                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                patientId,
-                examTitle,
-                createdAt: now.toISOString(),
-                finding: editableFinding.trim(),
-                impression: editableImpression.trim(),
-                recommendation: editableRecommendation.trim(),
-                fullReport: buildFullReport(now),
-                wordFileName: `${patientId}.docx`,
-                docxBase64: window.HNWord.toBase64(bytes),
-                archiveFormat: "docx"
-            };
-            const items = readReports();
-            items.unshift(item); writeReports(items);
-            setCreatedAt(now);
-            window.dispatchEvent(new CustomEvent("hn-reports-updated"));
-            flash(`گزارش و فایل ورد ${patientId}.docx در آرشیو ذخیره شد`, 3400);
-        }
-        catch (_a) { flash("ذخیره انجام نشد؛ فضای حافظه مرورگر را بررسی کنید", 3800); }
+    const resetGeneratedText = () => {
+        setEditableReport(generatedReport);
+        setManuallyEdited(false);
+        flash("متن تولیدشده بازیابی شد");
     };
     const actionStyle = { padding: "9px 14px", cursor: "pointer" };
     return h("div", { style: { marginTop: "24px" } },
-        h("div", { style: { background: "#172033", border: "1px solid #475569", borderRadius: "12px", padding: "14px", marginBottom: "16px" } },
-            h("div", { style: { display: "flex", gap: "14px", alignItems: "end", flexWrap: "wrap" } },
-                h("label", { style: { display: "grid", gap: "6px", fontWeight: "bold" } },
-                    "Patient ID شش‌رقمی",
-                    h("input", { value: patientId, onChange: onPatientIdChange, inputMode: "numeric", pattern: "[0-9]*", maxLength: 6, placeholder: "مثلاً 123456", style: inputStyle, autoComplete: "off" })
-                ),
-                h("div", { style: { color: "#cbd5e1", lineHeight: 1.9 } },
-                    h("div", null, `تاریخ و ساعت: ${formatDate(createdAt)}`),
-                    h("div", { style: { fontSize: "12px", color: validPatientId ? "#86efac" : "#fbbf24" } }, validPatientId ? "Patient ID معتبر است" : "فقط شش رقم انگلیسی وارد شود")
-                )
-            )
-        ),
         h("div", { style: { display: "flex", gap: "9px", alignItems: "center", flexWrap: "wrap" } },
             h("h3", { style: { margin: 0 } }, "گزارش نهایی قابل ویرایش"),
             h("button", { type: "button", onClick: copyReport, style: actionStyle }, "کپی گزارش"),
             h("button", { type: "button", onClick: exportWord, style: Object.assign({}, actionStyle, { background: "#166534", color: "white", border: "1px solid #4ade80" }) }, "خروجی Word"),
-            h("button", { type: "button", onClick: saveReport, style: Object.assign({}, actionStyle, { background: "#0284c7", color: "white", border: "1px solid #38bdf8" }) }, "ذخیره Word در گزارش‌های من"),
             h("button", { type: "button", onClick: resetGeneratedText, disabled: !manuallyEdited, style: actionStyle }, "بازنشانی متن تولیدشده"),
-            copyStatus && h("span", { style: { color: copyStatus.includes("ذخیره") || copyStatus.includes("کپی") || copyStatus.includes("ساخته شد") || copyStatus.includes("بازیابی") ? "#86efac" : "#fbbf24" } }, copyStatus)
+            copyStatus && h("span", { style: { color: copyStatus.includes("کپی") || copyStatus.includes("ساخته شد") || copyStatus.includes("بازیابی") ? "#86efac" : "#fbbf24" } }, copyStatus)
         ),
         manuallyEdited && h("p", { style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0 } }, "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید."),
-        h("div", { style: { marginTop: "14px", padding: "12px 14px", borderRadius: "10px", background: "#082f49", border: "1px solid #0ea5e9", whiteSpace: "pre-wrap", lineHeight: 1.9 } },
-            `Patient ID: ${patientId || "------"}\nتاریخ و ساعت: ${formatDate(createdAt)}\nنوع بررسی: ${examTitle}`
-        ),
-        h("h4", { style: { fontWeight: "bold" } }, "یافته‌ها"),
-        h("textarea", { value: editableFinding, onChange: markEdited(setEditableFinding), style: textareaStyle, rows: 7, spellCheck: false, "aria-label": "یافته‌ها" }),
-        h("h4", { style: { fontWeight: "bold" } }, "نتیجه‌گیری"),
-        h("textarea", { value: editableImpression, onChange: markEdited(setEditableImpression), style: Object.assign({}, textareaStyle, { minHeight: "92px", fontWeight: "bold" }), rows: 4, spellCheck: false, "aria-label": "نتیجه‌گیری" }),
-        h("h4", { style: { fontWeight: "bold" } }, "پیشنهاد"),
-        h("textarea", { value: editableRecommendation, onChange: markEdited(setEditableRecommendation), style: Object.assign({}, textareaStyle, { minHeight: "82px", fontWeight: "bold" }), rows: 3, spellCheck: false, placeholder: "در صورت نیاز پیشنهاد را وارد یا ویرایش کنید", "aria-label": "پیشنهاد" }),
-        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word این بررسی علاوه بر یافته‌ها، نتیجه‌گیری و پیشنهاد، جدول‌های محاسباتی و نمودارهای رشد را نیز شامل می‌شود. اطلاعات هویتی داخل Word درج نمی‌شوند." : "فایل Word فقط شامل یافته‌ها، نتیجه‌گیری و پیشنهاد است؛ Patient ID، تاریخ، ساعت و نوع بررسی داخل Word درج نمی‌شوند. تمام متن‌ها راست‌چین و با فونت B Yekan هستند و عناوین نتیجه‌گیری و پیشنهاد به‌صورت Bold ثبت می‌شوند. فایل Word با نام Patient ID داخل آرشیو مرورگر ذخیره می‌شود.")
+        h("textarea", {
+            value: editableReport,
+            onChange: event => { setEditableReport(String(event.target.value || "")); setManuallyEdited(true); setCopyStatus(""); },
+            style: Object.assign({}, textareaStyle, { marginTop: "14px" }),
+            rows: 17,
+            spellCheck: false,
+            "aria-label": "گزارش نهایی"
+        }),
+        h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word شامل متن گزارش، جدول‌های محاسباتی و نمودارهای رشد است. هیچ Patient ID یا اطلاعات هویتی به گزارش افزوده نمی‌شود." : "گزارش نهایی فقط در یک باکس نمایش داده می‌شود و هیچ Patient ID، تاریخ، ساعت یا عنوان اضافی به متن آن افزوده نمی‌شود.")
     );
 }
 exports.default = ReportOutput;
@@ -1734,7 +1648,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v1.8"),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite v1.9"),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
@@ -1761,7 +1675,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "▣"), h("div", null, h("strong", null, "آرشیو محلی"), h("small", null, "Patient ID، تاریخ و گزارش‌های ذخیره‌شده"))),
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "✓"), h("div", null, h("strong", null, "استاندارد و به‌روز"), h("small", null, "بر پایه Phrase Bank تأییدشده")))
                 ),
-                h("div", { className: "hn-version" }, "نسخه ۱.۷ — FGR Calculator & Growth Charts")
+                h("div", { className: "hn-version" }, "نسخه ۱.۹ — Workflow Refinements")
             )
         ),
         loginOpen && h("div", { className: "hn-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-labelledby": "login-title", onClick: () => setLoginOpen(false) },
@@ -1858,6 +1772,8 @@ const createInitialState = () => ({
     hydronephrosis: "ندارد",
     pelvicAP: "",
     bladderMode: "normal",
+    bladderDebrisEnabled: false,
+    bladderWallEnabled: false,
     bladderWallThickness: "",
     bladderOptionalUA: false,
     bladderProstateRelated: false,
@@ -2021,6 +1937,8 @@ function KidneyCard({ onReportChange, showPreview = true }) {
         }
         cards.push(index_js_1.bladderLibrary.build({
             mode: state.bladderMode,
+            debrisEnabled: state.bladderDebrisEnabled,
+            wallEnabled: state.bladderWallEnabled,
             wallThickness: state.bladderWallThickness,
             optionalUA: state.bladderOptionalUA,
             prostateRelated: state.bladderProstateRelated,
@@ -2086,10 +2004,10 @@ function KidneyCard({ onReportChange, showPreview = true }) {
             items.push("برای سنگ شاخ‌گوزنی، محل درگیری و قطر تجمعی را ثبت کنید.");
         if (state.ureterStoneEnabled && !state.ureterSize)
             items.push("قطر سنگ حالب وارد نشده است.");
-        if (state.bladderMode === "mildDebris" && hasAnyStone)
-            items.push("برای دبری مثانه در بیمار دارای سنگ، بهتر است الگوی «دبری همراه با سنگ — احتمال هماچوری» انتخاب شود.");
         if (state.bladderMode === "stoneDebris" && !hasAnyStone)
             items.push("حالت دبری مرتبط با سنگ انتخاب شده، اما سنگ کلیه یا حالب ثبت نشده است.");
+        if (state.bladderWallEnabled && !state.bladderWallThickness)
+            items.push("برای ذکر ضخامت جدار مثانه، عدد ضخامت را وارد کنید.");
         return items;
     }, [state, validCysts.length, validStones.length, hasAnyStone]);
     (0, react_1.useEffect)(() => {
@@ -2101,7 +2019,7 @@ function KidneyCard({ onReportChange, showPreview = true }) {
                     }), state.cystMode === "adpkd" && ((0, jsx_runtime_1.jsxs)("div", { style: subCardStyle, children: [(0, jsx_runtime_1.jsx)("p", { style: { color: "#cbd5e1" }, children: "\u0637\u0648\u0644 \u0647\u0631 \u062F\u0648 \u06A9\u0644\u06CC\u0647 \u0631\u0627 \u062F\u0631 \u0628\u062E\u0634 \u0628\u0627\u0644\u0627 \u0648\u0627\u0631\u062F \u06A9\u0646\u06CC\u062F. \u0642\u0627\u0644\u0628 \u06CC\u0627\u0641\u062A\u0647\u200C\u0647\u0627\u060C \u0646\u062A\u06CC\u062C\u0647\u200C\u06AF\u06CC\u0631\u06CC \u0648 \u062A\u0648\u0635\u06CC\u0647 ADPKD \u0642\u0641\u0644 \u0634\u062F\u0647 \u0627\u0633\u062A." }), (0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0628\u0632\u0631\u06AF\u200C\u062A\u0631\u06CC\u0646 \u06A9\u06CC\u0633\u062A \u0631\u0627\u0633\u062A (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.adpkd.rightLargestSize, onChange: (e) => set("adpkd", { ...state.adpkd, rightLargestSize: e.target.value }) })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0628 \u062F\u0631 \u06A9\u0644\u06CC\u0647 \u0631\u0627\u0633\u062A", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.adpkd.rightPole, onChange: (e) => set("adpkd", { ...state.adpkd, rightPole: e.target.value }), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0641\u0648\u0642\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u06CC\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062A\u062D\u062A\u0627\u0646\u06CC" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0628\u0632\u0631\u06AF\u200C\u062A\u0631\u06CC\u0646 \u06A9\u06CC\u0633\u062A \u0686\u067E (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.adpkd.leftLargestSize, onChange: (e) => set("adpkd", { ...state.adpkd, leftLargestSize: e.target.value }) })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0628 \u062F\u0631 \u06A9\u0644\u06CC\u0647 \u0686\u067E", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.adpkd.leftPole, onChange: (e) => set("adpkd", { ...state.adpkd, leftPole: e.target.value }), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0641\u0648\u0642\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u06CC\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062A\u062D\u062A\u0627\u0646\u06CC" })] })] })] })] }))] }), (0, jsx_runtime_1.jsxs)("div", { style: groupStyle, children: [(0, jsx_runtime_1.jsx)("h3", { children: "\u0633\u0646\u06AF \u06A9\u0644\u06CC\u0647" }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0646\u0648\u0639 \u062B\u0628\u062A \u0633\u0646\u06AF", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.stoneMode, onChange: (e) => set("stoneMode", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { value: "none", children: "\u0628\u062F\u0648\u0646 \u0633\u0646\u06AF \u06A9\u0644\u06CC\u0647" }), (0, jsx_runtime_1.jsx)("option", { value: "single", children: "\u06CC\u06A9 \u0633\u0646\u06AF \u0645\u0646\u0641\u0631\u062F" }), (0, jsx_runtime_1.jsx)("option", { value: "multipleDetailed", children: "\u0686\u0646\u062F \u0633\u0646\u06AF \u0645\u0634\u062E\u0635 (+ \u0627\u0641\u0632\u0648\u062F\u0646)" }), (0, jsx_runtime_1.jsx)("option", { value: "multipleSummary", children: "\u0633\u0646\u06AF\u200C\u0647\u0627\u06CC \u0645\u062A\u0639\u062F\u062F \u2014 \u06AF\u0632\u0627\u0631\u0634 \u0628\u0632\u0631\u06AF\u200C\u062A\u0631\u06CC\u0646 \u0647\u0631 \u06A9\u0644\u06CC\u0647" }), (0, jsx_runtime_1.jsx)("option", { value: "staghorn", children: "\u0633\u0646\u06AF \u0634\u0627\u062E\u200C\u06AF\u0648\u0632\u0646\u06CC" })] })] }), state.stoneMode === "single" && ((0, jsx_runtime_1.jsx)(StoneFields, { value: state.stones[0], onChange: (field, value) => updateListItem("stones", state.stones[0].id, field, value) })), state.stoneMode === "multipleDetailed" && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [state.stones.map((stone) => ((0, jsx_runtime_1.jsx)(StoneFields, { value: stone, onChange: (field, value) => updateListItem("stones", stone.id, field, value), onRemove: () => removeListItem("stones", stone.id, makeStone), showRemove: state.stones.length > 1 }, stone.id))), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => addListItem("stones", makeStone), style: { marginTop: "12px" }, children: "+ \u0627\u0641\u0632\u0648\u062F\u0646 \u0633\u0646\u06AF \u062F\u06CC\u06AF\u0631" })] })), state.stoneMode === "multipleSummary" && ["راست", "چپ"].map((side) => {
                         const item = state.stoneSummary[side];
                         return ((0, jsx_runtime_1.jsxs)("div", { style: subCardStyle, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: item.enabled, onChange: (e) => updateSideSummary("stoneSummary", side, "enabled", e.target.checked) }), " \u0633\u0646\u06AF\u200C\u0647\u0627\u06CC \u0645\u062A\u0639\u062F\u062F \u06A9\u0644\u06CC\u0647 ", side] }), item.enabled && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0631 \u0628\u0632\u0631\u06AF\u200C\u062A\u0631\u06CC\u0646 (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: item.largestSize, onChange: (e) => updateSideSummary("stoneSummary", side, "largestSize", e.target.value) })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0645\u062D\u0644 \u0628\u0632\u0631\u06AF\u200C\u062A\u0631\u06CC\u0646", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: item.calyx, onChange: (e) => updateSideSummary("stoneSummary", side, "calyx", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u06A9\u0627\u0644\u06CC\u0633 \u0641\u0648\u0642\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u06A9\u0627\u0644\u06CC\u0633 \u0645\u06CC\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u06A9\u0627\u0644\u06CC\u0633 \u062A\u062D\u062A\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0644\u06AF\u0646\u0686\u0647" })] })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "10px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: item.shadow, onChange: (e) => updateSideSummary("stoneSummary", side, "shadow", e.target.checked) }), " \u0633\u0627\u06CC\u0647 \u0622\u06A9\u0648\u0633\u062A\u06CC\u06A9 \u062E\u0644\u0641\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: item.twinkle, onChange: (e) => updateSideSummary("stoneSummary", side, "twinkle", e.target.checked) }), " \u062A\u0648\u06CC\u0646\u06A9\u0644 \u0622\u0631\u062A\u06CC\u0641\u06A9\u062A"] })] })] }))] }, side));
-                    }), state.stoneMode === "staghorn" && ((0, jsx_runtime_1.jsxs)("div", { style: subCardStyle, children: [(0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0633\u0645\u062A", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.staghorn.side, onChange: (e) => set("staghorn", { ...state.staghorn, side: e.target.value }), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0631\u0627\u0633\u062A" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0686\u067E" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0631 \u062A\u062C\u0645\u0639\u06CC (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.staghorn.size, onChange: (e) => set("staghorn", { ...state.staghorn, size: e.target.value }) })] })] }), (0, jsx_runtime_1.jsx)("p", { children: "\u0645\u062D\u0644\u200C\u0647\u0627\u06CC \u062F\u0631\u06AF\u06CC\u0631:" }), (0, jsx_runtime_1.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "16px" }, children: ["لگنچه", "کالیس فوقانی", "کالیس میانی", "کالیس تحتانی"].map((location) => ((0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.locations.includes(location), onChange: () => toggleStaghornLocation(location) }), " ", location] }, location))) }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "10px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.shadow, onChange: (e) => set("staghorn", { ...state.staghorn, shadow: e.target.checked }) }), " \u0633\u0627\u06CC\u0647 \u0622\u06A9\u0648\u0633\u062A\u06CC\u06A9 \u062E\u0644\u0641\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.twinkle, onChange: (e) => set("staghorn", { ...state.staghorn, twinkle: e.target.checked }) }), " \u062A\u0648\u06CC\u0646\u06A9\u0644 \u0622\u0631\u062A\u06CC\u0641\u06A9\u062A"] })] })] }))] }), (0, jsx_runtime_1.jsxs)("div", { style: groupStyle, children: [(0, jsx_runtime_1.jsx)("h3", { children: "\u0633\u0646\u06AF \u062D\u0627\u0644\u0628 \u0648 \u0647\u06CC\u062F\u0631\u0648\u0646\u0641\u0631\u0648\u0632" }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.ureterStoneEnabled, onChange: (e) => set("ureterStoneEnabled", e.target.checked) }), " \u0633\u0646\u06AF \u062D\u0627\u0644\u0628"] }), (0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [state.ureterStoneEnabled && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0633\u0645\u062A", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.ureterSide, onChange: (e) => set("ureterSide", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0631\u0627\u0633\u062A" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0686\u067E" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0645\u062D\u0644", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.ureterLocation, onChange: (e) => set("ureterLocation", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "UPJ" }), (0, jsx_runtime_1.jsx)("option", { children: "\u067E\u0631\u0648\u06AF\u0632\u06CC\u0645\u0627\u0644" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u06CC\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062F\u06CC\u0633\u062A\u0627\u0644" }), (0, jsx_runtime_1.jsx)("option", { children: "UVJ" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0631 \u0633\u0646\u06AF (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.ureterSize, onChange: (e) => set("ureterSize", e.target.value) })] }), (state.ureterLocation === "UPJ" || state.ureterLocation === "پروگزیمال") && (0, jsx_runtime_1.jsxs)("label", { children: ["\u0641\u0627\u0635\u0644\u0647 \u0627\u0632 UPJ (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.distanceFromUPJ, onChange: (e) => set("distanceFromUPJ", e.target.value) })] }), (state.ureterLocation === "UVJ" || state.ureterLocation === "دیستال") && (0, jsx_runtime_1.jsxs)("label", { children: ["\u0641\u0627\u0635\u0644\u0647 \u0627\u0632 UVJ (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.distanceFromUVJ, onChange: (e) => set("distanceFromUVJ", e.target.value) })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u062C\u062A \u062D\u0627\u0644\u0628\u06CC \u0633\u0645\u062A \u062F\u0631\u06AF\u06CC\u0631", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.urinaryJet, onChange: (e) => set("urinaryJet", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0628\u0631\u0631\u0633\u06CC \u0646\u0634\u062F" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0637\u0628\u06CC\u0639\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u06A9\u0627\u0647\u0634\u200C\u06CC\u0627\u0641\u062A\u0647" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u0634\u0627\u0647\u062F\u0647 \u0646\u0634\u062F" })] })] })] })), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0647\u06CC\u062F\u0631\u0648\u0646\u0641\u0631\u0648\u0632", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.hydronephrosis, onChange: (e) => set("hydronephrosis", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0646\u062F\u0627\u0631\u062F" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062E\u0641\u06CC\u0641" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u062A\u0648\u0633\u0637" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0634\u062F\u06CC\u062F" })] })] }), state.hydronephrosis !== "ندارد" && (0, jsx_runtime_1.jsxs)("label", { children: ["AP \u0644\u06AF\u0646\u0686\u0647 (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.pelvicAP, onChange: (e) => set("pelvicAP", e.target.value) })] })] }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u062F\u0631 \u0633\u0646\u06AF \u062D\u0627\u0644\u0628\u060C \u0633\u0627\u06CC\u0647 \u0622\u06A9\u0648\u0633\u062A\u06CC\u06A9 \u062E\u0644\u0641\u06CC \u0648 \u062A\u0648\u06CC\u0646\u06A9\u0644 \u0622\u0631\u062A\u06CC\u0641\u06A9\u062A \u062F\u0631 \u0645\u062A\u0646 \u06AF\u0632\u0627\u0631\u0634 \u062F\u0631\u062C \u0646\u0645\u06CC\u200C\u0634\u0648\u0646\u062F." })] }), (0, jsx_runtime_1.jsxs)("div", { style: groupStyle, children: [(0, jsx_runtime_1.jsx)("h3", { children: "\u0645\u062B\u0627\u0646\u0647" }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0627\u0644\u06AF\u0648\u06CC \u0645\u062B\u0627\u0646\u0647", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.bladderMode, onChange: (e) => set("bladderMode", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { value: "normal", children: "\u0634\u06A9\u0644 \u0648 \u0636\u062E\u0627\u0645\u062A \u062C\u062F\u0627\u0631\u06CC \u0637\u0628\u06CC\u0639\u06CC" }), (0, jsx_runtime_1.jsx)("option", { value: "mildDebris", children: "\u0636\u062E\u0627\u0645\u062A \u0637\u0628\u06CC\u0639\u06CC + \u062F\u0628\u0631\u06CC \u0645\u062E\u062A\u0635\u0631" }), (0, jsx_runtime_1.jsx)("option", { value: "cystitis", children: "\u0627\u0641\u0632\u0627\u06CC\u0634 \u0636\u062E\u0627\u0645\u062A + \u062F\u0628\u0631\u06CC \u0641\u0631\u0627\u0648\u0627\u0646 (\u0633\u06CC\u0633\u062A\u06CC\u062A)" }), (0, jsx_runtime_1.jsx)("option", { value: "stoneDebris", children: "\u062F\u0628\u0631\u06CC \u0647\u0645\u0631\u0627\u0647 \u0628\u0627 \u0633\u0646\u06AF \u2014 \u0627\u062D\u062A\u0645\u0627\u0644 \u0647\u0645\u0627\u0686\u0648\u0631\u06CC" }), (0, jsx_runtime_1.jsx)("option", { value: "outletObstruction", children: "\u0627\u0641\u0632\u0627\u06CC\u0634 \u0636\u062E\u0627\u0645\u062A \u0648 \u062A\u0631\u0627\u0628\u06A9\u0648\u0644\u0627\u0633\u06CC\u0648\u0646" })] })] }), (state.bladderMode === "cystitis" || state.bladderMode === "outletObstruction") && ((0, jsx_runtime_1.jsxs)("label", { children: ["\u062D\u062F\u0627\u06A9\u062B\u0631 \u0636\u062E\u0627\u0645\u062A \u062C\u062F\u0627\u0631 (mm) \u2014 \u0627\u062E\u062A\u06CC\u0627\u0631\u06CC", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.bladderWallThickness, onChange: (e) => set("bladderWallThickness", e.target.value) })] })), state.bladderMode === "stoneDebris" && ((0, jsx_runtime_1.jsxs)("label", { style: { display: "block", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderOptionalUA, onChange: (e) => set("bladderOptionalUA", e.target.checked) }), " \u062A\u0648\u0635\u06CC\u0647 UA \u0628\u0647\u200C\u0635\u0648\u0631\u062A \u0627\u062E\u062A\u06CC\u0627\u0631\u06CC"] })), state.bladderMode === "outletObstruction" && ((0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderProstateRelated, onChange: (e) => set("bladderProstateRelated", e.target.checked) }), " \u0628\u0632\u0631\u06AF\u06CC \u067E\u0631\u0648\u0633\u062A\u0627\u062A \u0647\u0645\u0631\u0627\u0647 \u0627\u0633\u062A"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderMucosalIrregularity, onChange: (e) => set("bladderMucosalIrregularity", e.target.checked) }), " \u0646\u0627\u0645\u0646\u0638\u0645\u06CC \u0633\u0637\u062D \u0645\u062E\u0627\u0637"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderDiverticulum, onChange: (e) => set("bladderDiverticulum", e.target.checked) }), " \u062F\u06CC\u0648\u0631\u062A\u06CC\u06A9\u0648\u0644 \u0645\u062B\u0627\u0646\u0647"] })] }))] }), showPreview && (0, jsx_runtime_1.jsx)(ReportOutput_jsx_1.default, { ...report })] }));
+                    }), state.stoneMode === "staghorn" && ((0, jsx_runtime_1.jsxs)("div", { style: subCardStyle, children: [(0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0633\u0645\u062A", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.staghorn.side, onChange: (e) => set("staghorn", { ...state.staghorn, side: e.target.value }), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0631\u0627\u0633\u062A" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0686\u067E" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0631 \u062A\u062C\u0645\u0639\u06CC (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.staghorn.size, onChange: (e) => set("staghorn", { ...state.staghorn, size: e.target.value }) })] })] }), (0, jsx_runtime_1.jsx)("p", { children: "\u0645\u062D\u0644\u200C\u0647\u0627\u06CC \u062F\u0631\u06AF\u06CC\u0631:" }), (0, jsx_runtime_1.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "16px" }, children: ["لگنچه", "کالیس فوقانی", "کالیس میانی", "کالیس تحتانی"].map((location) => ((0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.locations.includes(location), onChange: () => toggleStaghornLocation(location) }), " ", location] }, location))) }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "10px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.shadow, onChange: (e) => set("staghorn", { ...state.staghorn, shadow: e.target.checked }) }), " \u0633\u0627\u06CC\u0647 \u0622\u06A9\u0648\u0633\u062A\u06CC\u06A9 \u062E\u0644\u0641\u06CC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.staghorn.twinkle, onChange: (e) => set("staghorn", { ...state.staghorn, twinkle: e.target.checked }) }), " \u062A\u0648\u06CC\u0646\u06A9\u0644 \u0622\u0631\u062A\u06CC\u0641\u06A9\u062A"] })] })] }))] }), (0, jsx_runtime_1.jsxs)("div", { style: groupStyle, children: [(0, jsx_runtime_1.jsx)("h3", { children: "\u0633\u0646\u06AF \u062D\u0627\u0644\u0628 \u0648 \u0647\u06CC\u062F\u0631\u0648\u0646\u0641\u0631\u0648\u0632" }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.ureterStoneEnabled, onChange: (e) => set("ureterStoneEnabled", e.target.checked) }), " \u0633\u0646\u06AF \u062D\u0627\u0644\u0628"] }), (0, jsx_runtime_1.jsxs)("div", { style: gridStyle, children: [state.ureterStoneEnabled && ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("label", { children: ["\u0633\u0645\u062A", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.ureterSide, onChange: (e) => set("ureterSide", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0631\u0627\u0633\u062A" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0686\u067E" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0645\u062D\u0644", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.ureterLocation, onChange: (e) => set("ureterLocation", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "UPJ" }), (0, jsx_runtime_1.jsx)("option", { children: "\u067E\u0631\u0648\u06AF\u0632\u06CC\u0645\u0627\u0644" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u06CC\u0627\u0646\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062F\u06CC\u0633\u062A\u0627\u0644" }), (0, jsx_runtime_1.jsx)("option", { children: "UVJ" })] })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0642\u0637\u0631 \u0633\u0646\u06AF (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.ureterSize, onChange: (e) => set("ureterSize", e.target.value) })] }), (state.ureterLocation === "UPJ" || state.ureterLocation === "پروگزیمال") && (0, jsx_runtime_1.jsxs)("label", { children: ["\u0641\u0627\u0635\u0644\u0647 \u0627\u0632 UPJ (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.distanceFromUPJ, onChange: (e) => set("distanceFromUPJ", e.target.value) })] }), (state.ureterLocation === "UVJ" || state.ureterLocation === "دیستال") && (0, jsx_runtime_1.jsxs)("label", { children: ["\u0641\u0627\u0635\u0644\u0647 \u0627\u0632 UVJ (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.distanceFromUVJ, onChange: (e) => set("distanceFromUVJ", e.target.value) })] }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u062C\u062A \u062D\u0627\u0644\u0628\u06CC \u0633\u0645\u062A \u062F\u0631\u06AF\u06CC\u0631", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.urinaryJet, onChange: (e) => set("urinaryJet", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0628\u0631\u0631\u0633\u06CC \u0646\u0634\u062F" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0637\u0628\u06CC\u0639\u06CC" }), (0, jsx_runtime_1.jsx)("option", { children: "\u06A9\u0627\u0647\u0634\u200C\u06CC\u0627\u0641\u062A\u0647" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u0634\u0627\u0647\u062F\u0647 \u0646\u0634\u062F" })] })] })] })), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0647\u06CC\u062F\u0631\u0648\u0646\u0641\u0631\u0648\u0632", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.hydronephrosis, onChange: (e) => set("hydronephrosis", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { children: "\u0646\u062F\u0627\u0631\u062F" }), (0, jsx_runtime_1.jsx)("option", { children: "\u062E\u0641\u06CC\u0641" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0645\u062A\u0648\u0633\u0637" }), (0, jsx_runtime_1.jsx)("option", { children: "\u0634\u062F\u06CC\u062F" })] })] }), state.hydronephrosis !== "ندارد" && (0, jsx_runtime_1.jsxs)("label", { children: ["AP \u0644\u06AF\u0646\u0686\u0647 (mm)", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.pelvicAP, onChange: (e) => set("pelvicAP", e.target.value) })] })] }), (0, jsx_runtime_1.jsx)("p", { style: { color: "#94a3b8" }, children: "\u062F\u0631 \u0633\u0646\u06AF \u062D\u0627\u0644\u0628\u060C \u0633\u0627\u06CC\u0647 \u0622\u06A9\u0648\u0633\u062A\u06CC\u06A9 \u062E\u0644\u0641\u06CC \u0648 \u062A\u0648\u06CC\u0646\u06A9\u0644 \u0622\u0631\u062A\u06CC\u0641\u06A9\u062A \u062F\u0631 \u0645\u062A\u0646 \u06AF\u0632\u0627\u0631\u0634 \u062F\u0631\u062C \u0646\u0645\u06CC\u200C\u0634\u0648\u0646\u062F." })] }), (0, jsx_runtime_1.jsxs)("div", { style: groupStyle, children: [(0, jsx_runtime_1.jsx)("h3", { children: "\u0645\u062B\u0627\u0646\u0647" }), (0, jsx_runtime_1.jsxs)("label", { children: ["\u0627\u0644\u06AF\u0648\u06CC \u0645\u062B\u0627\u0646\u0647", (0, jsx_runtime_1.jsxs)("select", { style: fieldStyle, value: state.bladderMode, onChange: (e) => set("bladderMode", e.target.value), children: [(0, jsx_runtime_1.jsx)("option", { value: "normal", children: "\u0634\u06A9\u0644 \u0648 \u0636\u062E\u0627\u0645\u062A \u062C\u062F\u0627\u0631\u06CC \u0637\u0628\u06CC\u0639\u06CC" }), (0, jsx_runtime_1.jsx)("option", { value: "mildDebris", children: "\u0636\u062E\u0627\u0645\u062A \u0637\u0628\u06CC\u0639\u06CC + \u062F\u0628\u0631\u06CC \u0645\u062E\u062A\u0635\u0631" }), (0, jsx_runtime_1.jsx)("option", { value: "cystitis", children: "\u0627\u0641\u0632\u0627\u06CC\u0634 \u0636\u062E\u0627\u0645\u062A + \u062F\u0628\u0631\u06CC \u0641\u0631\u0627\u0648\u0627\u0646 (\u0633\u06CC\u0633\u062A\u06CC\u062A)" }), (0, jsx_runtime_1.jsx)("option", { value: "stoneDebris", children: "\u062F\u0628\u0631\u06CC \u0647\u0645\u0631\u0627\u0647 \u0628\u0627 \u0633\u0646\u06AF \u2014 \u0627\u062D\u062A\u0645\u0627\u0644 \u0647\u0645\u0627\u0686\u0648\u0631\u06CC" }), (0, jsx_runtime_1.jsx)("option", { value: "outletObstruction", children: "\u0627\u0641\u0632\u0627\u06CC\u0634 \u0636\u062E\u0627\u0645\u062A \u0648 \u062A\u0631\u0627\u0628\u06A9\u0648\u0644\u0627\u0633\u06CC\u0648\u0646" })] })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: "grid", gap: "10px", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderDebrisEnabled, onChange: (e) => set("bladderDebrisEnabled", e.target.checked) }), " دبری در مثانه — درج جمله دبری اکوژن شناور مختصر + توصیه UA و UC"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderWallEnabled, onChange: (e) => set("bladderWallEnabled", e.target.checked) }), " ذکر ضخامت جدار مثانه"] })] }), (state.bladderWallEnabled || state.bladderMode === "cystitis" || state.bladderMode === "outletObstruction") && ((0, jsx_runtime_1.jsxs)("label", { children: ["\u062D\u062F\u0627\u06A9\u062B\u0631 \u0636\u062E\u0627\u0645\u062A \u062C\u062F\u0627\u0631 (mm) \u2014 \u0627\u062E\u062A\u06CC\u0627\u0631\u06CC", (0, jsx_runtime_1.jsx)("input", { style: fieldStyle, type: "number", value: state.bladderWallThickness, onChange: (e) => set("bladderWallThickness", e.target.value) })] })), state.bladderMode === "stoneDebris" && ((0, jsx_runtime_1.jsxs)("label", { style: { display: "block", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderOptionalUA, onChange: (e) => set("bladderOptionalUA", e.target.checked) }), " \u062A\u0648\u0635\u06CC\u0647 UA \u0628\u0647\u200C\u0635\u0648\u0631\u062A \u0627\u062E\u062A\u06CC\u0627\u0631\u06CC"] })), state.bladderMode === "outletObstruction" && ((0, jsx_runtime_1.jsxs)("div", { style: { display: "flex", flexWrap: "wrap", gap: "18px", marginTop: "12px" }, children: [(0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderProstateRelated, onChange: (e) => set("bladderProstateRelated", e.target.checked) }), " \u0628\u0632\u0631\u06AF\u06CC \u067E\u0631\u0648\u0633\u062A\u0627\u062A \u0647\u0645\u0631\u0627\u0647 \u0627\u0633\u062A"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderMucosalIrregularity, onChange: (e) => set("bladderMucosalIrregularity", e.target.checked) }), " \u0646\u0627\u0645\u0646\u0638\u0645\u06CC \u0633\u0637\u062D \u0645\u062E\u0627\u0637"] }), (0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: state.bladderDiverticulum, onChange: (e) => set("bladderDiverticulum", e.target.checked) }), " \u062F\u06CC\u0648\u0631\u062A\u06CC\u06A9\u0648\u0644 \u0645\u062B\u0627\u0646\u0647"] })] }))] }), showPreview && (0, jsx_runtime_1.jsx)(ReportOutput_jsx_1.default, { ...report })] }));
 }
 exports.default = KidneyCard;
 
@@ -2123,7 +2041,7 @@ const initialState = {
   hemangiomaEnabled:false, hemangiomaType:"smallTypical", hemangiomaSegment:"VII", hemangiomaLobe:"راست", hemangiomaDiameter:"", hemangiomaLength:"", hemangiomaWidth:"",
   liverCustomFinding:"", liverCustomImpression:"", liverCustomRecommendation:"",
   gallbladderShape:"normal", wallThickness:"", stoneMode:"none", singleStoneSize:"", stoneLocation:"بدنه", stoneImpacted:false,
-  multipleStoneLargestSize:"", multipleStoneLocation:"داخل لومن", cholecystitisMode:"none",
+  multipleStoneLargestSize:"", multipleStoneLocation:"داخل لومن", smallStoneAggregateSize:"", cholecystitisMode:"none",
   wallEdema:false, layeredWall:false, pericholecysticFluid:false, wallHyperemia:false, murphyPositive:false, includeNoAcute:true,
   polypEnabled:false, polypSize:"", polypWall:"جداره خلفی", polypLocation:"بدنه", polypHypoechoicCenter:false, polypVascularity:false,
   gallCustomFinding:"", gallCustomImpression:"", gallCustomRecommendation:"",
@@ -2148,6 +2066,8 @@ function liverLengthSentence(value){
 function LiverCard({onReportChange,showPreview=true,examId=""}){
   const [state,setState]=React.useState(initialState);
   const detailed=examId==="hepatobiliary";
+  const generalAbdomen=examId==="maleAbdomenPelvis"||examId==="femaleAbdomenPelvis";
+  const showOptionalDuctVessel=detailed||generalAbdomen;
   const set=(key,value)=>setState(prev=>Object.assign({},prev,{[key]:value}));
   const report=React.useMemo(()=>{
     const findings=[],impressions=[],recommendations=[];
@@ -2198,19 +2118,19 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
     if(state.liverCustomImpression.trim()) impressions.push(state.liverCustomImpression.trim());
     if(state.liverCustomRecommendation.trim()) recommendations.push(state.liverCustomRecommendation.trim());
 
-    if(detailed){
+    if(showOptionalDuctVessel){
       const portalParts=[];
       if(state.portalDiameter) portalParts.push(`قطر ورید پورت حدود ${state.portalDiameter} میلی‌متر اندازه‌گیری شد`);
-      if(state.portalThrombosis==="none") portalParts.push("شواهدی به نفع ترومبوز ورید پورت مشاهده نشد");
-      if(state.portalThrombosis==="suspected"){
+      if(detailed&&state.portalThrombosis==="none") portalParts.push("شواهدی به نفع ترومبوز ورید پورت مشاهده نشد");
+      if(detailed&&state.portalThrombosis==="suspected"){
         portalParts.push("یافته مشکوک به ترومبوز ورید پورت مشاهده شد");
         impressions.push("یافته مشکوک به ترومبوز ورید پورت.");
         recommendations.push("ارزیابی تکمیلی با Color/Spectral Doppler و در صورت نیاز CT یا MRI با کنتراست توصیه می‌شود.");
       }
       if(portalParts.length) findings.push(portalParts.join(" و ")+".");
-      if(state.portalFlow==="hepatopetal") findings.push("جریان ورید پورت هپاتوپتال است.");
-      if(state.portalFlow==="slow") findings.push("جریان ورید پورت آهسته ولی هپاتوپتال است.");
-      if(state.portalFlow==="hepatofugal"){
+      if(detailed&&state.portalFlow==="hepatopetal") findings.push("جریان ورید پورت هپاتوپتال است.");
+      if(detailed&&state.portalFlow==="slow") findings.push("جریان ورید پورت آهسته ولی هپاتوپتال است.");
+      if(detailed&&state.portalFlow==="hepatofugal"){
         findings.push("جریان ورید پورت هپاتوفوگال است.");
         impressions.push("معکوس‌شدن جهت جریان ورید پورت، در زمینه پرفشاری پورت.");
       }
@@ -2219,8 +2139,12 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
     const stonePresent=state.stoneMode!=="none";
     const polypPresent=state.polypEnabled&&state.polypSize;
     const hasGallCustom=Boolean(state.gallCustomFinding.trim());
+    const gallbladderNotSeen=state.gallbladderShape==="notSeen";
     const hasGallAbnormal=stonePresent||polypPresent||state.cholecystitisMode!=="none"||state.gallbladderShape!=="normal"||hasGallCustom||(asNumber(state.wallThickness)!==null&&asNumber(state.wallThickness)>3);
-    if(!hasGallAbnormal){
+    if(gallbladderNotSeen){
+      findings.push("کیسه صفرا در محل آناتومیک خود رویت نشد که می‌تواند در زمینه کوله‌سیستکتومی قبلی باشد.");
+      recommendations.push("تطبیق با شرح حال بیمار توصیه می‌شود.");
+    }else if(!hasGallAbnormal){
       findings.push("کیسه صفرا دارای حجم و ضخامت جداری طبیعی بوده و فاقد سنگ است.");
     }else{
       if(state.gallbladderShape==="normal") findings.push("حجم کیسه صفرا در محدوده طبیعی است.");
@@ -2232,6 +2156,10 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
         let text=`یک سنگ اکوژن به قطر ${state.singleStoneSize} میلی‌متر همراه با سایه صوتی خلفی در ${state.stoneLocation} کیسه صفرا مشاهده شد.`;
         if(state.stoneImpacted) text+=" سنگ مذکور دارای نمای گیرکرده (impacted) است.";
         findings.push(text); if(state.cholecystitisMode==="none") impressions.push("Cholelithiasis.");
+      }
+      if(state.stoneMode==="smallStones"&&state.smallStoneAggregateSize){
+        findings.push(`تصویر چند سنگ‌ریزه به قطر تجمعی ${state.smallStoneAggregateSize} میلی‌متر رویت شد.`);
+        if(state.cholecystitisMode==="none") impressions.push("Multiple small gallstones.");
       }
       if(state.stoneMode==="multiple"){
         let text="چند سنگ اکوژن همراه با سایه صوتی خلفی در کیسه صفرا مشاهده شد";
@@ -2279,20 +2207,20 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
     if(state.gallCustomRecommendation.trim()) recommendations.push(state.gallCustomRecommendation.trim());
 
     if(state.bileDuctStatus==="normal"){
-      if(detailed&&state.cbd) findings.push(`قطر مجرای صفراوی مشترک (CBD) حدود ${state.cbd} میلی‌متر اندازه‌گیری شد.`);
+      if(showOptionalDuctVessel&&state.cbd) findings.push(`قطر مجرای صفراوی مشترک (CBD) حدود ${state.cbd} میلی‌متر اندازه‌گیری شد.`);
       findings.push("اتساع مجاری صفراوی داخل و خارج کبدی مشاهده نشد.");
     }else{
       if(state.ihbdExtent==="central") findings.push("اتساع مجاری صفراوی داخل کبدی در نواحی مرکزی مشاهده شد.");
       if(state.ihbdExtent==="centralPeripheral") findings.push("اتساع مجاری صفراوی داخل کبدی به‌صورت مرکزی و محیطی مشاهده شد.");
       if(state.ihbdExtent==="none") findings.push("اتساع واضح مجاری صفراوی داخل کبدی مشاهده نشد.");
-      if(detailed){
+      if(showOptionalDuctVessel){
         if(state.cbd) findings.push(`قطر مجرای صفراوی مشترک (CBD) حدود ${state.cbd} میلی‌متر اندازه‌گیری شد که متسع است.`);
         else findings.push("مجرای صفراوی مشترک متسع است.");
-        if(state.distalCBD==="tapering"){
+        if(detailed&&state.distalCBD==="tapering"){
           findings.push("مجرای صفراوی مشترک تا قسمت دیستال قابل پیگیری بوده و دارای کاهش تدریجی قطر است. شواهد واضحی به نفع سنگ در دیستال CBD یا ضایعه فضاگیر واضح در سر پانکراس مشاهده نشد.");
           if(state.opiumHistory) recommendations.push("تطابق با شرح حال بیمار از نظر سابقه مصرف اوپیوم توصیه می‌شود.");
         }
-        if(state.distalCBD==="notSeenGas"){
+        if(detailed&&state.distalCBD==="notSeenGas"){
           findings.push("به‌علت آرتیفکت ناشی از گازهای اپی‌گاستر، قسمت دیستال CBD به‌طور کامل قابل ارزیابی نبود.");
           recommendations.push("در صورت اختلال در آنزیم‌های صفراوی، انجام MRCP توصیه می‌شود.");
         }
@@ -2311,6 +2239,7 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
     if(state.cystEnabled&&!state.cystSize)w.push("قطر کیست کبد وارد نشده است.");
     if(state.hemangiomaEnabled&&state.hemangiomaType==="smallTypical"&&!state.hemangiomaDiameter)w.push("قطر همانژیوم وارد نشده است.");
     if(state.stoneMode==="single"&&!state.singleStoneSize)w.push("قطر سنگ منفرد کیسه صفرا وارد نشده است.");
+    if(state.stoneMode==="smallStones"&&!state.smallStoneAggregateSize)w.push("قطر تجمعی سنگ‌ریزه‌های کیسه صفرا وارد نشده است.");
     if(state.polypEnabled&&!state.polypSize)w.push("قطر پولیپ کیسه صفرا وارد نشده است.");
     if(state.cholecystitisMode==="acute"&&!state.wallEdema&&!state.layeredWall&&!state.pericholecysticFluid&&!state.wallHyperemia&&!state.murphyPositive&&!state.wallThickness)w.push("برای کولسیستیت حاد، حداقل یکی از یافته‌های حمایتی را ثبت کنید.");
     if(state.cholecystitisMode==="chronic"&&(state.wallEdema||state.pericholecysticFluid||state.murphyPositive))w.push("علائم التهاب حاد با انتخاب کولسیستیت مزمن ناسازگار است.");
@@ -2348,20 +2277,27 @@ function LiverCard({onReportChange,showPreview=true,examId=""}){
       customBox("سایر یافته‌های کبد","liver")
     ),
     h("div",{style:groupStyle},h("h3",null,"کیسه صفرا"),
-      h("div",{style:gridStyle},h("label",null,"حجم/شکل کیسه صفرا",select("gallbladderShape",[["normal","حجم طبیعی"],["distended","متسع"],["contracted","منقبض / Contracted"]])),h("label",null,"ضخامت جدار (mm؛ اختیاری)",input("wallThickness","مثال: 4","number",{min:"0",step:"0.1"})),h("label",null,"وضعیت سنگ",select("stoneMode",[["none","بدون سنگ"],["single","سنگ منفرد"],["multiple","چند سنگ"],["packed","سنگ‌های متعدد پرکننده لومن"],["wes","WES sign"]]))),
-      state.stoneMode==="single"?h("div",{style:gridStyle},input("singleStoneSize","قطر سنگ (mm)","number"),select("stoneLocation",[["بدنه","بدنه"],["گردن","گردن"],["فوندوس","فوندوس"]]),check("stoneImpacted","سنگ گیرکرده / Impacted")):null,
-      state.stoneMode==="multiple"||state.stoneMode==="packed"?h("div",{style:gridStyle},input("multipleStoneLargestSize","قطر بزرگ‌ترین سنگ (mm؛ اختیاری)","number"),input("multipleStoneLocation","محل غالب سنگ‌ها")):null,
-      h("label",null,"الگوی التهاب",select("cholecystitisMode",[["none","بدون تشخیص کولسیستیت"],["acute","کولسیستیت حاد"],["chronic","کولسیستیت مزمن"]])),
-      state.cholecystitisMode==="acute"?h("div",{style:subStyle},check("wallEdema","ادم جداره"),check("layeredWall","نمای لایه‌لایه جداره"),check("pericholecysticFluid","مایع/التهاب اطراف کیسه صفرا"),check("wallHyperemia","افزایش واسکولاریتی جداره"),check("murphyPositive","Sonographic Murphy sign مثبت")):null,
-      state.stoneMode!=="none"&&state.cholecystitisMode==="none"?check("includeNoAcute","درج جمله عدم وجود شواهد واضح کولسیستیت حاد"):null,
-      h("div",{style:subStyle},check("polypEnabled","پولیپ کیسه صفرا"),state.polypEnabled?h("div",{style:gridStyle},input("polypSize","قطر پولیپ (mm)","number"),select("polypWall",[["جداره قدامی","جداره قدامی"],["جداره خلفی","جداره خلفی"]]),select("polypLocation",[["بدنه","بدنه"],["گردن","گردن"],["فوندوس","فوندوس"]]),check("polypHypoechoicCenter","مرکز هیپواکو"),check("polypVascularity","واسکولاریتی داخلی")):null),
+      h("div",{style:gridStyle},
+        h("label",null,"حجم/شکل کیسه صفرا",select("gallbladderShape",[["normal","حجم طبیعی"],["distended","متسع"],["contracted","منقبض / Contracted"],["notSeen","در محل آناتومیک رویت نشد / احتمال کوله‌سیستکتومی قبلی"]])),
+        state.gallbladderShape!=="notSeen"?h("label",null,"ضخامت جدار (mm؛ اختیاری)",input("wallThickness","مثال: 4","number",{min:"0",step:"0.1"})):null,
+        state.gallbladderShape!=="notSeen"?h("label",null,"وضعیت سنگ",select("stoneMode",[["none","بدون سنگ"],["single","سنگ منفرد"],["smallStones","چند سنگ‌ریزه با قطر تجمعی"],["multiple","چند سنگ"],["packed","سنگ‌های متعدد پرکننده لومن"],["wes","WES sign"]])):null
+      ),
+      state.gallbladderShape==="notSeen"?h("p",{style:{color:"#fde68a",marginBottom:0}},"با انتخاب این گزینه، اجزای مربوط به جدار، سنگ، التهاب و پولیپ از گزارش حذف می‌شوند."):h(React.Fragment,null,
+        state.stoneMode==="single"?h("div",{style:gridStyle},input("singleStoneSize","قطر سنگ (mm)","number"),select("stoneLocation",[["بدنه","بدنه"],["گردن","گردن"],["فوندوس","فوندوس"]]),check("stoneImpacted","سنگ گیرکرده / Impacted")):null,
+        state.stoneMode==="smallStones"?h("div",{style:gridStyle},input("smallStoneAggregateSize","قطر تجمعی سنگ‌ریزه‌ها (mm)","number")):null,
+        state.stoneMode==="multiple"||state.stoneMode==="packed"?h("div",{style:gridStyle},input("multipleStoneLargestSize","قطر بزرگ‌ترین سنگ (mm؛ اختیاری)","number"),input("multipleStoneLocation","محل غالب سنگ‌ها")):null,
+        h("label",null,"الگوی التهاب",select("cholecystitisMode",[["none","بدون تشخیص کولسیستیت"],["acute","کولسیستیت حاد"],["chronic","کولسیستیت مزمن"]])),
+        state.cholecystitisMode==="acute"?h("div",{style:subStyle},check("wallEdema","ادم جداره"),check("layeredWall","نمای لایه‌لایه جداره"),check("pericholecysticFluid","مایع/التهاب اطراف کیسه صفرا"),check("wallHyperemia","افزایش واسکولاریتی جداره"),check("murphyPositive","Sonographic Murphy sign مثبت")):null,
+        state.stoneMode!=="none"&&state.cholecystitisMode==="none"?check("includeNoAcute","درج جمله عدم وجود شواهد واضح کولسیستیت حاد"):null,
+        h("div",{style:subStyle},check("polypEnabled","پولیپ کیسه صفرا"),state.polypEnabled?h("div",{style:gridStyle},input("polypSize","قطر پولیپ (mm)","number"),select("polypWall",[["جداره قدامی","جداره قدامی"],["جداره خلفی","جداره خلفی"]]),select("polypLocation",[["بدنه","بدنه"],["گردن","گردن"],["فوندوس","فوندوس"]]),check("polypHypoechoicCenter","مرکز هیپواکو"),check("polypVascularity","واسکولاریتی داخلی")):null)
+      ),
       customBox("سایر یافته‌های کیسه صفرا","gall")
     ),
     h("div",{style:groupStyle},h("h3",null,"مجاری صفراوی"),
       h("label",null,"وضعیت مجاری صفراوی",select("bileDuctStatus",[["normal","بدون اتساع"],["dilated","اتساع مجاری صفراوی"]])),
       state.bileDuctStatus==="dilated"?h("label",null,"وسعت اتساع مجاری داخل کبدی",select("ihbdExtent",[["none","بدون اتساع واضح IHBD"],["central","فقط مرکزی"],["centralPeripheral","مرکزی و محیطی"]])):null,
-      detailed?h("div",{style:subStyle},h("div",{style:gridStyle},h("label",null,"قطر CBD (mm)",input("cbd","مثال: 9","number",{min:"0",step:"0.1"})),state.bileDuctStatus==="dilated"?h("label",null,"ارزیابی دیستال CBD",select("distalCBD",[["tapering","قابل مشاهده با tapering"],["notSeenGas","غیرقابل ارزیابی به علت گاز اپی‌گاستر"],["other","سایر / توضیح آزاد"]])):null),state.bileDuctStatus==="dilated"&&state.distalCBD==="tapering"?check("opiumHistory","افزودن توصیه تطابق با سابقه مصرف اوپیوم"):null):null,
-      detailed?h("div",{style:subStyle},h("h4",{style:{marginTop:0}},"ورید پورت — مخصوص سونوگرافی کبد و مجاری صفراوی"),h("div",{style:gridStyle},h("label",null,"قطر ورید پورت (mm)",input("portalDiameter","مثال: 11","number",{min:"0",step:"0.1"})),h("label",null,"جهت/الگوی جریان",select("portalFlow",[["notAssessed","گزارش نشود"],["hepatopetal","هپاتوپتال"],["slow","آهسته و هپاتوپتال"],["hepatofugal","هپاتوفوگال"]])),h("label",null,"ترومبوز ورید پورت",select("portalThrombosis",[["none","شواهد ترومبوز مشاهده نشد"],["suspected","مشکوک به ترومبوز"],["notAssessed","گزارش نشود"]])))):null,
+      showOptionalDuctVessel?h("div",{style:subStyle},h("h4",{style:{marginTop:0}},detailed?"CBD و ارزیابی تکمیلی مجاری":"CBD — اختیاری در سونوگرافی شکم و لگن"),h("div",{style:gridStyle},h("label",null,"قطر CBD (mm؛ اختیاری)",input("cbd","مثال: 5","number",{min:"0",step:"0.1"})),detailed&&state.bileDuctStatus==="dilated"?h("label",null,"ارزیابی دیستال CBD",select("distalCBD",[["tapering","قابل مشاهده با tapering"],["notSeenGas","غیرقابل ارزیابی به علت گاز اپی‌گاستر"],["other","سایر / توضیح آزاد"]])):null),detailed&&state.bileDuctStatus==="dilated"&&state.distalCBD==="tapering"?check("opiumHistory","افزودن توصیه تطابق با سابقه مصرف اوپیوم"):null):null,
+      detailed?h("div",{style:subStyle},h("h4",{style:{marginTop:0}},"ورید پورت — بررسی کامل"),h("div",{style:gridStyle},h("label",null,"قطر ورید پورت (mm)",input("portalDiameter","مثال: 11","number",{min:"0",step:"0.1"})),h("label",null,"جهت/الگوی جریان",select("portalFlow",[["notAssessed","گزارش نشود"],["hepatopetal","هپاتوپتال"],["slow","آهسته و هپاتوپتال"],["hepatofugal","هپاتوفوگال"]])),h("label",null,"ترومبوز ورید پورت",select("portalThrombosis",[["none","شواهد ترومبوز مشاهده نشد"],["suspected","مشکوک به ترومبوز"],["notAssessed","گزارش نشود"]])))):generalAbdomen?h("div",{style:subStyle},h("h4",{style:{marginTop:0}},"ورید پورت — اختیاری در سونوگرافی شکم و لگن"),h("label",null,"قطر ورید پورت (mm؛ اختیاری)",input("portalDiameter","مثال: 11","number",{min:"0",step:"0.1"}))):null,
       customBox("سایر یافته‌های مجاری صفراوی","bile")
     ),
     showPreview?h(ReportOutput,report):null
@@ -2729,8 +2665,8 @@ function buildFemalePelvis(s,examId){
     }
   }
   const rightHasCyst=s.cysts.some(x=>x.side==="right"), leftHasCyst=s.cysts.some(x=>x.side==="left");
-  const generalAbdomenNormalOvaries=examId==="femaleAbdomenPelvis"&&!rightHasCyst&&!leftHasCyst&&s.rightStatus==="normal"&&s.leftStatus==="normal"&&!s.rightDominant&&!s.leftDominant;
-  if(generalAbdomenNormalOvaries) f.push("تخمدان‌ها با ابعاد و پترن فولیکولار نرمال رویت شدند.");
+  const combinedNormalOvaries=!rightHasCyst&&!leftHasCyst&&s.rightStatus==="normal"&&s.leftStatus==="normal"&&!s.rightDominant&&!s.leftDominant;
+  if(combinedNormalOvaries) f.push("تخمدان‌ها با ابعاد و اکوپترن فولیکولار متناسب با سن رویت شدند.");
   else { ovarianStatusReport("right",s,f,i,r,rightHasCyst); ovarianStatusReport("left",s,f,i,r,leftHasCyst); }
   s.cysts.forEach((x,idx)=>{
     f.push(ovarianLesionSentence(x,idx,allowOrads,r));
@@ -3047,7 +2983,7 @@ function Ultrasound({goBack}){
  function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۱.۷ — محاسبه مستقل صدک‌های رشد جنین، جدول‌های استاندارد و نمودارهای طولی FGR."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۱.۹ — اصلاح گردش‌کار گزارش، تکمیل کبد و کیسه صفرا، مثانه، بیضه‌ها و گزارش نهایی یکپارچه."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
@@ -3143,29 +3079,29 @@ __modules["src/library/Kidney/bladder.js"] = function(module, exports, require){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bladderLibrary = void 0;
+const debrisFinding = "دبری‌های اکوژن شناور مختصر در مثانه رویت شد که می‌تواند در زمینه کریستالوری، پیوری، هماتوری یا استاز ادراری باشد.";
+const debrisRecommendation = "تطبیق با یافته‌های UA و UC توصیه می‌شود.";
+const wallSentence = (enabled, value) => enabled && value ? ` ضخامت جدار مثانه حدود ${value} میلی‌متر اندازه‌گیری شد.` : "";
 exports.bladderLibrary = {
-    build({ mode = "normal", wallThickness = "", optionalUA = false, prostateRelated = false, mucosalIrregularity = false, diverticulum = false, hasUrinaryStone = false, }) {
+    build({ mode = "normal", debrisEnabled = false, wallEnabled = false, wallThickness = "", optionalUA = false, prostateRelated = false, mucosalIrregularity = false, diverticulum = false, hasUrinaryStone = false, }) {
         if (mode === "normal") {
             return {
-                finding: "مثانه دارای شکل و ضخامت جداری طبیعی بوده و فاقد سنگ یا ضایعه فضاگیر است.",
-                impression: "",
-                recommendation: "",
+                finding: `مثانه دارای شکل و ضخامت جداری طبیعی بوده و فاقد سنگ یا ضایعه فضاگیر است.${wallSentence(wallEnabled, wallThickness)}${debrisEnabled ? ` ${debrisFinding}` : ""}`,
+                impression: debrisEnabled ? "دبری اکوژن مختصر داخل مثانه." : "",
+                recommendation: debrisEnabled ? debrisRecommendation : "",
             };
         }
         if (mode === "mildDebris") {
             return {
-                finding: "مثانه دارای شکل و ضخامت جداری طبیعی است. مقدار مختصری دبری اکوژن شناور در داخل مثانه رویت شد که می‌تواند در زمینه کریستالوری، هماچوری، پیوری یا استاز ادراری باشد.",
+                finding: `مثانه دارای شکل و ضخامت جداری طبیعی است.${wallSentence(wallEnabled, wallThickness)} ${debrisFinding}`,
                 impression: "دبری اکوژن مختصر داخل مثانه.",
-                recommendation: "تطابق با یافته‌های آزمایش کامل ادرار (UA) توصیه می‌شود.",
+                recommendation: debrisRecommendation,
             };
         }
         if (mode === "cystitis") {
-            const thicknessText = wallThickness
-                ? ` تا حداکثر ${wallThickness} میلی‌متر`
-                : "";
+            const thicknessText = wallThickness ? ` تا حداکثر ${wallThickness} میلی‌متر` : "";
             return {
-                finding: `افزایش ضخامت جدار مثانه${thicknessText} همراه با دبری‌های اکوژن شناور فراوان در داخل آن رویت شد. ` +
-                    "با توجه به شرح حال و علائم بالینی بیمار، یافته‌ها می‌توانند مطرح‌کننده سیستیت باشند.",
+                finding: `افزایش ضخامت جدار مثانه${thicknessText} همراه با دبری‌های اکوژن شناور فراوان در داخل آن رویت شد. با توجه به شرح حال و علائم بالینی بیمار، یافته‌ها می‌توانند مطرح‌کننده سیستیت باشند.`,
                 impression: "نمای مطرح‌کننده سیستیت در صورت تطابق بالینی.",
                 recommendation: "بررسی آزمایش کامل ادرار (UA) و کشت ادرار (UC) توصیه می‌شود.",
             };
@@ -3175,33 +3111,21 @@ exports.bladderLibrary = {
                 ? "دبری‌های اکوژن شناور در داخل مثانه رویت شد که با توجه به وجود سنگ در سیستم ادراری، می‌تواند مطرح‌کننده هماچوری باشد."
                 : "دبری‌های اکوژن شناور در داخل مثانه رویت شد. با توجه به عدم ثبت سنگ در سیستم ادراری، تعیین علت بر اساس شرح حال و یافته‌های آزمایشگاهی انجام شود.";
             return {
-                finding,
-                impression: hasUrinaryStone
-                    ? "دبری مثانه، احتمالاً در زمینه هماچوری مرتبط با سنگ سیستم ادراری."
-                    : "دبری اکوژن داخل مثانه.",
-                recommendation: optionalUA
-                    ? "تطابق با یافته‌های آزمایش کامل ادرار (UA) توصیه می‌شود."
-                    : "",
+                finding: `${finding}${wallSentence(wallEnabled, wallThickness)}`,
+                impression: hasUrinaryStone ? "دبری مثانه، احتمالاً در زمینه هماچوری مرتبط با سنگ سیستم ادراری." : "دبری اکوژن داخل مثانه.",
+                recommendation: optionalUA ? "تطابق با یافته‌های آزمایش کامل ادرار (UA) توصیه می‌شود." : "",
             };
         }
         if (mode === "outletObstruction") {
-            const thicknessText = wallThickness
-                ? ` تا حداکثر ${wallThickness} میلی‌متر`
-                : "";
+            const thicknessText = wallThickness ? ` تا حداکثر ${wallThickness} میلی‌متر` : "";
             const extra = [];
-            if (mucosalIrregularity)
-                extra.push("نامنظمی سطح مخاط");
-            if (diverticulum)
-                extra.push("دیورتیکول مثانه");
+            if (mucosalIrregularity) extra.push("نامنظمی سطح مخاط");
+            if (diverticulum) extra.push("دیورتیکول مثانه");
             const extraText = extra.length ? ` همراه با ${extra.join(" و ")}` : "";
-            const causeText = prostateRelated
-                ? "که با توجه به بزرگی پروستات، احتمالاً ثانویه به انسداد مزمن خروجی مثانه است"
-                : "که می‌تواند در زمینه انسداد مزمن خروجی مثانه باشد";
+            const causeText = prostateRelated ? "که با توجه به بزرگی پروستات، احتمالاً ثانویه به انسداد مزمن خروجی مثانه است" : "که می‌تواند در زمینه انسداد مزمن خروجی مثانه باشد";
             return {
                 finding: `افزایش ضخامت${thicknessText} و ترابکولاسیون جدار مثانه${extraText} مشاهده شد ${causeText}.`,
-                impression: prostateRelated
-                    ? "تغییرات مزمن جدار مثانه در زمینه انسداد خروجی مثانه، احتمالاً مرتبط با بزرگی پروستات."
-                    : "تغییرات مزمن جدار مثانه، مطرح‌کننده انسداد خروجی مثانه.",
+                impression: prostateRelated ? "تغییرات مزمن جدار مثانه در زمینه انسداد خروجی مثانه، احتمالاً مرتبط با بزرگی پروستات." : "تغییرات مزمن جدار مثانه، مطرح‌کننده انسداد خروجی مثانه.",
                 recommendation: "تطابق با علائم ادراری، حجم ادرار باقی‌مانده پس از تخلیه (PVR) و در صورت نیاز ارزیابی اورولوژی توصیه می‌شود.",
             };
         }
