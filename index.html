@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v2.5 — Locked Next Update" />
+  <meta name="description" content="HN Radiology Suite v2.5 — Locked Clinical Update" />
   <title>HN Radiology Suite v2.5</title>
   <style>
 * {
@@ -91,7 +91,7 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
     name:"HN Radiology Suite",
     version:"2.5",
     versionLabel:"v2.5",
-    channel:"locked-next-update",
+    channel:"locked-clinical-update",
     architecture:"modular-source + bundled-production",
     buildDate:"2026-07-31"
   });
@@ -134,14 +134,14 @@ html{background:#0f172a} input,select,textarea{font-family:Tahoma,Arial,sans-ser
   function exportReport(){
     const report={diagnostics:run(),events:events.slice()};
     const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.4_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.5_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
-  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.4 Stable":"v2.4 Check";}}
+  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5 Stable":"v2.5 Check";}}
   function createUI(){
     if(document.getElementById("hn-stability-badge"))return;
-    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.4 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
+    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.5 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
     const panel=document.createElement("section");panel.id="hn-diagnostics-panel";panel.hidden=true;
-    panel.innerHTML='<h2>HN Diagnostics — v2.4</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
+    panel.innerHTML='<h2>HN Diagnostics — v2.5</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
     document.body.append(panel,badge);
     const render=()=>{document.getElementById("hn-diag-output").textContent=JSON.stringify(run(),null,2)};
     badge.addEventListener("click",()=>{panel.hidden=false;render()});
@@ -17611,18 +17611,27 @@ function fileStamp(date = new Date()) {
     const pad = n => String(n).padStart(2, "0");
     return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }
-function ReportOutput({ finding = "", impression = "", recommendation = "", sessionKey = 0, wordExtras = null, plainText = "" }) {
+function ReportOutput({ finding = "", impression = "", recommendation = "", sessionKey = 0, wordExtras = null, plainText = "", examTitle = "گزارش سونوگرافی" }) {
     const generatedReport = React.useMemo(() => String(plainText || "").trim() || buildGeneratedReport(finding, impression, recommendation), [plainText, finding, impression, recommendation]);
+    const textToHtml = value => String(value || "").replace(/[&<>]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[s])).replace(/\n/g,"<br>");
     const [copyStatus, setCopyStatus] = React.useState("");
     const [editableReport, setEditableReport] = React.useState(generatedReport);
+    const [editableHtml, setEditableHtml] = React.useState(textToHtml(generatedReport));
     const [manuallyEdited, setManuallyEdited] = React.useState(false);
+    const [includeImpression, setIncludeImpression] = React.useState(true);
+    const [patientId, setPatientId] = React.useState("");
+    const [patientName, setPatientName] = React.useState("");
+    const editorRef = React.useRef(null);
+    const lastGenerated = React.useRef(generatedReport);
     React.useEffect(() => {
         setCopyStatus("");
         setEditableReport(generatedReport);
+        setEditableHtml(textToHtml(generatedReport));
         setManuallyEdited(false);
     }, [sessionKey]);
     React.useEffect(() => {
-        if (!manuallyEdited) setEditableReport(generatedReport);
+        if (!manuallyEdited) { setEditableReport(generatedReport); setEditableHtml(textToHtml(generatedReport)); }
+        lastGenerated.current = generatedReport;
     }, [generatedReport, manuallyEdited]);
     const flash = (value, ms = 2400) => {
         setCopyStatus(value);
@@ -17644,6 +17653,55 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         if (!validate()) return;
         await copyText(editableReport.trim());
         flash("گزارش کپی شد");
+    };
+    const editorText = () => editorRef.current ? String(editorRef.current.innerText || "").trim() : editableReport.trim();
+    const syncEditor = () => {
+        const value = editorText();
+        setEditableReport(value);
+        if (editorRef.current) setEditableHtml(editorRef.current.innerHTML);
+        setManuallyEdited(true);
+        setCopyStatus("");
+    };
+    const command = (name, value) => {
+        if (editorRef.current) editorRef.current.focus();
+        document.execCommand(name, false, value || null);
+        syncEditor();
+    };
+    const updateGeneratedSections = () => {
+        const current = splitReportText(editorText());
+        const previous = splitReportText(lastGenerated.current);
+        const next = splitReportText(generatedReport);
+        ["finding","impression","recommendation"].forEach(key => {
+            if (!String(current[key] || "").trim() || String(current[key] || "").trim() === String(previous[key] || "").trim()) current[key] = next[key];
+        });
+        const merged = buildGeneratedReport(current.finding, includeImpression ? current.impression : "", current.recommendation);
+        setEditableReport(merged); setEditableHtml(textToHtml(merged)); setManuallyEdited(true); lastGenerated.current = generatedReport;
+        flash("بخش‌های ویرایش‌نشده به‌روزرسانی شدند");
+    };
+    const rebuildAll = () => {
+        if (manuallyEdited && !window.confirm("بازسازی کامل، همه ویرایش‌های دستی متن را حذف می‌کند. ادامه می‌دهید؟")) return;
+        const sections = splitReportText(generatedReport);
+        const value = buildGeneratedReport(sections.finding, includeImpression ? sections.impression : "", sections.recommendation);
+        setEditableReport(value); setEditableHtml(textToHtml(value)); setManuallyEdited(false); flash("گزارش کامل بازسازی شد");
+    };
+    const printReport = () => {
+        const text = editorText();
+        if (!text) return flash("متن گزارش هنوز خالی است");
+        const win = window.open("", "_blank", "width=900,height=1100");
+        if (!win) return flash("پنجره چاپ توسط مرورگر مسدود شد");
+        const tables = wordExtras && Array.isArray(wordExtras.tables) ? wordExtras.tables.map(t => `<section><h2>${t.title||""}</h2><table><thead><tr>${(t.headers||[]).map(v=>`<th>${v}</th>`).join("")}</tr></thead><tbody>${(t.rows||[]).map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`).join("") : "";
+        const images = wordExtras && Array.isArray(wordExtras.images) ? wordExtras.images.map(x => `<img src="${x.dataUrl || x.src || ""}" style="max-width:100%;page-break-inside:avoid;margin:16px 0">`).join("") : "";
+        const reportHtml = editorRef.current ? editorRef.current.innerHTML : editableHtml;
+        win.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${examTitle}</title><style>@page{size:A4;margin:18mm}body{font-family:Arial,Tahoma,sans-serif;line-height:2;color:#111}h1{font-size:18px}h2{font-size:15px;margin-top:22px}.report{white-space:normal}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-bottom:1px solid #bbb;padding-bottom:10px;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin:12px 0;page-break-inside:avoid}th,td{border:1px solid #999;padding:6px;text-align:center}@media print{button{display:none}}</style></head><body><h1>${examTitle}</h1><div class="meta">${patientName?`<div>نام بیمار: ${patientName}</div>`:""}${patientId?`<div>Patient ID: ${patientId}</div>`:""}<div>تاریخ: ${new Date().toLocaleDateString("fa-IR")}</div></div><div class="report">${reportHtml}</div>${tables}${images}<script>onload=()=>print()<\/script></body></html>`);
+        win.document.close();
+    };
+    const saveReport = () => {
+        const text = editorText();
+        if (!text) return flash("متن گزارش هنوز خالی است");
+        const items = (()=>{try{return JSON.parse(localStorage.getItem("hnRadiologyReportsV1")||"[]")}catch(_a){return[]}})();
+        items.unshift({id:`r-${Date.now()}`,patientId:patientId.trim(),patientName:patientName.trim(),examTitle,createdAt:new Date().toISOString(),fullReport:text});
+        localStorage.setItem("hnRadiologyReportsV1",JSON.stringify(items));
+        window.dispatchEvent(new Event("hn-reports-updated")); flash("گزارش ذخیره شد");
     };
     const exportWord = () => {
         if (!validate()) return;
@@ -17668,21 +17726,44 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
     };
     const actionStyle = { padding: "9px 14px", cursor: "pointer" };
     return h("div", { style: { marginTop: "24px" } },
+        h("div", { style: { display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:"9px", marginBottom:"12px" } },
+            h("input",{value:patientName,onChange:e=>setPatientName(e.target.value),placeholder:"نام بیمار — اختیاری",style:{padding:"10px",borderRadius:"8px"}}),
+            h("input",{value:patientId,onChange:e=>setPatientId(e.target.value),placeholder:"Patient ID — اختیاری",style:{padding:"10px",borderRadius:"8px"}}),
+            h("label",{style:{display:"flex",alignItems:"center",gap:"8px"}},h("input",{type:"checkbox",checked:includeImpression,onChange:e=>setIncludeImpression(e.target.checked)}),"نمایش نتیجه‌گیری")
+        ),
         h("div", { style: { display: "flex", gap: "9px", alignItems: "center", flexWrap: "wrap" } },
             h("h3", { style: { margin: 0 } }, "گزارش نهایی قابل ویرایش"),
             h("button", { type: "button", onClick: copyReport, style: actionStyle }, "کپی گزارش"),
             h("button", { type: "button", onClick: exportWord, style: Object.assign({}, actionStyle, { background: "#166534", color: "white", border: "1px solid #4ade80" }) }, "خروجی Word"),
-            h("button", { type: "button", onClick: resetGeneratedText, disabled: !manuallyEdited, style: actionStyle }, "بازنشانی متن تولیدشده"),
+            h("button", { type: "button", onClick: printReport, style: actionStyle }, "چاپ گزارش / PDF"),
+            h("button", { type: "button", onClick: saveReport, style: actionStyle }, "ذخیره اختیاری"),
+            h("button", { type: "button", onClick: updateGeneratedSections, style: actionStyle }, "به‌روزرسانی گزارش"),
+            h("button", { type: "button", onClick: rebuildAll, style: Object.assign({},actionStyle,{border:"1px solid #ef4444"}) }, "بازسازی کامل"),
             copyStatus && h("span", { style: { color: copyStatus.includes("کپی") || copyStatus.includes("ساخته شد") || copyStatus.includes("بازیابی") ? "#86efac" : "#fbbf24" } }, copyStatus)
         ),
+        h("div",{style:{display:"flex",gap:"5px",flexWrap:"wrap",marginTop:"12px",padding:"8px",background:"#172033",borderRadius:"9px"}},
+            h("button",{type:"button",onClick:()=>command("bold")},"B"),
+            h("button",{type:"button",onClick:()=>command("italic")},"I"),
+            h("button",{type:"button",onClick:()=>command("underline")},"U"),
+            h("select",{defaultValue:"3",onChange:e=>command("fontSize",e.target.value)},[2,3,4,5,6].map(n=>h("option",{key:n,value:n},`اندازه ${n}`))),
+            h("button",{type:"button",onClick:()=>command("justifyRight")},"راست‌چین"),
+            h("button",{type:"button",onClick:()=>command("justifyCenter")},"وسط‌چین"),
+            h("button",{type:"button",onClick:()=>command("justifyLeft")},"چپ‌چین"),
+            h("button",{type:"button",onClick:()=>command("insertUnorderedList")},"• فهرست"),
+            h("button",{type:"button",onClick:()=>command("insertOrderedList")},"۱. فهرست"),
+            h("button",{type:"button",onClick:()=>command("undo")},"Undo"),
+            h("button",{type:"button",onClick:()=>command("redo")},"Redo"),
+            h("button",{type:"button",onClick:()=>command("removeFormat")},"پاک‌کردن قالب"),
+            h("button",{type:"button",onClick:()=>{const q=prompt("عبارت مورد نظر برای جست‌وجو");if(!q)return;const v=prompt("جایگزین با");if(v===null)return;const next=editorText().split(q).join(v);setEditableReport(next);setEditableHtml(textToHtml(next));setManuallyEdited(true)}},"Find & Replace"),
+            h("button",{type:"button",onClick:()=>command("insertText","در سایر قسمت‌ها یافته پاتولوژیک بارزی مشاهده نشد.")},"عبارت آماده")
+        ),
         manuallyEdited && h("p", { style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0 } }, "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید."),
-        h("textarea", {
-            value: editableReport,
-            onChange: event => { setEditableReport(String(event.target.value || "")); setManuallyEdited(true); setCopyStatus(""); },
-            style: Object.assign({}, textareaStyle, { marginTop: "14px" }),
-            rows: 17,
-            spellCheck: false,
-            "aria-label": "گزارش نهایی"
+        h("div", {
+            ref: editorRef, contentEditable: true, suppressContentEditableWarning: true,
+            onInput: syncEditor,
+            style: Object.assign({}, textareaStyle, { marginTop: "14px", overflow:"auto" }),
+            spellCheck: false, "aria-label": "گزارش نهایی",
+            dangerouslySetInnerHTML:{__html:editableHtml}
         }),
         h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word شامل متن گزارش، جدول‌های محاسباتی و نمودارهای رشد است. هیچ Patient ID یا اطلاعات هویتی به گزارش افزوده نمی‌شود." : "گزارش نهایی فقط در یک باکس نمایش داده می‌شود و هیچ Patient ID، تاریخ، ساعت یا عنوان اضافی به متن آن افزوده نمی‌شود.")
     );
@@ -17870,7 +17951,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.4")),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.5")),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
@@ -17897,7 +17978,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "▣"), h("div", null, h("strong", null, "آرشیو محلی"), h("small", null, "Patient ID، تاریخ و گزارش‌های ذخیره‌شده"))),
                     h("div", { className: "hn-status" }, h("div", { className: "hn-status-icon", "aria-hidden": "true" }, "✓"), h("div", null, h("strong", null, "استاندارد و به‌روز"), h("small", null, "بر پایه Phrase Bank تأییدشده")))
                 ),
-                h("div", { className: "hn-version" }, "نسخه ۲.۴ — Clinical Workflow Update")
+                h("div", { className: "hn-version" }, "نسخه ۲.۵ — Locked Clinical Update")
             )
         ),
         loginOpen && h("div", { className: "hn-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-labelledby": "login-title", onClick: () => setLoginOpen(false) },
@@ -18060,6 +18141,69 @@ Object.defineProperty(exports, "buildRecommendation", { enumerable: true, get: f
 
 };
 
+})();
+
+</script>
+<script>
+/* assets/js/modules/70-clinical-v25.js */
+(function(){
+"use strict";
+const runtime=window.HNRuntime;if(!runtime)throw new Error("HNRuntime is not initialized");
+const __modules=runtime.modules;
+__modules["src/components/ClinicalV25.jsx"]=function(module,exports,require){
+"use strict";
+Object.defineProperty(exports,"__esModule",{value:true});
+const React=require("react"),h=React.createElement;
+const ReportOutput=require("./Common/ReportOutput.jsx").default;
+const panel={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"16px",marginTop:"14px"};
+const grid={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"10px"};
+const input={width:"100%",boxSizing:"border-box",padding:"9px",marginTop:"5px",borderRadius:"8px",border:"1px solid #64748b",background:"#f8fafc",color:"#0f172a"};
+const label=(hText,node)=>h("label",null,hText,node);
+const field=(name,value,set,type="text")=>label(name,h("input",{style:input,type,value,onChange:e=>set(e.target.value)}));
+const select=(name,value,set,options)=>label(name,h("select",{style:input,value,onChange:e=>set(e.target.value)},options.map(x=>h("option",{key:x[0],value:x[0]},x[1]))));
+const check=(name,value,set)=>h("label",{style:{display:"flex",gap:"7px",alignItems:"center"}},h("input",{type:"checkbox",checked:value,onChange:e=>set(e.target.checked)}),name);
+const uniq=a=>[...new Set(a.filter(Boolean))];
+
+function Appendix({onReportChange,showPreview=true}={}){
+ const initial={seen:"seen",diameter:"",compressible:"non",wall:"",hyperemia:false,appendicolith:false,fat:false,fluid:false,abscess:false,perforation:false,tender:false,pediatric:false,custom:""};
+ const [s,setS]=React.useState(initial),set=(k,v)=>setS(p=>({...p,[k]:v}));
+ const report=React.useMemo(()=>{const f=[],i=[],r=[];if(s.seen==="not"){f.push("آپاندیس به‌طور مشخص مشاهده نشد.");if(!s.fat&&!s.fluid&&!s.abscess)f.push("یافته ثانویه واضحی به نفع آپاندیسیت در RLQ مشاهده نشد.");i.push("آپاندیس مشاهده نشد؛ آپاندیسیت صرفاً براساس این بررسی قابل رد نیست.");r.push("تطابق با یافته‌های بالینی و آزمایشگاهی توصیه می‌شود.");}else{f.push(`آپاندیس${s.diameter?` با قطر حداکثر ${s.diameter} میلی‌متر`:""} ${s.compressible==="non"?"غیرقابل‌فشردن":"قابل‌فشردن"} مشاهده شد.`);if(s.wall)f.push(`ضخامت جدار ${s.wall} میلی‌متر است.`);if(s.hyperemia)f.push("افزایش واسکولاریته جدار در کالر داپلر مشاهده شد.");if(s.appendicolith)f.push("Appendicolith مشاهده شد.");if(s.fat)f.push("التهاب چربی اطراف آپاندیس مشاهده شد.");if(s.fluid)f.push("مایع اطراف آپاندیس مشاهده شد.");if(s.abscess)f.push("کالکشن/آبسه مجاور مشاهده شد.");if(s.perforation)f.push("یافته‌های ثانویه مشکوک به پرفوراسیون مشاهده شد.");if(s.tender)f.push("حداکثر حساسیت موضعی زیر پروب در محل آپاندیس بود.");const d=Number(s.diameter);if(s.perforation||s.abscess){i.push("آپاندیسیت حاد عارضه‌دار/پرفوره.");r.push(`ارزیابی فوری ${s.pediatric?"جراح اطفال":"جراح عمومی"} توصیه می‌شود.`);}else if((d>=6&&s.compressible==="non")&&(s.hyperemia||s.fat||s.appendicolith)){i.push("مجموع یافته‌ها به نفع آپاندیسیت حاد است.");r.push(`ارزیابی فوری ${s.pediatric?"جراح اطفال":"جراح عمومی"} توصیه می‌شود.`);}else if(d<6&&s.compressible==="yes"&&!s.fat&&!s.hyperemia){i.push("آپاندیس با نمای طبیعی.");}else{i.push("یافته‌ها از نظر آپاندیسیت قطعی نیستند.");r.push("تطابق با معاینه، آزمایش و پیگیری تصویربرداری توصیه می‌شود.");}}if(s.custom)f.push(s.custom);return{finding:f.join("\n"),impression:i.join("\n"),recommendation:uniq(r).join("\n")}},[s]);
+ React.useEffect(()=>{if(onReportChange)onReportChange(report)},[onReportChange,report]);
+ return h("div",null,h("section",{style:panel},h("h2",null,"ماژول مستقل آپاندیس"),h("div",{style:grid},select("وضعیت مشاهده",s.seen,v=>set("seen",v),[["seen","مشاهده شد"],["not","مشاهده نشد"]]),field("قطر (mm)",s.diameter,v=>set("diameter",v),"number"),select("Compressibility",s.compressible,v=>set("compressible",v),[["non","غیرقابل‌فشردن"],["yes","قابل‌فشردن"]]),field("ضخامت جدار (mm)",s.wall,v=>set("wall",v),"number")),h("div",{style:grid},check("Hyperemia",s.hyperemia,v=>set("hyperemia",v)),check("Appendicolith",s.appendicolith,v=>set("appendicolith",v)),check("التهاب چربی اطراف",s.fat,v=>set("fat",v)),check("مایع اطراف",s.fluid,v=>set("fluid",v)),check("Collection/abscess",s.abscess,v=>set("abscess",v)),check("Perforation",s.perforation,v=>set("perforation",v)),check("حساسیت موضعی پروب",s.tender,v=>set("tender",v)),check("بیمار کودک است",s.pediatric,v=>set("pediatric",v))),field("سایر یافته‌ها",s.custom,v=>set("custom",v))),showPreview?h(ReportOutput,{...report,examTitle:"سونوگرافی آپاندیس"}):null);
+}
+
+function KidneyAdvanced(){
+ const side=()=>({length:"",parenchyma:"",ap:"",stone:false,stoneSize:"",cyst:false,cystSize:"",hydro:"none"});
+ const [s,setS]=React.useState({right:side(),left:side(),fullness:"none",grade:"mild",calyces:false,ureter:false,cause:"unknown",rec:"none"});
+ const us=(sideName,k,v)=>setS(p=>({...p,[sideName]:{...p[sideName],[k]:v}})),set=(k,v)=>setS(p=>({...p,[k]:v}));
+ const report=React.useMemo(()=>{const f=[],i=[],r=[];[["right","راست"],["left","چپ"]].forEach(([k,n])=>{const x=s[k];f.push(`کلیه ${n}${x.length?` به طول ${x.length} میلی‌متر`:""}${x.parenchyma?` و ضخامت پارانشیم ${x.parenchyma} میلی‌متر`:""}${x.ap?`؛ قطر AP لگنچه ${x.ap} میلی‌متر`:""} مشاهده شد.`);if(x.stone){f.push(`سنگ کلیه ${n}${x.stoneSize?` به قطر ${x.stoneSize} میلی‌متر`:""} مشاهده شد.`);i.push(`سنگ کلیه ${n}.`)}if(x.cyst){f.push(`کیست ساده کلیه ${n}${x.cystSize?` به قطر ${x.cystSize} میلی‌متر`:""} مشاهده شد.`);i.push(`کیست ساده کلیه ${n}.`)}if(x.hydro!=="none"){f.push(`هیدرونفروز ${x.hydro} کلیه ${n} مشاهده شد.`);i.push(`هیدرونفروز ${x.hydro} کلیه ${n}.`)}});if(s.fullness!=="none"){const sideText={right:"راست",left:"چپ",bilateral:"دوطرفه"}[s.fullness];let t=`Fullness ${s.grade} سیستم پیلوکالیسیال ${sideText} مشاهده شد`;if(s.calyces)t+=" همراه با اتساع کالیس‌ها";if(s.ureter)t+=" همراه با اتساع حالب";if(s.cause==="overdistension")t+=" که می‌تواند ناشی از overdistension مثانه باشد";if(s.cause==="uti")t+="؛ در زمینه بالینی مناسب بررسی UTI توصیه می‌شود";f.push(t+".");i.push(`Fullness ${s.grade} سیستم پیلوکالیسیال ${sideText}.`);const map={postvoid:"بررسی مجدد پس از تخلیه مثانه توصیه می‌شود.",ua:"انجام UA توصیه می‌شود.",uc:"انجام urine culture توصیه می‌شود.",uauc:"انجام UA و UC توصیه می‌شود.",buncr:"بررسی BUN و Creatinine توصیه می‌شود.",renal:"بررسی BUN، Creatinine و eGFR توصیه می‌شود.",urology:"ارزیابی اورولوژی توصیه می‌شود.",none:""};if(map[s.rec])r.push(map[s.rec])}return{finding:f.join("\n"),impression:i.length?uniq(i).join("\n"):"یافته پاتولوژیک بارزی در سیستم ادراری مشاهده نشد.",recommendation:uniq(r).join("\n")}},[s]);
+ const SideCard=({id,title})=>h("section",{style:panel},h("h3",null,title),h("div",{style:grid},field("طول (mm)",s[id].length,v=>us(id,"length",v),"number"),field("ضخامت پارانشیم (mm)",s[id].parenchyma,v=>us(id,"parenchyma",v),"number"),field("AP لگنچه (mm)",s[id].ap,v=>us(id,"ap",v),"number"),select("هیدرونفروز",s[id].hydro,v=>us(id,"hydro",v),[["none","ندارد"],["خفیف","خفیف"],["متوسط","متوسط"],["شدید","شدید"]]),check("سنگ",s[id].stone,v=>us(id,"stone",v)),s[id].stone&&field("قطر سنگ",s[id].stoneSize,v=>us(id,"stoneSize",v),"number"),check("کیست",s[id].cyst,v=>us(id,"cyst",v)),s[id].cyst&&field("قطر کیست",s[id].cystSize,v=>us(id,"cystSize",v),"number")));
+ return h("div",null,h(SideCard,{id:"right",title:"کلیه راست — مستقل"}),h(SideCard,{id:"left",title:"کلیه چپ — مستقل"}),h("section",{style:panel},h("h3",null,"Fullness"),h("div",{style:grid},select("سمت",s.fullness,v=>set("fullness",v),[["none","ندارد"],["right","راست"],["left","چپ"],["bilateral","دوطرفه"]]),select("شدت",s.grade,v=>set("grade",v),[["mild","خفیف"],["moderate","متوسط"],["severe","شدید"]]),select("علت احتمالی",s.cause,v=>set("cause",v),[["unknown","نامشخص"],["overdistension","Overdistension مثانه"],["uti","احتمال UTI با تطبیق بالینی"]]),select("Recommendation",s.rec,v=>set("rec",v),[["none","بدون توصیه"],["postvoid","Post-void reassessment"],["ua","UA"],["uc","Urine culture"],["uauc","UA + UC"],["buncr","BUN + Cr"],["renal","BUN + Cr + eGFR"],["urology","اورولوژی"]]),check("اتساع کالیس‌ها",s.calyces,v=>set("calyces",v)),check("اتساع حالب",s.ureter,v=>set("ureter",v)))),h(ReportOutput,{...report,examTitle:"سونوگرافی کلیه و مجاری ادراری"}));
+}
+
+function Pediatrics({onReportChange,showPreview=true}={}){
+ const [s,setS]=React.useState({module:"nodes",nodeSAD:"",nodeReactive:true,intType:"transient",intDiameter:"",perfusion:"normal",obstruction:false,prenatal:false,ap:"",utd:"none",anomaly:"none",custom:""}),set=(k,v)=>setS(p=>({...p,[k]:v}));
+ const report=React.useMemo(()=>{const f=[],i=[],r=[];if(s.module==="nodes"){f.push(`چند لنف‌نود مزانتریک با نمای ${s.nodeReactive?"واکنشی":"غیراختصاصی"}${s.nodeSAD?` تا حداکثر قطر کوتاه ${s.nodeSAD} میلی‌متر`:""} مشاهده شد.`);i.push("لنف‌نودهای مزانتریک؛ تشخیص mesenteric adenitis نیازمند تطابق بالینی است.");}if(s.module==="intussusception"){f.push(`${s.intType==="transient"?"Small-bowel intussusception گذرا":"Ileocolic intussusception"}${s.intDiameter?` به قطر ${s.intDiameter} میلی‌متر`:""} مشاهده شد.`);if(s.perfusion!=="normal"){f.push("کاهش/اختلال پرفیوژن دیواره مشاهده شد.");r.push("ارزیابی اورژانسی جراح اطفال توصیه می‌شود.");}else if(s.intType==="transient")r.push("پیگیری کوتاه‌مدت سونوگرافیک جهت اطمینان از برطرف‌شدن توصیه می‌شود.");else r.push("ارزیابی فوری جراح اطفال توصیه می‌شود.");i.push(s.intType==="transient"?"Transient small-bowel intussusception.":"Ileocolic intussusception.");}if(s.module==="urinary"){if(s.prenatal)f.push("سابقه prenatal hydronephrosis ذکر شده است.");if(s.ap)f.push(`قطر AP لگنچه ${s.ap} میلی‌متر است.`);if(s.utd!=="none")i.push(`طبقه‌بندی UTD: ${s.utd}.`);if(s.obstruction)i.push("الگوی اتساع مطرح‌کننده احتمال انسداد است؛ UPJO با سونوگرافی به‌تنهایی قطعی نیست.");if(s.anomaly!=="none"){f.push(`ناهنجاری ساختاری انتخاب‌شده: ${s.anomaly}.`);i.push(s.anomaly);}r.push("تطابق با سابقه، عملکرد کلیه و در صورت نیاز بررسی اورولوژی اطفال توصیه می‌شود.");}if(s.custom)f.push(s.custom);return{finding:f.join("\n"),impression:i.join("\n"),recommendation:uniq(r).join("\n")}},[s]);
+ const anomalies=["none","Renal agenesis","Ectopic pelvic kidney","Horseshoe kidney","Duplex collecting system","Multicystic dysplastic kidney","Ureterocele","Megaureter","Posterior urethral valve suspicion","ADPKD/ARPKD pattern"];
+ React.useEffect(()=>{if(onReportChange)onReportChange(report)},[onReportChange,report]);
+ return h("div",null,h("section",{style:panel},h("h2",null,"سونوگرافی اطفال"),select("زیرماژول",s.module,v=>set("module",v),[["nodes","لنف‌نودهای مزانتریک"],["intussusception","Intussusception"],["urinary","کلیه و ناهنجاری‌های مادرزادی"]]),s.module==="nodes"&&h("div",{style:grid},field("حداکثر SAD (mm)",s.nodeSAD,v=>set("nodeSAD",v),"number"),check("نمای واکنشی",s.nodeReactive,v=>set("nodeReactive",v))),s.module==="intussusception"&&h("div",{style:grid},select("نوع",s.intType,v=>set("intType",v),[["transient","Transient small bowel"],["ileocolic","Ileocolic"]]),field("قطر (mm)",s.intDiameter,v=>set("intDiameter",v),"number"),select("پرفیوژن",s.perfusion,v=>set("perfusion",v),[["normal","حفظ‌شده"],["reduced","کاهش‌یافته"],["absent","مشاهده نشد"]])),s.module==="urinary"&&h("div",{style:grid},check("سابقه prenatal hydronephrosis",s.prenatal,v=>set("prenatal",v)),field("AP لگنچه (mm)",s.ap,v=>set("ap",v),"number"),check("الگوی مشکوک به انسداد/UPJO",s.obstruction,v=>set("obstruction",v)),select("UTD فقط با داده کافی",s.utd,v=>set("utd",v),[["none","طبقه‌بندی نشود"],["UTD P1","UTD P1"],["UTD P2","UTD P2"],["UTD P3","UTD P3"]]),select("ناهنجاری مادرزادی",s.anomaly,v=>set("anomaly",v),anomalies.map(x=>[x,x==="none"?"ندارد":x]))),field("سایر یافته‌ها",s.custom,v=>set("custom",v))),showPreview?h(ReportOutput,{...report,examTitle:"سونوگرافی اطفال"}):null);
+}
+
+function ScrotalDoppler(){
+ const [s,setS]=React.useState({side:"right",pathology:"normal",rl:"",rap:"",rt:"",ll:"",lap:"",lt:"",rflow:"normal",lflow:"normal",lesion:"",wall:false,canal:false,custom:""}),set=(k,v)=>setS(p=>({...p,[k]:v}));
+ const vol=(a,b,c)=>[a,b,c].every(x=>Number(x)>0)?(Number(a)*Number(b)*Number(c)*.71/1000).toFixed(1):"";
+ const report=React.useMemo(()=>{const f=[],i=[],r=[],rv=vol(s.rl,s.rap,s.rt),lv=vol(s.ll,s.lap,s.lt),side=s.side==="right"?"راست":"چپ";f.push(`بیضه راست${rv?` با حجم ${rv} سی‌سی`:""} و بیضه چپ${lv?` با حجم ${lv} سی‌سی`:""} مشاهده شدند.`);f.push(`پرفیوژن بیضه راست ${s.rflow==="normal"?"طبیعی":s.rflow==="increased"?"افزایش‌یافته":s.rflow==="reduced"?"کاهش‌یافته":"مشاهده نشد"} و بیضه چپ ${s.lflow==="normal"?"طبیعی":s.lflow==="increased"?"افزایش‌یافته":s.lflow==="reduced"?"کاهش‌یافته":"مشاهده نشد"} است.`);const names={hydrocele:"هیدروسل",pyocele:"پیوسل",hematocele:"هماتوسل",spermatocele:"اسپرماتوسل",epididymalCyst:"کیست اپیدیدیم",epididymitis:"اپیدیدیمیت",epididymoorchitis:"اپیدیدیموارکیت",abscess:"آبسه اپیدیدیم/بیضه",torsion:"تورشن بیضه",appendage:"تورشن آپاندیس بیضه",tumor:"تومور بیضه",extratesticular:"ضایعه خارج‌تستیکولار",edema:"ادم جدار اسکروتوم",idiopathic:"ادم حاد ایدیوپاتیک اسکروتوم",cellulitis:"سلولیت اسکروتوم",scrotalAbscess:"آبسه اسکروتوم",fournier:"Fournier gangrene",normal:""};if(s.pathology!=="normal"){f.push(`${names[s.pathology]} سمت ${side}${s.lesion?`: ${s.lesion}`:""} مشاهده شد.`);i.push(`${names[s.pathology]} سمت ${side}.`)}if(["torsion","fournier","abscess","scrotalAbscess"].includes(s.pathology)||s.rflow==="absent"||s.lflow==="absent"){r.push("هشدار فوری: ارزیابی اورژانسی اورولوژی/جراحی توصیه می‌شود.");}if(s.wall)f.push("ادم/ضخیم‌شدگی جدار اسکروتوم مشاهده شد.");if(s.canal)f.push("یافته غیرطبیعی در کانال اینگوینال مشاهده شد.");if(s.custom)f.push(s.custom);return{finding:f.join("\n"),impression:i.length?i.join("\n"):"یافته پاتولوژیک بارزی در کالر داپلر اسکروتوم مشاهده نشد.",recommendation:r.join("\n")}},[s]);
+ const paths=["normal","hydrocele","pyocele","hematocele","spermatocele","epididymalCyst","epididymitis","epididymoorchitis","abscess","torsion","appendage","tumor","extratesticular","edema","idiopathic","cellulitis","scrotalAbscess","fournier"];
+ return h("div",null,h("section",{style:panel},h("h2",null,"Testis & Scrotal Color Doppler"),h("p",null,"این موتور مستقل از ماژول Varicocele است."),h("div",{style:grid},field("طول راست",s.rl,v=>set("rl",v),"number"),field("AP راست",s.rap,v=>set("rap",v),"number"),field("عرض راست",s.rt,v=>set("rt",v),"number"),field("طول چپ",s.ll,v=>set("ll",v),"number"),field("AP چپ",s.lap,v=>set("lap",v),"number"),field("عرض چپ",s.lt,v=>set("lt",v),"number"),select("پرفیوژن راست",s.rflow,v=>set("rflow",v),[["normal","طبیعی"],["increased","افزایش"],["reduced","کاهش"],["absent","مشاهده نشد"]]),select("پرفیوژن چپ",s.lflow,v=>set("lflow",v),[["normal","طبیعی"],["increased","افزایش"],["reduced","کاهش"],["absent","مشاهده نشد"]]),select("پاتولوژی",s.pathology,v=>set("pathology",v),paths.map(x=>[x,x])),select("سمت",s.side,v=>set("side",v),[["right","راست"],["left","چپ"]]),field("توصیف ضایعه/اکو/واسکولاریته",s.lesion,v=>set("lesion",v)),check("درگیری جدار اسکروتوم",s.wall,v=>set("wall",v)),check("درگیری کانال اینگوینال",s.canal,v=>set("canal",v)),field("سایر یافته‌ها",s.custom,v=>set("custom",v)))),h(ReportOutput,{...report,examTitle:"سونوگرافی کالر داپلر بیضه‌ها و اسکروتوم"}));
+}
+
+function ClinicalV25({goBack}){const [tab,setTab]=React.useState("appendix");const tabs=[["appendix","آپاندیس"],["pediatric","اطفال"],["kidney","کلیه پیشرفته"],["scrotal","Testis Doppler"]];return h("main",{style:{minHeight:"100vh",background:"#0f172a",color:"white",direction:"rtl",padding:"clamp(16px,4vw,32px)"}},h("button",{onClick:goBack},"صفحه اصلی"),h("h1",null,"ماژول‌های بالینی HN v2.5"),h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},tabs.map(x=>h("button",{key:x[0],onClick:()=>setTab(x[0]),style:{padding:"10px 14px",background:tab===x[0]?"#0369a1":"#334155",color:"white",borderRadius:"8px"}},x[1]))),tab==="appendix"?h(Appendix):tab==="pediatric"?h(Pediatrics):tab==="kidney"?h(KidneyAdvanced):h(ScrotalDoppler));}
+exports.default=ClinicalV25;
+exports.Appendix=Appendix;
+exports.Pediatrics=Pediatrics;
+exports.KidneyAdvanced=KidneyAdvanced;
+exports.ScrotalDoppler=ScrotalDoppler;
+};
 })();
 
 </script>
@@ -19163,8 +19307,16 @@ const makeSideStoneSummary = () => ({
 const createInitialState = () => ({
     rightLength: "",
     rightParenchyma: "",
+    rightPelvisAP: "",
     leftLength: "",
     leftParenchyma: "",
+    leftPelvisAP: "",
+    fullnessSide: "none",
+    fullnessGrade: "خفیف",
+    fullnessCalyces: false,
+    fullnessUreter: false,
+    fullnessCause: "unknown",
+    fullnessRecommendation: "none",
     echogenicity: "normal",
     cystMode: "none",
     cysts: [makeCyst(1)],
@@ -19325,6 +19477,8 @@ function KidneyCard({ onReportChange, showPreview = true }) {
             if (state.leftLength || state.leftParenchyma) {
                 dimensions.push(`کلیه چپ به طول ${state.leftLength || "…"} میلی‌متر و ضخامت پارانشیم ${state.leftParenchyma || "…"} میلی‌متر`);
             }
+            if (state.rightPelvisAP) dimensions.push(`قطر AP لگنچه کلیه راست ${state.rightPelvisAP} میلی‌متر`);
+            if (state.leftPelvisAP) dimensions.push(`قطر AP لگنچه کلیه چپ ${state.leftPelvisAP} میلی‌متر`);
             const baseFinding = dimensions.length
                 ? `${dimensions.join(" و ")} اندازه‌گیری شدند.`
                 : "کلیه‌ها از نظر اندازه و ضخامت پارانشیم در محدوده طبیعی هستند.";
@@ -19355,6 +19509,28 @@ function KidneyCard({ onReportChange, showPreview = true }) {
         }
         if (state.stoneMode === "staghorn") {
             cards.push(index_js_1.kidneyStoneLibrary.staghorn.build(state.staghorn));
+        }
+        if (state.fullnessSide !== "none") {
+            const side = state.fullnessSide === "bilateral" ? "دوطرفه" : state.fullnessSide === "right" ? "کلیه راست" : "کلیه چپ";
+            let sentence = `Fullness ${state.fullnessGrade} سیستم پیلوکالیسیال ${side} مشاهده شد`;
+            if (state.fullnessCalyces) sentence += " که با اتساع کالیس‌ها همراه است";
+            if (state.fullnessUreter) sentence += " و اتساع حالب نیز مشاهده می‌شود";
+            if (state.fullnessCause === "overdistension") sentence += " و می‌تواند مرتبط با overdistension مثانه باشد";
+            if (state.fullnessCause === "uti") sentence += ". در زمینه بالینی مناسب، عفونت ادراری باید با آزمایش بررسی شود";
+            cards.push({
+                finding: sentence + ".",
+                impression: `Fullness ${state.fullnessGrade} سیستم پیلوکالیسیال ${side}.`,
+                recommendation: {
+                    postvoid:"بررسی مجدد پس از تخلیه مثانه توصیه می‌شود.",
+                    ua:"انجام UA توصیه می‌شود.",
+                    uc:"انجام urine culture توصیه می‌شود.",
+                    uauc:"انجام UA و urine culture توصیه می‌شود.",
+                    buncr:"بررسی BUN و Creatinine توصیه می‌شود.",
+                    renal:"بررسی عملکرد کلیه شامل BUN، Creatinine و eGFR توصیه می‌شود.",
+                    urology:"ارزیابی اورولوژی توصیه می‌شود.",
+                    none:""
+                }[state.fullnessRecommendation] || ""
+            });
         }
         if (hasUreterStone) {
             cards.push(index_js_1.ureterStoneLibrary.build({
@@ -19388,7 +19564,7 @@ function KidneyCard({ onReportChange, showPreview = true }) {
         }));
         let normalTail = "";
         if (state.cystMode !== "adpkd") {
-            if (!anyStoneDeclared && !hasHydronephrosis) {
+            if (!anyStoneDeclared && !hasHydronephrosis && state.fullnessSide === "none") {
                 normalTail = "شواهدی از سنگ یا هیدرونفروز در دو سمت مشاهده نشد.";
             }
             else if (!anyStoneDeclared) {
@@ -20756,6 +20932,7 @@ const LiverCard = __importDefault(require("./Liver/LiverCard.jsx")).default;
 const ProstateCard = __importDefault(require("./Prostate/ProstateCard.jsx")).default;
 const ReportOutput = __importDefault(require("./Common/ReportOutput.jsx")).default;
 const Extra = require("./Workflow/ExamCards.jsx");
+const ClinicalV25 = require("./ClinicalV25.jsx");
 const emptyReport={finding:"",impression:"",recommendation:""};
 const exams=[
 {id:"maleAbdomenPelvis",icon:"👨",title:"شکم و لگن آقایان",description:"کبد، کیسه صفرا، مجاری صفراوی، پانکراس، طحال، کلیه‌ها، مثانه، پروستات و PVR",organs:["liver","pancreasSpleen","kidney","prostate"]},
@@ -20763,6 +20940,8 @@ const exams=[
 {id:"hepatobiliary",icon:"🟤",title:"کبد و مجاری صفراوی",description:"کبد، کیسه صفرا، مجاری صفراوی، CBD و ورید پورت",organs:["liver"]},
 {id:"urinaryProstate",icon:"🩺",title:"کلیه، مثانه، پروستات و PVR",description:"کلیه‌ها و مجاری ادراری، مثانه پر و خالی، پروستات و باقی‌مانده ادرار",organs:["kidney","prostate"]},
 {id:"kidneyBladder",icon:"💧",title:"کلیه و مثانه بدون پروستات",description:"کلیه‌ها، حالب‌ها و مثانه؛ بدون نمایش فرم پروستات",organs:["kidney"]},
+{id:"appendix",icon:"🔎",title:"سونوگرافی آپاندیس",description:"ارزیابی ساختاری آپاندیس، علائم ثانویه، عوارض و توصیه جراحی",organs:["appendix"]},
+{id:"pediatric",icon:"🧒",title:"سونوگرافی اطفال",description:"لنف‌نودهای مزانتریک، Intussusception، سیستم ادراری و ناهنجاری‌های مادرزادی",organs:["pediatric"]},
 {id:"maleBreast",icon:"♂️",title:"پستان آقایان و ژنیکوماستی",description:"الگوهای ژنیکوماستی، سودوژنیکوماستی، Simon grade بالینی و یافته‌های مشکوک",organs:["gynecomastia"]},
 {id:"scrotal",icon:"⚕️",title:"بیضه‌ها و اسکروتوم",description:"ابعاد و حجم بیضه‌ها، پرفیوژن، اپیدیدیم، هیدروسل و ضایعات فوکال",organs:["scrotal"]},
 {id:"softTissue",icon:"🩹",title:"نسج نرم",description:"بررسی هماتوم، کالکشن، آبسه، ضایعات کیستیک سطحی و لنف‌نودهای واکنشی",organs:["softTissue"]},
@@ -20770,7 +20949,7 @@ const exams=[
 {id:"thyroid",icon:"🦋",title:"تیروئید",description:"ابعاد لوب‌ها، پارانشیم، واسکولاریته، ندول و لنف‌نودهای گردنی",organs:["thyroid"]},
 {id:"femalePelvis",icon:"♀️",title:"رحم و ضمائم",description:"رحم، اندومتر، FIGO میوم‌ها، آدنومیوز، تخمدان‌ها، PCOM و ضایعات آدنکس",organs:["femalePelvis"]}
 ];
-const organTitles={liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",gynecomastia:"پستان آقایان و ژنیکوماستی",scrotal:"بیضه‌ها و اسکروتوم",softTissue:"نسج نرم",inguinal:"ناحیه اینگوینال"};
+const organTitles={liver:"کبد و سیستم صفراوی",pancreasSpleen:"پانکراس و طحال",kidney:"کلیه، حالب و مثانه",prostate:"پروستات و PVR",femalePelvis:"رحم و ضمائم",thyroid:"تیروئید",gynecomastia:"پستان آقایان و ژنیکوماستی",scrotal:"بیضه‌ها و اسکروتوم",softTissue:"نسج نرم",inguinal:"ناحیه اینگوینال",appendix:"آپاندیس",pediatric:"اطفال"};
 const freeSections={
   pancreasSpleen:[["pancreas","پانکراس"],["spleen","طحال"]],
   kidney:[["rightKidney","کلیه راست"],["leftKidney","کلیه چپ"],["ureters","حالب‌ها"],["bladder","مثانه"]],
@@ -20787,7 +20966,7 @@ function Ultrasound({goBack}){
  const [examId,setExamId]=React.useState(null),[activeOrgan,setActiveOrgan]=React.useState(null),[sessionKey,setSessionKey]=React.useState(1),[reports,setReports]=React.useState({}),[customNotes,setCustomNotes]=React.useState({}),[limitedAbdominalGas,setLimitedAbdominalGas]=React.useState(false),[paraaorticMode,setParaaorticMode]=React.useState("normal"),[generalFreeFluid,setGeneralFreeFluid]=React.useState("none");
  const exam=React.useMemo(()=>exams.find(x=>x.id===examId)||null,[examId]);
  const update=React.useCallback((key,report)=>setReports(prev=>{const next=report||emptyReport;return prev[key]&&sameReport(prev[key],next)?prev:Object.assign({},prev,{[key]:next});}),[]);
- const callbacks={};["liver","pancreasSpleen","kidney","prostate","femalePelvis","thyroid","gynecomastia","scrotal","softTissue","inguinal"].forEach(k=>callbacks[k]=r=>update(k,r));
+ const callbacks={};["liver","pancreasSpleen","kidney","prostate","femalePelvis","thyroid","gynecomastia","scrotal","softTissue","inguinal","appendix","pediatric"].forEach(k=>callbacks[k]=r=>update(k,r));
  const updateCustom=(id,field,value)=>setCustomNotes(prev=>Object.assign({},prev,{[id]:Object.assign({finding:"",impression:"",recommendation:""},prev[id]||{}, {[field]:value})}));
  const selectExam=id=>{const x=exams.find(e=>e.id===id);setExamId(id);setActiveOrgan(x.organs[0]);setReports({});setCustomNotes({});setLimitedAbdominalGas(false);setParaaorticMode("normal");setGeneralFreeFluid("none");setSessionKey(k=>k+1);window.scrollTo({top:0,behavior:"smooth"});};
  const resetPatient=()=>{setReports({});setCustomNotes({});setLimitedAbdominalGas(false);setParaaorticMode("normal");setGeneralFreeFluid("none");setSessionKey(k=>k+1);if(exam)setActiveOrgan(exam.organs[0]);};
@@ -20825,10 +21004,10 @@ function Ultrasound({goBack}){
    return{finding,impression:impressions.length?impressions.join("\n"):(hasCustomFinding?"":"یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد."),recommendation};
  },[exam,examId,effectiveReports,customReports,limitedAbdominalGas,paraaorticMode,generalFreeFluid]);
  const pageStyle={minHeight:"100vh",width:"100%",boxSizing:"border-box",overflowX:"hidden",background:"#0f172a",color:"white",direction:"rtl",padding:"clamp(16px, 4vw, 32px)"},examCard={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"18px",color:"white",textAlign:"right",cursor:"pointer",minHeight:"150px",transition:"0.2s"},tabStyle=active=>({padding:"10px 15px",borderRadius:"9px",border:active?"2px solid #38bdf8":"1px solid #64748b",background:active?"#0369a1":"#334155",color:"white",cursor:"pointer"});
- function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="gynecomastia")return h(Extra.GynecomastiaCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="softTissue")return h(Extra.SoftTissueCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);return null;}
+ function renderOrgan(key){const props={key:key+sessionKey,onReportChange:callbacks[key],showPreview:false,examId};if(key==="liver")return h(LiverCard,props);if(key==="pancreasSpleen")return h(Extra.PancreasSpleenCard,props);if(key==="kidney")return h(KidneyCard,props);if(key==="prostate")return h(ProstateCard,props);if(key==="femalePelvis")return h(Extra.FemalePelvisCard,props);if(key==="thyroid")return h(Extra.ThyroidCard,props);if(key==="gynecomastia")return h(Extra.GynecomastiaCard,props);if(key==="scrotal")return h(Extra.ScrotalCard,props);if(key==="softTissue")return h(Extra.SoftTissueCard,props);if(key==="inguinal")return h(Extra.InguinalCard,props);if(key==="appendix")return h(ClinicalV25.Appendix,props);if(key==="pediatric")return h(ClinicalV25.Pediatrics,props);return null;}
  function freeTextArea(id,title){const value=Object.assign({finding:"",impression:"",recommendation:""},customNotes[id]||{});const fs={width:"100%",padding:"9px",borderRadius:"8px",border:"1px solid #64748b",marginTop:"8px",background:"#f8fafc",color:"#0f172a",minHeight:"70px",resize:"vertical"};return h("details",{key:id,style:{background:"#172033",border:"1px solid #334155",borderRadius:"12px",padding:"12px",marginTop:"10px"}},h("summary",{style:{cursor:"pointer",fontWeight:"bold"}},`سایر یافته‌های ${title}`),h("textarea",{style:fs,placeholder:"متن Findings — عیناً وارد گزارش می‌شود",value:value.finding,onChange:e=>updateCustom(id,"finding",e.target.value)}),h("textarea",{style:fs,placeholder:"Impression اختصاصی — اختیاری",value:value.impression,onChange:e=>updateCustom(id,"impression",e.target.value)}),h("textarea",{style:fs,placeholder:"Recommendation اختصاصی — اختیاری",value:value.recommendation,onChange:e=>updateCustom(id,"recommendation",e.target.value)}));}
  function renderFreeSections(key){return(freeSections[key]||[]).map(s=>freeTextArea(s[0],s[1]));}
- if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۲.۴ — اصلاحات بالینی، ماژول ژنیکوماستی و کنترل تناقض گزارش پروستات."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
+ if(!exam)return h("div",{style:pageStyle},h("button",{type:"button",onClick:goBack},"بازگشت"),h("h1",null,"HN Ultrasound Workflow"),h("p",{style:{color:"#cbd5e1"}},"نسخه ۲.۵ — آپدیت بالینی قفل‌شده."),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:"14px",marginTop:"24px"}},exams.map(x=>h("button",{key:x.id,type:"button",onClick:()=>selectExam(x.id),style:examCard},h("div",{style:{fontSize:"34px"}},x.icon),h("div",{style:{fontSize:"19px",fontWeight:"bold",marginTop:"8px"}},x.title),h("div",{style:{color:"#cbd5e1",fontSize:"13px",lineHeight:1.8,marginTop:"8px"}},x.description)))));
  return h("div",{style:pageStyle},
   h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",onClick:()=>{setExamId(null);setActiveOrgan(null);}},"تغییر نوع سونوگرافی"),h("button",{type:"button",onClick:resetPatient,style:{border:"1px solid #f59e0b"}},"بیمار جدید / پاک‌کردن همه"),h("button",{type:"button",onClick:goBack},"صفحه اصلی")),
   h("section",{style:{background:"#1e293b",border:"2px solid #0ea5e9",borderRadius:"14px",padding:"16px",marginTop:"18px"}},h("div",{style:{color:"#7dd3fc",fontSize:"13px"}},"نوع سونوگرافی انتخاب‌شده"),h("h1",{style:{margin:"5px 0"}},exam.title),h("p",{style:{color:"#cbd5e1",margin:0}},exam.description)),
@@ -21266,6 +21445,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const React = require("react");
 const h = React.createElement;
 const VaricoceleCard = require("./VaricoceleCard.jsx").default;
+const ScrotalDoppler = require("../ClinicalV25.jsx").ScrotalDoppler;
 const ReportOutput = require("../Common/ReportOutput.jsx").default;
 
 const panel = { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px", marginTop: "16px" };
@@ -21607,7 +21787,8 @@ function ColorDopplerClinic({ goBack }) {
     h("section", { style: panel },
       h("h2", { style: { marginTop: 0 } }, "ماژول‌های کالر داپلر"),
       h("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
-        h("button", { type: "button", style: btn(activeModule === "varicocele"), onClick: () => setActiveModule("varicocele") }, "Scrotal Doppler / Varicocele"),
+        h("button", { type: "button", style: btn(activeModule === "varicocele"), onClick: () => setActiveModule("varicocele") }, "Varicocele"),
+        h("button", { type: "button", style: btn(activeModule === "scrotal"), onClick: () => setActiveModule("scrotal") }, "Testis & Scrotal Doppler"),
         h("button", { type: "button", style: btn(activeModule === "dvt"), onClick: () => setActiveModule("dvt") }, "Lower Limb Venous Doppler — DVT/SVT"),
         h("button", { type: "button", style: btn(activeModule === "varicose"), onClick: () => setActiveModule("varicose") }, "Venous Reflux / Varicose Mapping"),
         h("button", { type: "button", style: btn(false, true), disabled: true }, "Lower Limb Arterial Doppler"),
@@ -21618,6 +21799,7 @@ function ColorDopplerClinic({ goBack }) {
       h("p", { style: { ...small, marginBottom: 0 } }, "موتور DVT و موتور واریس عمداً جدا طراحی شده‌اند؛ بررسی DVT بر patency و thrombosis تمرکز دارد و مطالعه واریس بر reflux source، pathway و treatment mapping.")
     ),
     activeModule === "varicocele" ? h(VaricoceleCard, null) : null,
+    activeModule === "scrotal" ? h(ScrotalDoppler, null) : null,
     activeModule === "dvt" ? h(LowerLimbDvtCard, null) : null,
     activeModule === "varicose" ? h(VaricoseVeinCard, null) : null
   );
@@ -22016,9 +22198,17 @@ const anomalyGroups = [
   ]]
 ];
 const anomalyItems = anomalyGroups.flatMap(g=>g[1]);
-const anomalyInitial=()=>({language:"fa",level:"basic",quality:"good",fetuses:"1",presentation:"cephalic",fhr:"",rhythm:"regular",bpd:"",bpdP:"",hc:"",hcP:"",ac:"",acP:"",fl:"",flP:"",gaWeeks:"",gaDays:"",efw:"",efwP:"",edd:"",placenta:"posterior",placentaAppearance:"normal",fluid:"normal",afi:"",cervix:"",sex:"notseen",lv:"",tcd:"",cm:"",nf:"",nasalBone:"",customFinding:"",customImpression:"",customRecommendation:"",structures:makeStructures(anomalyItems)});
+const anomalyInitial=()=>({language:"fa",level:"basic",quality:"good",includeTable:false,includeChart:false,fetuses:"1",presentation:"cephalic",fhr:"",rhythm:"regular",bpd:"",bpdP:"",hc:"",hcP:"",ac:"",acP:"",fl:"",flP:"",gaWeeks:"",gaDays:"",efw:"",efwP:"",edd:"",placenta:"posterior",placentaAppearance:"normal",fluid:"normal",afi:"",cervix:"",sex:"notseen",lv:"",tcd:"",cm:"",nf:"",nasalBone:"",customFinding:"",customImpression:"",customRecommendation:"",structures:makeStructures(anomalyItems)});
 function AnomalyEngine(){
  const [state,setState]=React.useState(anomalyInitial);const set=(k,v)=>setState(p=>({...p,[k]:v}));
+ const anomalyDays=gaDays(state.gaWeeks,state.gaDays);
+ const anomalyComputed=React.useMemo(()=>{const bpd=metricResult("bpd",state.bpd,anomalyDays),hc=metricResult("hc",state.hc,anomalyDays),ac=metricResult("ac",state.ac,anomalyDays),fl=metricResult("fl",state.fl,anomalyDays),calculatedWeight=hadlockHcAcFl(state.hc,state.ac,state.fl),weight=calculatedWeight||optNum(state.efw),efw=weight?efwResult(weight,anomalyDays):null;return {bpd,hc,ac,fl,weight,efw}},[state.bpd,state.hc,state.ac,state.fl,state.efw,anomalyDays]);
+ const anomalyTableRows=React.useMemo(()=>[["BPD",state.bpd?`${state.bpd} mm`:"—",anomalyComputed.bpd?gaText(anomalyComputed.bpd.equivDays):"—",anomalyComputed.bpd?fmtP(anomalyComputed.bpd.percentile):(state.bpdP?`${state.bpdP}%`:"—")],["HC",state.hc?`${state.hc} mm`:"—",anomalyComputed.hc?gaText(anomalyComputed.hc.equivDays):"—",anomalyComputed.hc?fmtP(anomalyComputed.hc.percentile):(state.hcP?`${state.hcP}%`:"—")],["AC",state.ac?`${state.ac} mm`:"—",anomalyComputed.ac?gaText(anomalyComputed.ac.equivDays):"—",anomalyComputed.ac?fmtP(anomalyComputed.ac.percentile):(state.acP?`${state.acP}%`:"—")],["FL",state.fl?`${state.fl} mm`:"—",anomalyComputed.fl?gaText(anomalyComputed.fl.equivDays):"—",anomalyComputed.fl?fmtP(anomalyComputed.fl.percentile):(state.flP?`${state.flP}%`:"—")],["EFW",anomalyComputed.weight?`${Math.round(anomalyComputed.weight)} g`:"—",anomalyComputed.efw?gaText(anomalyComputed.efw.equivDays):"—",anomalyComputed.efw?fmtP(anomalyComputed.efw.percentile):(state.efwP?`${state.efwP}%`:"—")]], [state,anomalyComputed]);
+ const anomalyChartPoints=React.useMemo(()=>Number.isFinite(anomalyDays)?[{gaDays:anomalyDays,ac:optNum(state.ac),efw:optNum(anomalyComputed.weight),current:true,reported:!hadlockHcAcFl(state.hc,state.ac,state.fl),label:"Current"}]:[],[anomalyDays,state.ac,state.hc,state.fl,anomalyComputed.weight]);
+ const anomalyChartLanguage=state.language==="en"?"en":"fa";
+ const anomalyEfwChart=React.useMemo(()=>makeGrowthChartPng("efw",anomalyChartPoints,anomalyChartLanguage),[anomalyChartPoints,anomalyChartLanguage]);
+ const anomalyAcChart=React.useMemo(()=>makeGrowthChartPng("ac",anomalyChartPoints,anomalyChartLanguage),[anomalyChartPoints,anomalyChartLanguage]);
+ const anomalyWordExtras=React.useMemo(()=>({tables:state.includeTable?[{title:state.language==="en"?"Fetal biometry and percentile table":"جدول بیومتری و صدک‌های جنین",headers:state.language==="en"?["Parameter","Measurement","Equivalent GA","Percentile"]:["پارامتر","اندازه","سن معادل","صدک"],rows:anomalyTableRows}]:[],images:state.includeChart?[anomalyEfwChart?{title:"EFW growth chart",dataUrl:anomalyEfwChart,width:1100,height:560}:null,anomalyAcChart?{title:"AC growth chart",dataUrl:anomalyAcChart,width:1100,height:560}:null].filter(Boolean):[]}),[state.includeTable,state.includeChart,state.language,anomalyTableRows,anomalyEfwChart,anomalyAcChart]);
  const report=React.useMemo(()=>{
   const faF=[],faI=[],faR=[],enF=[],enI=[],enR=[];const qfa={good:"مطلوب",moderate:"متوسط",limited:"محدود",verylimited:"بسیار محدود"}[state.quality],qen={good:"good",moderate:"moderate",limited:"limited",verylimited:"severely limited"}[state.quality];
   faF.push(`کیفیت بررسی با توجه به سن بارداری، مایع آمنیوتیک و شرایط مادر ${qfa} است.`);enF.push(`The technical quality of the examination is ${qen}, considering gestational age, amniotic fluid and maternal factors.`);
@@ -22044,12 +22234,15 @@ function AnomalyEngine(){
   return {finding:chooseLanguage(state.language,faF.join("\n"),enF.join("\n")),impression:chooseLanguage(state.language,faI.join(" "),enI.join(" ")),recommendation:chooseLanguage(state.language,faR.join(" "),enR.join(" "))};
  },[state]);
  return h("div",null,
+  h("section",{style:{...panel,border:"2px solid #a855f7"}},h("h2",{style:{marginTop:0}},"جدول و نمودار بارداری"),h("p",{style:muted},"هر دو گزینه مستقل و به‌صورت پیش‌فرض خاموش‌اند. پس از فعال‌کردن، همین‌جا نمایش داده می‌شوند و در Word و چاپ/PDF نیز قرار می‌گیرند."),h("div",{style:{display:"flex",gap:"20px",flexWrap:"wrap"}},check("نمایش جدول بیومتری و صدک‌ها",state.includeTable,v=>set("includeTable",v)),check("نمایش نمودار رشد EFW و AC",state.includeChart,v=>set("includeChart",v)))),
   h("section",{style:panel},languageControls(state.language,v=>set("language",v)),h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap",marginTop:"12px"}},h("button",{type:"button",style:btn(state.level==="basic"),onClick:()=>set("level","basic")},"Basic"),h("button",{type:"button",style:btn(state.level==="advanced"),onClick:()=>set("level","advanced")},"Advanced"),h("button",{type:"button",style:btn(false,false,"good"),onClick:()=>setAllNormal(anomalyItems,setState)},"همه ساختارها طبیعی")),
    h("div",{style:grid},selectField("کیفیت بررسی",state.quality,v=>set("quality",v),[["good","مطلوب"],["moderate","متوسط"],["limited","محدود"],["verylimited","بسیار محدود"]]),textField("تعداد جنین",state.fetuses,v=>set("fetuses",v),"1","number"),selectField("Presentation",state.presentation,v=>set("presentation",v),[["cephalic","سفالیک"],["breech","بریچ"],["transverse","عرضی"],["variable","متغیر"]]),textField("FHR",state.fhr,v=>set("fhr",v),"","number"),selectField("Rhythm",state.rhythm,v=>set("rhythm",v),[["regular","منظم"],["irregular","نامنظم"]]),textField("BPD mm",state.bpd,v=>set("bpd",v),"","number"),textField("BPD percentile",state.bpdP,v=>set("bpdP",v),"","number"),textField("HC mm",state.hc,v=>set("hc",v),"","number"),textField("HC percentile",state.hcP,v=>set("hcP",v),"","number"),textField("AC mm",state.ac,v=>set("ac",v),"","number"),textField("AC percentile",state.acP,v=>set("acP",v),"","number"),textField("FL mm",state.fl,v=>set("fl",v),"","number"),textField("FL percentile",state.flP,v=>set("flP",v),"","number"),textField("GA هفته",state.gaWeeks,v=>set("gaWeeks",v),"","number"),textField("GA روز",state.gaDays,v=>set("gaDays",v),"","number"),textField("EFW gr",state.efw,v=>set("efw",v),"","number"),textField("EFW percentile",state.efwP,v=>set("efwP",v),"","number"),textField("EDD",state.edd,v=>set("edd",v),""),selectField("محل جفت",state.placenta,v=>set("placenta",v),[["anterior","قدامی"],["posterior","خلفی"],["fundal","فوندال"],["lateral","لترال"],["low","تحتانی"]]),selectField("نمای جفت",state.placentaAppearance,v=>set("placentaAppearance",v),[["normal","طبیعی"],["abnormal","غیرطبیعی"]]),selectField("مایع آمنیوتیک",state.fluid,v=>set("fluid",v),[["normal","طبیعی"],["low","کاهش یافته"],["high","افزایش یافته"]]),textField("AFI cm",state.afi,v=>set("afi",v),"","number"),textField("Cervix mm",state.cervix,v=>set("cervix",v),"","number"),selectField("جنسیت",state.sex,v=>set("sex",v),[["notseen","دیده نشد/گزارش نشود"],["male","مذکر"],["female","مونث"]]),textField("LV mm",state.lv,v=>set("lv",v),"","number"),textField("TCD mm",state.tcd,v=>set("tcd",v),"","number"),textField("CM mm",state.cm,v=>set("cm",v),"","number"),textField("NF mm",state.nf,v=>set("nf",v),"","number"),textField("Nasal bone mm",state.nasalBone,v=>set("nasalBone",v),"","number"))
   ),
+  state.includeTable?h("section",{style:panel},h("h2",{style:{marginTop:0}},"جدول بیومتری و صدک‌های جنین"),h(GrowthTable,{rows:anomalyTableRows,language:state.language==="en"?"en":"fa"})):null,
+  state.includeChart?h("section",{style:panel},h("h2",{style:{marginTop:0}},"نمودارهای رشد جنین"),(!anomalyEfwChart&&!anomalyAcChart)?h("p",{style:{color:"#fbbf24"}},"برای رسم نمودار، GA و حداقل AC یا EFW/HC+AC+FL را وارد کنید."):h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"16px"}},anomalyEfwChart?h("img",{src:anomalyEfwChart,alt:"EFW growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null,anomalyAcChart?h("img",{src:anomalyAcChart,alt:"AC growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null)):null,
   anomalyGroups.map(([name,items])=>h("section",{key:name,style:panel},h("h2",{style:{marginTop:0}},name),items.map(item=>statusRow(item,state.structures[item.key],d=>setState(p=>({...p,structures:{...p.structures,[item.key]:d}})))))),
   h("section",{style:panel},h("div",{style:grid},textAreaField("یافته آزاد",state.customFinding,v=>set("customFinding",v)),textAreaField("نتیجه‌گیری آزاد",state.customImpression,v=>set("customImpression",v)),textAreaField("پیشنهاد آزاد",state.customRecommendation,v=>set("customRecommendation",v)))),
-  h(ReportOutput,{...report,examTitle:"آنومالی اسکن سه‌ماهه دوم",sessionKey:"anomaly"})
+  h(ReportOutput,{...report,examTitle:"آنومالی اسکن سه‌ماهه دوم",sessionKey:"anomaly-v25",wordExtras:(state.includeTable||state.includeChart)?anomalyWordExtras:null})
  );
 }
 
@@ -22072,13 +22265,13 @@ const fmtP=v=>v==null||!Number.isFinite(v)?"—":`${v<1?v.toFixed(1):v.toFixed(1
 const fmtZ=v=>v==null||!Number.isFinite(v)?"—":v.toFixed(2);
 const quartileBand=p=>!Number.isFinite(p)?null:p<25?0:p<50?1:p<75?2:3;
 const makePreviousScan=()=>({id:`p-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,date:"",gaWeeks:"",gaDays:"",bpd:"",hc:"",ac:"",fl:"",efw:"",bpdP:"",hcP:"",acP:"",flP:"",efwP:""});
-const fgrInitial=()=>({language:"fa",includeTable:false,includeCharts:false,scanDate:hnTodayJalali(),gaWeeks:"",gaDays:"",gaSource:"nt",ntRefDate:"",ntRefWeeks:"",ntRefDays:"",ntTargetDate:hnTodayJalali(),fetuses:"1",presentation:"cephalic",fhr:"",afiMethod:"afi",afi:"",placenta:"posterior",cordInsertion:"central",cordArteries:"2",cervix:"",internalOs:"closed",funneling:false,funnelLength:"",closedLength:"",bpd:"",bpdP:"",hc:"",hcP:"",ac:"",acP:"",fl:"",flP:"",hl:"",hlP:"",tcd:"",tcdP:"",efw:"",efwP:"",acDrop:false,efwDrop:false,previousScans:[],uaPi:"",uaP:"",uaSd:"",uaFlow:"positive",mcaPi:"",mcaP:"",mcaPsv:"",mcaMom:"",cpr:"",cprP:"",dvPi:"",dvP:"",dvA:"positive",utaR:"",utaL:"",utaMean:"",utaP:"",notchR:false,notchL:false,uvPulsatile:false,confirmDecision:false,override:"auto",customFinding:"",customImpression:"",customRecommendation:""});
+const fgrInitial=()=>({language:"fa",includeTable:false,includeChart:false,scanDate:hnTodayJalali(),gaWeeks:"",gaDays:"",gaSource:"nt",ntRefDate:"",ntRefWeeks:"",ntRefDays:"",ntTargetDate:hnTodayJalali(),fetuses:"1",presentation:"cephalic",fhr:"",afiMethod:"afi",afi:"",placenta:"posterior",cordInsertion:"central",cordArteries:"2",cervix:"",internalOs:"closed",funneling:false,funnelLength:"",closedLength:"",bpd:"",bpdP:"",hc:"",hcP:"",ac:"",acP:"",fl:"",flP:"",hl:"",hlP:"",tcd:"",tcdP:"",efw:"",efwP:"",acDrop:false,efwDrop:false,previousScans:[],uaPi:"",uaP:"",uaSd:"",uaFlow:"positive",mcaPi:"",mcaP:"",mcaPsv:"",mcaMom:"",cpr:"",cprP:"",dvPi:"",dvP:"",dvA:"positive",utaR:"",utaL:"",utaMean:"",utaP:"",notchR:false,notchL:false,uvPulsatile:false,confirmDecision:false,override:"auto",customFinding:"",customImpression:"",customRecommendation:""});
 function evaluateFgr(s,computed){const ga=optNum(s.gaWeeks),acp=computed&&computed.ac?computed.ac.percentile:optNum(s.acP),efwp=computed&&computed.efw?computed.efw.percentile:optNum(s.efwP),vals=[acp,efwp].filter(Number.isFinite),minp=vals.length?Math.min(...vals):null,early=ga!==null?ga<32:null,uaP=optNum(s.uaP),mcaP=optNum(s.mcaP),cprP=optNum(s.cprP),utaP=optNum(s.utaP),dvP=optNum(s.dvP),abnormalDoppler=s.uaFlow!=="positive"||(uaP!==null&&uaP>95)||(cprP!==null&&cprP<5)||(mcaP!==null&&mcaP<5)||(utaP!==null&&utaP>95)||s.dvA!=="positive"||(dvP!==null&&dvP>95);let classification="insufficient",stage=0,criteria=[];if(minp!==null){if(minp<3){classification="fgr";criteria.push("AC یا EFW استاندارد کمتر از صدک ۳")}else if(minp<10){classification=abnormalDoppler?"fgr":"sga";criteria.push(`AC/EFW استاندارد بین صدک ۳ تا ۱۰${abnormalDoppler?" همراه با داپلر غیرطبیعی":" با داپلر طبیعی"}`)}else classification="normal"}if(classification==="fgr"){if(s.dvA==="reversed")stage=4;else if(s.uaFlow==="redf"||(Number.isFinite(dvP)&&dvP>95))stage=3;else if(s.uaFlow==="aedf")stage=2;else stage=1}if(s.acDrop||s.efwDrop)criteria.push("افت بیش از دو quartile در منحنی رشد توسط رادیولوژیست تأیید شده است");return {classification,stage,early,criteria,abnormalDoppler}}
 function makeGrowthChartPng(kind,points,language){if(typeof document==="undefined")return "";const c=document.createElement("canvas"),W=1100,H=560;c.width=W;c.height=H;const x0=78,y0=45,pw=940,ph=430,ctx=c.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,W,H);const isE=kind==="efw",xmin=isE?18:14,xmax=40,zs=[invNorm(.03),invNorm(.10),0,invNorm(.90),invNorm(.97)],labels=["P3","P10","P50","P90","P97"],cols=["#dc2626","#f59e0b","#1d4ed8","#f59e0b","#dc2626"];const curve=(week,z)=>isE?efwAtZ(week*7,z):(()=>{const p=igBiometryParams("ac",week*7);return p?p.mu+z*p.sigma:null})();const vals=[];for(let w=xmin;w<=xmax;w+=.25)zs.forEach(z=>{const v=curve(w,z);if(Number.isFinite(v))vals.push(v)});points.forEach(p=>{const v=isE?p.efw:p.ac;if(Number.isFinite(v))vals.push(v)});let ymin=Math.min(...vals),ymax=Math.max(...vals);if(!Number.isFinite(ymin)||!Number.isFinite(ymax))return "";const pad=(ymax-ymin)*.08;ymin=Math.max(0,ymin-pad);ymax+=pad;const X=w=>x0+(w-xmin)/(xmax-xmin)*pw,Y=v=>y0+ph-(v-ymin)/(ymax-ymin)*ph;ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.font="14px Arial";ctx.fillStyle="#475569";for(let i=0;i<=8;i++){const yy=y0+ph*i/8;ctx.beginPath();ctx.moveTo(x0,yy);ctx.lineTo(x0+pw,yy);ctx.stroke();const val=ymax-(ymax-ymin)*i/8;ctx.fillText(Math.round(val).toString(),10,yy+5)}for(let w=Math.ceil(xmin);w<=xmax;w+=2){const xx=X(w);ctx.beginPath();ctx.moveTo(xx,y0);ctx.lineTo(xx,y0+ph);ctx.stroke();ctx.fillText(w.toString(),xx-8,y0+ph+24)}zs.forEach((z,idx)=>{ctx.strokeStyle=cols[idx];ctx.lineWidth=idx===2?3:2;ctx.beginPath();let first=true;for(let w=xmin;w<=xmax+.001;w+=.1){const v=curve(w,z);if(!Number.isFinite(v))continue;const xx=X(w),yy=Y(v);if(first){ctx.moveTo(xx,yy);first=false}else ctx.lineTo(xx,yy)}ctx.stroke();const v=curve(xmax-.3,z);if(Number.isFinite(v)){ctx.fillStyle=cols[idx];ctx.fillText(labels[idx],X(xmax-.25)-6,Y(v)-4)}});points.forEach((p,idx)=>{const v=isE?p.efw:p.ac,w=p.gaDays/7;if(!Number.isFinite(v)||!Number.isFinite(w)||w<xmin||w>xmax)return;ctx.beginPath();ctx.fillStyle=p.current?"#111827":p.reported?"#7c3aed":"#059669";ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.arc(X(w),Y(v),p.current?7:6,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#111827";ctx.font="12px Arial";ctx.fillText(p.label||`Scan ${idx+1}`,X(w)+8,Y(v)-8)});ctx.fillStyle="#0f172a";ctx.font="bold 22px Arial";const title=isE?(language==="en"?"Estimated fetal weight growth chart":"نمودار رشد وزن تخمینی جنین (EFW)"):(language==="en"?"Abdominal circumference growth chart":"نمودار رشد دور شکم جنین (AC)");ctx.fillText(title,x0,y0-14);ctx.font="15px Arial";ctx.fillStyle="#475569";ctx.fillText(language==="en"?"Gestational age (weeks)":"سن بارداری (هفته)",x0+pw/2-70,H-18);ctx.save();ctx.translate(18,y0+ph/2+55);ctx.rotate(-Math.PI/2);ctx.fillText(isE?(language==="en"?"Weight (g)":"وزن (گرم)"):(language==="en"?"AC (mm)":"AC (میلی‌متر)"),0,0);ctx.restore();ctx.font="12px Arial";ctx.fillStyle="#64748b";ctx.fillText("INTERGROWTH-21st standards",W-260,H-18);return c.toDataURL("image/png")}
 function GrowthTable({rows,language}){
  const th={padding:"9px",border:"1px solid #475569",background:"#1e3a5f",fontWeight:"bold"};
  const td={padding:"9px",border:"1px solid #475569",textAlign:"center"};
- const headers=language==="en"?["Parameter","Measurement","Equivalent GA","Standard percentile","Z-score","Device percentile"]:["پارامتر","اندازه","سن معادل","صدک استاندارد","Z-score","صدک دستگاه"];
+ const headers=language==="en"?["Parameter","Measurement","Equivalent GA","Standard percentile","Device percentile"]:["پارامتر","اندازه","سن معادل","صدک استاندارد","صدک دستگاه"];
  return h("div",{style:{overflowX:"auto"}},h("table",{style:{width:"100%",borderCollapse:"collapse",minWidth:"720px"}},
   h("thead",null,h("tr",null,headers.map(x=>h("th",{key:x,style:th},x)))),
   h("tbody",null,rows.map((r,i)=>h("tr",{key:i},r.map((x,j)=>h("td",{key:j,style:td},x)))))
@@ -22130,35 +22323,20 @@ function FgrEngine(){
  const previousComputed=React.useMemo(()=>state.previousScans.map((s,i)=>{const d=gaDays(s.gaWeeks,s.gaDays),w=hadlockHcAcFl(s.hc,s.ac,s.fl),reportedEfw=optNum(s.efw),useW=w||reportedEfw;return {...s,gaDays:d,calcBpd:metricResult("bpd",s.bpd,d),calcHc:metricResult("hc",s.hc,d),calcAc:metricResult("ac",s.ac,d),calcFl:metricResult("fl",s.fl,d),calcEfw:useW?efwResult(useW,d):null,plotEfw:useW,reported:!w&&reportedEfw!==null,label:s.date||`Previous ${i+1}`}}),[state.previousScans]);
  const autoTrend=React.useMemo(()=>{const currentP={ac:computed.ac&&computed.ac.percentile,efw:computed.efw&&computed.efw.percentile},prior=previousComputed.filter(x=>Number.isFinite(x.gaDays)).sort((a,b)=>a.gaDays-b.gaDays);const first=prior[0];const acDrop=first&&first.calcAc&&Number.isFinite(currentP.ac)&&quartileBand(first.calcAc.percentile)-quartileBand(currentP.ac)>=2;const efwDrop=first&&first.calcEfw&&Number.isFinite(currentP.efw)&&quartileBand(first.calcEfw.percentile)-quartileBand(currentP.efw)>=2;return {acDrop:!!acDrop,efwDrop:!!efwDrop}},[computed,previousComputed]);
  const auto=React.useMemo(()=>evaluateFgr(state,computed),[state,computed]);const finalCode=state.override==="auto"?(auto.classification==="fgr"?`fgr${auto.stage}`:auto.classification):state.override;
- const tableRows=React.useMemo(()=>[["BPD",state.bpd?`${state.bpd} mm`:"—",computed.bpd?gaText(computed.bpd.equivDays):"—",computed.bpd?fmtP(computed.bpd.percentile):"—",computed.bpd?fmtZ(computed.bpd.z):"—",state.bpdP?`${state.bpdP}%`:"—"],["HC",state.hc?`${state.hc} mm`:"—",computed.hc?gaText(computed.hc.equivDays):"—",computed.hc?fmtP(computed.hc.percentile):"—",computed.hc?fmtZ(computed.hc.z):"—",state.hcP?`${state.hcP}%`:"—"],["AC",state.ac?`${state.ac} mm`:"—",computed.ac?gaText(computed.ac.equivDays):"—",computed.ac?fmtP(computed.ac.percentile):"—",computed.ac?fmtZ(computed.ac.z):"—",state.acP?`${state.acP}%`:"—"],["FL",state.fl?`${state.fl} mm`:"—",computed.fl?gaText(computed.fl.equivDays):"—",computed.fl?fmtP(computed.fl.percentile):"—",computed.fl?fmtZ(computed.fl.z):"—",state.flP?`${state.flP}%`:"—"],["EFW",computed.weight?`${Math.round(computed.weight)} g`:"—",computed.efw?gaText(computed.efw.equivDays):"—",computed.efw?fmtP(computed.efw.percentile):"—",computed.efw?fmtZ(computed.efw.z):"—",state.efwP?`${state.efwP}%`:"—"]], [state,computed]);
+ const tableRows=React.useMemo(()=>[["BPD",state.bpd?`${state.bpd} mm`:"—",computed.bpd?gaText(computed.bpd.equivDays):"—",computed.bpd?fmtP(computed.bpd.percentile):"—",state.bpdP?`${state.bpdP}%`:"—"],["HC",state.hc?`${state.hc} mm`:"—",computed.hc?gaText(computed.hc.equivDays):"—",computed.hc?fmtP(computed.hc.percentile):"—",state.hcP?`${state.hcP}%`:"—"],["AC",state.ac?`${state.ac} mm`:"—",computed.ac?gaText(computed.ac.equivDays):"—",computed.ac?fmtP(computed.ac.percentile):"—",state.acP?`${state.acP}%`:"—"],["FL",state.fl?`${state.fl} mm`:"—",computed.fl?gaText(computed.fl.equivDays):"—",computed.fl?fmtP(computed.fl.percentile):"—",state.flP?`${state.flP}%`:"—"],["EFW",computed.weight?`${Math.round(computed.weight)} g`:"—",computed.efw?gaText(computed.efw.equivDays):"—",computed.efw?fmtP(computed.efw.percentile):"—",state.efwP?`${state.efwP}%`:"—"]], [state,computed]);
  const chartPoints=React.useMemo(()=>{const pts=previousComputed.filter(x=>Number.isFinite(x.gaDays)).map(x=>({gaDays:x.gaDays,ac:optNum(x.ac),efw:optNum(x.plotEfw),reported:x.reported,current:false,label:x.label}));if(Number.isFinite(days))pts.push({gaDays:days,ac:optNum(state.ac),efw:optNum(computed.weight),current:true,reported:false,label:state.scanDate||"Current"});return pts},[previousComputed,days,state.ac,state.scanDate,computed.weight]);
  const chartLanguage=state.language==="en"?"en":"fa";const efwChart=React.useMemo(()=>makeGrowthChartPng("efw",chartPoints,chartLanguage),[chartPoints,chartLanguage]),acChart=React.useMemo(()=>makeGrowthChartPng("ac",chartPoints,chartLanguage),[chartPoints,chartLanguage]);
  const dopplerStatus=auto.abnormalDoppler?(state.language==="en"?"Abnormal":"غیرطبیعی"):(state.language==="en"?"Normal":"طبیعی");
  const classText=finalCode==="normal"?(state.language==="en"?"Appropriate growth":"رشد متناسب"):finalCode==="sga"?"SGA":/^fgr/.test(finalCode)?`FGR stage ${finalCode.slice(-1)}`:(state.language==="en"?"Insufficient data":"داده ناکافی");
  const summaryRows=[[state.language==="en"?"GA by NT":"GA براساس NT",days?gaText(days):"—"],[state.language==="en"?"AC percentile":"صدک AC",computed.ac?fmtP(computed.ac.percentile):"—"],[state.language==="en"?"Standard EFW":"EFW استاندارد",computed.weight?`${Math.round(computed.weight)} g${computed.efw?` / ${fmtP(computed.efw.percentile)}`:""}`:"—"],[state.language==="en"?"Device EFW":"EFW دستگاه",state.efw?`${state.efw} g${state.efwP?` / P${state.efwP}`:""}`:"—"],[state.language==="en"?"Doppler status":"وضعیت داپلر",dopplerStatus],[state.language==="en"?"Growth category":"طبقه رشد",classText],[state.language==="en"?"Longitudinal trend":"روند طولی",autoTrend.acDrop||autoTrend.efwDrop?(state.language==="en"?"Drop across ≥2 quartile bands detected":"افت از حداقل دو باند چارکی مشاهده شد"):(previousComputed.length?(state.language==="en"?"No automatic ≥2-quartile drop":"افت خودکار ≥۲ چارک مشاهده نشد"):"—")]];
- const report=React.useMemo(()=>{const faF=[],faI=[],faR=[],enF=[],enI=[],enR=[];if(days){faF.push(`سن بارداری تثبیت‌شده براساس سونوگرافی NT برابر ${state.gaWeeks} هفته و ${state.gaDays||0} روز است.`);enF.push(`Established gestational age based on the first-trimester scan is ${state.gaWeeks} weeks and ${state.gaDays||0} days.`)}const biom=[];[["BPD",state.bpd,computed.bpd],["HC",state.hc,computed.hc],["AC",state.ac,computed.ac],["FL",state.fl,computed.fl]].forEach(([k,v,r])=>{if(v)biom.push(`${k}: ${faNum(v)} mm${r?` (P${r.percentile.toFixed(1)}, Z=${r.z.toFixed(2)}, equivalent to ${gaText(r.equivDays)})`:""}`)});if(biom.length){faF.push(`بیومتری استاندارد: ${biom.join("، ")}.`);enF.push(`Standardized biometry: ${biom.join(", ")}.`)}if(computed.weight&&computed.efw){faF.push(`وزن تخمینی جنین با فرمول Hadlock سه‌پارامتری HC-AC-FL برابر ${faNum(Math.round(computed.weight))} گرم و در صدک ${computed.efw.percentile.toFixed(1)} استاندارد INTERGROWTH-21st است.`);enF.push(`Estimated fetal weight by the three-parameter Hadlock HC-AC-FL formula is ${Math.round(computed.weight)} g, corresponding to the ${computed.efw.percentile.toFixed(1)}th INTERGROWTH-21st percentile.`)}if(state.efw||state.efwP){faF.push(`مقدار گزارش‌شده دستگاه: EFW=${state.efw?faNum(state.efw)+" گرم":"—"}${state.efwP?`، صدک ${faNum(state.efwP)}`:""}.`);enF.push(`Device-reported value: EFW=${state.efw?enNum(state.efw)+" g":"—"}${state.efwP?`, percentile ${enNum(state.efwP)}`:""}.`)}if(previousComputed.length){faF.push(`${faNum(previousComputed.length)} بررسی قبلی برای ارزیابی روند رشد وارد شده است.`);enF.push(`${previousComputed.length} previous examination(s) were entered for longitudinal growth assessment.`)}if(autoTrend.acDrop||autoTrend.efwDrop){faF.push(`در محاسبه خودکار روند، افت ${autoTrend.acDrop?"AC":""}${autoTrend.acDrop&&autoTrend.efwDrop?" و ":""}${autoTrend.efwDrop?"EFW":""} از حداقل دو باند چارکی مشاهده شد؛ تأیید نهایی با رادیولوژیست است.`);enF.push(`Automated longitudinal analysis shows a fall of ${autoTrend.acDrop?"AC":""}${autoTrend.acDrop&&autoTrend.efwDrop?" and ":""}${autoTrend.efwDrop?"EFW":""} across at least two quartile bands; final confirmation remains with the radiologist.`)}if(state.customFinding.trim()){faF.push(state.customFinding.trim());enF.push(state.customFinding.trim())}if(!state.confirmDecision){faI.push("طبقه‌بندی پیشنهادی SGA/FGR هنوز توسط رادیولوژیست تأیید نشده است.");enI.push("The suggested SGA/FGR classification has not yet been confirmed by the radiologist.")}else{const phase=auto.early===null?"":auto.early?"early":"late";if(finalCode==="normal"){faI.push("رشد جنین متناسب با سن بارداری است و معیارهای SGA یا FGR احراز نشد.");enI.push("Fetal growth is appropriate for gestational age; criteria for SGA or FGR are not met.")}if(finalCode==="sga"){faI.push(`مجموع یافته‌ها به نفع ${phase.toUpperCase()} SGA با داپلر فعلی طبیعی است.`);enI.push(`Findings are consistent with ${phase} SGA with currently normal Doppler assessment.`)}if(/^fgr[1-4]$/.test(finalCode)){const stage=Number(finalCode.slice(-1));faI.push(`مجموع یافته‌ها به نفع ${phase.toUpperCase()} FGR، مرحله ${stage} است.`);enI.push(`Findings are consistent with ${phase} FGR, stage ${stage}.`)}if(finalCode==="insufficient"){faI.push("داده‌های واردشده برای طبقه‌بندی SGA/FGR کافی نیست.");enI.push("Entered data are insufficient for SGA/FGR classification.")}}if(state.customImpression.trim()){faI.push(state.customImpression.trim());enI.push(state.customImpression.trim())}if(state.confirmDecision){if(finalCode==="sga"){faR.push("پیگیری بیومتری و داپلر مطابق پروتکل بالینی مرکز توصیه می‌شود.");enR.push("Follow-up biometry and Doppler according to the center clinical protocol are recommended.")}else if(finalCode==="fgr1"){faR.push("بیومتری هر دو هفته، داپلر هفتگی و BPP دو بار در هفته توصیه می‌شود.");enR.push("Biometry every two weeks, weekly Doppler, and twice-weekly BPP are recommended.")}else if(finalCode==="fgr2"){faR.push("داپلر و BPP دو بار در هفته توصیه می‌شود.");enR.push("Twice-weekly Doppler and BPP are recommended.")}else if(finalCode==="fgr3"){faR.push("داپلر و BPP حداقل هر ۲۴ تا ۴۸ ساعت توصیه می‌شود.");enR.push("Doppler and BPP at least every 24–48 hours are recommended.")}else if(finalCode==="fgr4"){faR.push("ارجاع فوری به متخصص زنان جهت مانیتورینگ مستمر قلب جنین توصیه می‌شود.");enR.push("Urgent referral to obstetrics for continuous fetal heart-rate monitoring is recommended.")}}if(state.customRecommendation.trim()){faR.push(state.customRecommendation.trim());enR.push(state.customRecommendation.trim())}return {finding:chooseLanguage(state.language,faF.join("\n"),enF.join("\n")),impression:chooseLanguage(state.language,faI.join(" "),enI.join(" ")),recommendation:chooseLanguage(state.language,faR.join(" "),enR.join(" "))}},[state,computed,previousComputed,autoTrend,finalCode,auto,days]);
+ const report=React.useMemo(()=>{const faF=[],faI=[],faR=[],enF=[],enI=[],enR=[];if(days){faF.push(`سن بارداری تثبیت‌شده براساس سونوگرافی NT برابر ${state.gaWeeks} هفته و ${state.gaDays||0} روز است.`);enF.push(`Established gestational age based on the first-trimester scan is ${state.gaWeeks} weeks and ${state.gaDays||0} days.`)}const biom=[];[["BPD",state.bpd,computed.bpd],["HC",state.hc,computed.hc],["AC",state.ac,computed.ac],["FL",state.fl,computed.fl]].forEach(([k,v,r])=>{if(v)biom.push(`${k}: ${faNum(v)} mm${r?` (P${r.percentile.toFixed(1)}, equivalent to ${gaText(r.equivDays)})`:""}`)});if(biom.length){faF.push(`بیومتری استاندارد: ${biom.join("، ")}.`);enF.push(`Standardized biometry: ${biom.join(", ")}.`)}if(computed.weight&&computed.efw){faF.push(`وزن تخمینی جنین با فرمول Hadlock سه‌پارامتری HC-AC-FL برابر ${faNum(Math.round(computed.weight))} گرم و در صدک ${computed.efw.percentile.toFixed(1)} استاندارد INTERGROWTH-21st است.`);enF.push(`Estimated fetal weight by the three-parameter Hadlock HC-AC-FL formula is ${Math.round(computed.weight)} g, corresponding to the ${computed.efw.percentile.toFixed(1)}th INTERGROWTH-21st percentile.`)}if(state.efw||state.efwP){faF.push(`مقدار گزارش‌شده دستگاه: EFW=${state.efw?faNum(state.efw)+" گرم":"—"}${state.efwP?`، صدک ${faNum(state.efwP)}`:""}.`);enF.push(`Device-reported value: EFW=${state.efw?enNum(state.efw)+" g":"—"}${state.efwP?`, percentile ${enNum(state.efwP)}`:""}.`)}if(previousComputed.length){faF.push(`${faNum(previousComputed.length)} بررسی قبلی برای ارزیابی روند رشد وارد شده است.`);enF.push(`${previousComputed.length} previous examination(s) were entered for longitudinal growth assessment.`)}if(autoTrend.acDrop||autoTrend.efwDrop){faF.push(`در محاسبه خودکار روند، افت ${autoTrend.acDrop?"AC":""}${autoTrend.acDrop&&autoTrend.efwDrop?" و ":""}${autoTrend.efwDrop?"EFW":""} از حداقل دو باند چارکی مشاهده شد؛ تأیید نهایی با رادیولوژیست است.`);enF.push(`Automated longitudinal analysis shows a fall of ${autoTrend.acDrop?"AC":""}${autoTrend.acDrop&&autoTrend.efwDrop?" and ":""}${autoTrend.efwDrop?"EFW":""} across at least two quartile bands; final confirmation remains with the radiologist.`)}if(state.customFinding.trim()){faF.push(state.customFinding.trim());enF.push(state.customFinding.trim())}if(!state.confirmDecision){faI.push("طبقه‌بندی پیشنهادی SGA/FGR هنوز توسط رادیولوژیست تأیید نشده است.");enI.push("The suggested SGA/FGR classification has not yet been confirmed by the radiologist.")}else{const phase=auto.early===null?"":auto.early?"early":"late";if(finalCode==="normal"){faI.push("رشد جنین متناسب با سن بارداری است و معیارهای SGA یا FGR احراز نشد.");enI.push("Fetal growth is appropriate for gestational age; criteria for SGA or FGR are not met.")}if(finalCode==="sga"){faI.push(`مجموع یافته‌ها به نفع ${phase.toUpperCase()} SGA با داپلر فعلی طبیعی است.`);enI.push(`Findings are consistent with ${phase} SGA with currently normal Doppler assessment.`)}if(/^fgr[1-4]$/.test(finalCode)){const stage=Number(finalCode.slice(-1));faI.push(`مجموع یافته‌ها به نفع ${phase.toUpperCase()} FGR، مرحله ${stage} است.`);enI.push(`Findings are consistent with ${phase} FGR, stage ${stage}.`)}if(finalCode==="insufficient"){faI.push("داده‌های واردشده برای طبقه‌بندی SGA/FGR کافی نیست.");enI.push("Entered data are insufficient for SGA/FGR classification.")}}if(state.customImpression.trim()){faI.push(state.customImpression.trim());enI.push(state.customImpression.trim())}if(state.confirmDecision){if(finalCode==="sga"){faR.push("پیگیری بیومتری و داپلر مطابق پروتکل بالینی مرکز توصیه می‌شود.");enR.push("Follow-up biometry and Doppler according to the center clinical protocol are recommended.")}else if(finalCode==="fgr1"){faR.push("بیومتری هر دو هفته، داپلر هفتگی و BPP دو بار در هفته توصیه می‌شود.");enR.push("Biometry every two weeks, weekly Doppler, and twice-weekly BPP are recommended.")}else if(finalCode==="fgr2"){faR.push("داپلر و BPP دو بار در هفته توصیه می‌شود.");enR.push("Twice-weekly Doppler and BPP are recommended.")}else if(finalCode==="fgr3"){faR.push("داپلر و BPP حداقل هر ۲۴ تا ۴۸ ساعت توصیه می‌شود.");enR.push("Doppler and BPP at least every 24–48 hours are recommended.")}else if(finalCode==="fgr4"){faR.push("ارجاع فوری به متخصص زنان جهت مانیتورینگ مستمر قلب جنین توصیه می‌شود.");enR.push("Urgent referral to obstetrics for continuous fetal heart-rate monitoring is recommended.")}}if(state.customRecommendation.trim()){faR.push(state.customRecommendation.trim());enR.push(state.customRecommendation.trim())}return {finding:chooseLanguage(state.language,faF.join("\n"),enF.join("\n")),impression:chooseLanguage(state.language,faI.join(" "),enI.join(" ")),recommendation:chooseLanguage(state.language,faR.join(" "),enR.join(" "))}},[state,computed,previousComputed,autoTrend,finalCode,auto,days]);
  const simpleReport=React.useMemo(()=>{
   const faLines=[],enLines=[];
   const gaFa=days?`${state.gaWeeks} هفته و ${state.gaDays||0} روز`:"—";
   const gaEn=days?`${state.gaWeeks}w${state.gaDays||0}d`:"—";
-  faLines.push(`سن بارداری براساس NT: ${gaFa}.`);
-  enLines.push(`GA based on NT: ${gaEn}.`);
-  [["BPD",state.bpd,computed.bpd],["HC",state.hc,computed.hc],["AC",state.ac,computed.ac],["FL",state.fl,computed.fl]].forEach(([k,v,res])=>{
-   if(!v)return;
-   const faEquivalent=res?`، معادل ${gaText(res.equivDays)}`:"";
-   const enEquivalent=res?`, equivalent to ${gaText(res.equivDays)}`:"";
-   const faPercentile=res?`، صدک ${faNum(res.percentile.toFixed(1))}`:"";
-   const enPercentile=res?`, percentile ${enNum(res.percentile.toFixed(1))}`:"";
-   faLines.push(`${k}: ${faNum(v)} میلی‌متر${faEquivalent}${faPercentile}.`);
-   enLines.push(`${k}: ${enNum(v)} mm${enEquivalent}${enPercentile}.`);
-  });
-  if(computed.weight&&computed.efw){
-   faLines.push(`EFW: ${faNum(Math.round(computed.weight))} گرم، معادل ${gaText(computed.efw.equivDays)}، صدک ${faNum(computed.efw.percentile.toFixed(1))}.`);
-   enLines.push(`EFW: ${Math.round(computed.weight)} g, equivalent to ${gaText(computed.efw.equivDays)}, percentile ${enNum(computed.efw.percentile.toFixed(1))}.`);
-  }else if(state.efw){
-   faLines.push(`EFW دستگاه: ${faNum(state.efw)} گرم${state.efwP?`، صدک ${faNum(state.efwP)}`:""}.`);
-   enLines.push(`Device EFW: ${enNum(state.efw)} g${state.efwP?`, percentile ${enNum(state.efwP)}`:""}.`);
-  }
+  faLines.push(`سن بارداری براساس NT: ${gaFa}.`); enLines.push(`GA based on NT: ${gaEn}.`);
+  [["BPD",state.bpd,computed.bpd],["HC",state.hc,computed.hc],["AC",state.ac,computed.ac],["FL",state.fl,computed.fl]].forEach(([k,v,res])=>{if(v){faLines.push(`${k}: ${faNum(v)} mm${res?` — سن معادل ${gaText(res.equivDays)} — صدک ${res.percentile.toFixed(1)}`:""}`);enLines.push(`${k}: ${enNum(v)} mm${res?` — equivalent GA ${gaText(res.equivDays)} — percentile ${res.percentile.toFixed(1)}`:""}`)}});
+  if(computed.weight&&computed.efw){faLines.push(`EFW: ${faNum(Math.round(computed.weight))} g — صدک ${computed.efw.percentile.toFixed(1)}`);enLines.push(`EFW: ${Math.round(computed.weight)} g — percentile ${computed.efw.percentile.toFixed(1)}`)}else if(state.efw){faLines.push(`EFW: ${faNum(state.efw)} g${state.efwP?` — صدک ${faNum(state.efwP)}`:""}`);enLines.push(`EFW: ${enNum(state.efw)} g${state.efwP?` — percentile ${enNum(state.efwP)}`:""}`)}
   const pFa={cephalic:"سفالیک",breech:"بریچ",transverse:"عرضی"}[state.presentation],pEn=state.presentation;
   const generalFa=[],generalEn=[];if(state.fhr){generalFa.push(`FHR: ${faNum(state.fhr)}/min`);generalEn.push(`FHR: ${enNum(state.fhr)} bpm`)}if(state.presentation){generalFa.push(`پرزنتاسیون: ${pFa}`);generalEn.push(`presentation: ${pEn}`)}if(state.placenta){const plFa={anterior:"قدامی",posterior:"خلفی",fundal:"فوندال",lateral:"لترال"}[state.placenta];generalFa.push(`جفت: ${plFa}`);generalEn.push(`placenta: ${state.placenta}`)}if(state.afi){generalFa.push(`${state.afiMethod==="afi"?"AFI":"DVP"}: ${faNum(state.afi)} cm`);generalEn.push(`${state.afiMethod==="afi"?"AFI":"DVP"}: ${enNum(state.afi)} cm`)}if(generalFa.length){faLines.push(generalFa.join("، ")+".");enLines.push(generalEn.join(", ")+".")}
   const dopFa=[],dopEn=[];if(state.uaPi){dopFa.push(`UA PI: ${faNum(state.uaPi)}${state.uaP?` (P${faNum(state.uaP)})`:""}`);dopEn.push(`UA PI: ${enNum(state.uaPi)}${state.uaP?` (P${enNum(state.uaP)})`:""}`)}if(state.mcaPi){dopFa.push(`MCA PI: ${faNum(state.mcaPi)}${state.mcaP?` (P${faNum(state.mcaP)})`:""}`);dopEn.push(`MCA PI: ${enNum(state.mcaPi)}${state.mcaP?` (P${enNum(state.mcaP)})`:""}`)}if(state.cpr){dopFa.push(`CPR: ${faNum(state.cpr)}${state.cprP?` (P${faNum(state.cprP)})`:""}`);dopEn.push(`CPR: ${enNum(state.cpr)}${state.cprP?` (P${enNum(state.cprP)})`:""}`)}if(state.utaMean){dopFa.push(`Mean UtA PI: ${faNum(state.utaMean)}${state.utaP?` (P${faNum(state.utaP)})`:""}`);dopEn.push(`Mean UtA PI: ${enNum(state.utaMean)}${state.utaP?` (P${enNum(state.utaP)})`:""}`)}if(dopFa.length){faLines.push(`داپلر: ${dopFa.join("، ")}.`);enLines.push(`Doppler: ${dopEn.join(", ")}.`)}
@@ -22171,20 +22349,20 @@ function FgrEngine(){
 
 
 </body></html>`);w.document.close();};
- const wordExtras=React.useMemo(()=>({tables:state.includeTable?[{title:state.language==="en"?"Fetal biometry and percentile table":"جدول بیومتری و صدک‌های جنین",headers:state.language==="en"?["Parameter","Measurement","Equivalent GA","Standard percentile","Z-score","Device percentile"]:["پارامتر","اندازه","سن معادل","صدک استاندارد","Z-score","صدک دستگاه"],rows:tableRows.map(r=>[r[0],r[1],r[2],r[3],r[4],r[5]])},{title:state.language==="en"?"Growth interpretation summary":"خلاصه تفسیر رشد",headers:state.language==="en"?["Item","Result"]:["آیتم","نتیجه"],rows:summaryRows}]:[],images:state.includeCharts?[efwChart?{title:state.language==="en"?"EFW growth chart":"نمودار رشد EFW",dataUrl:efwChart,width:1100,height:560}:null,acChart?{title:state.language==="en"?"AC growth chart":"نمودار رشد AC",dataUrl:acChart,width:1100,height:560}:null].filter(Boolean):[]}),[state.language,state.includeTable,state.includeCharts,tableRows,summaryRows,efwChart,acChart]);
+ const wordExtras=React.useMemo(()=>({tables:[{title:state.language==="en"?"Fetal biometry and percentile table":"جدول بیومتری و صدک‌های جنین",headers:state.language==="en"?["Parameter","Measurement","Equivalent GA","Standard percentile","Device percentile"]:["پارامتر","اندازه","سن معادل","صدک استاندارد","صدک دستگاه"],rows:tableRows},{title:state.language==="en"?"Growth interpretation summary":"خلاصه تفسیر رشد",headers:state.language==="en"?["Item","Result"]:["آیتم","نتیجه"],rows:summaryRows}],images:[efwChart?{title:state.language==="en"?"EFW growth chart":"نمودار رشد EFW",dataUrl:efwChart,width:1100,height:560}:null,acChart?{title:state.language==="en"?"AC growth chart":"نمودار رشد AC",dataUrl:acChart,width:1100,height:560}:null].filter(Boolean)}),[state.language,tableRows,summaryRows,efwChart,acChart]);
  const updatePrev=(id,key,val)=>setState(p=>({...p,previousScans:p.previousScans.map(x=>x.id===id?{...x,[key]:val}:x)}));
  return h("div",null,
-  h("section",{style:{...panel,border:"1px solid #a855f7"}},h("h2",{style:{marginTop:0}},"اجزای اختیاری خروجی بارداری"),h("p",{style:muted},"فایل متنی همیشه ساخته می‌شود. جدول و نمودار را می‌توانید برای هر مرکز به‌صورت مستقل فعال کنید."),h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap"}},check("افزودن جدول بیومتری و صدک‌ها",state.includeTable,v=>set("includeTable",v)),check("افزودن نمودارهای رشد",state.includeCharts,v=>set("includeCharts",v)))),
+  h("section",{style:{...panel,border:"1px solid #a855f7"}},h("h2",{style:{marginTop:0}},"خروجی گزارش بارداری"),h("p",{style:muted},"متن خط‌به‌خط همیشه تولید می‌شود. جدول و نمودار هرکدام مستقل و اختیاری هستند."),h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap"}},h("div",null,check("افزودن جدول بیومتری به خروجی",state.includeTable,v=>set("includeTable",v))),h("div",null,check("افزودن نمودار رشد به خروجی",state.includeChart,v=>set("includeChart",v))))),
   h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("h2",{style:{marginTop:0}},"محاسبه سن فعلی بارداری از سونوگرافی NT"),h("p",{style:muted},"این ابزار فقط برای محاسبه داخلی است و تاریخ NT یا جزئیات محاسبه را وارد متن گزارش نمی‌کند. بعد از انتقال، فقط GA تثبیت‌شده در محاسبات FGR استفاده می‌شود."),h("div",{style:grid},textField("تاریخ سونوگرافی NT (شمسی)",state.ntRefDate,v=>set("ntRefDate",v),"1405/02/10"),textField("GA در NT — هفته",state.ntRefWeeks,v=>set("ntRefWeeks",v),"12","number"),textField("GA در NT — روز",state.ntRefDays,v=>set("ntRefDays",v),"3","number"),textField("تاریخ بررسی فعلی (شمسی)",state.ntTargetDate,v=>set("ntTargetDate",v),hnTodayJalali())),ntCurrentGa.ok?h("div",{style:{...subPanel,border:"1px solid #22c55e"}},h("div",{style:grid},h("div",null,h("strong",null,"سن بارداری در تاریخ فعلی"),h("div",{style:{fontSize:"24px",color:"#86efac",marginTop:"6px"}},hnGaText(ntCurrentGa.gaDays,true))),h("div",null,h("strong",null,"فاصله از NT"),h("div",{style:{fontSize:"20px",marginTop:"6px"}},`${hnToFaDigits(ntCurrentGa.delta)} روز`)),h("div",null,h("strong",null,"EDD براساس NT"),h("div",{style:{fontSize:"18px",marginTop:"6px"}},`${ntCurrentGa.eddJFa} / ${ntCurrentGa.eddGText}`))),h("button",{type:"button",style:{...btn(false,false,"good"),marginTop:"12px"},onClick:()=>setState(p=>({...p,gaWeeks:String(ntCurrentGa.weeks),gaDays:String(ntCurrentGa.days),scanDate:p.ntTargetDate}))},"انتقال به GA و تاریخ بررسی FGR")):h("p",{style:{...small,color:(state.ntRefDate||state.ntRefWeeks||state.ntRefDays)?"#fbbf24":"#94a3b8"}},(state.ntRefDate||state.ntRefWeeks||state.ntRefDays)?ntCurrentGa.error:"تاریخ NT و سن بارداری ثبت‌شده در آن روز را وارد کنید.")),
   h("section",{style:panel},languageControls(state.language,v=>set("language",v)),h("h2",{style:{marginTop:"14px"}},"Fetal Growth Calculator — INTERGROWTH-21st"),h("p",{style:muted},"سن بارداری را براساس NT وارد کنید. صدک‌های استاندارد BPD/HC/AC/FL و وزن تخمینی Hadlock HC-AC-FL مستقل از دستگاه محاسبه می‌شوند. محدوده مرجع بیومتری ۱۴ تا ۴۰ هفته و EFW از ۱۸ تا ۴۰ هفته است."),h("div",{style:grid},textField("تاریخ بررسی (شمسی)",state.scanDate,v=>set("scanDate",v),hnTodayJalali()),textField("GA هفته براساس NT",state.gaWeeks,v=>set("gaWeeks",v),"","number"),textField("GA روز",state.gaDays,v=>set("gaDays",v),"0","number"),textField("BPD mm",state.bpd,v=>set("bpd",v),"","number"),textField("BPD percentile دستگاه",state.bpdP,v=>set("bpdP",v),"","number"),textField("HC mm",state.hc,v=>set("hc",v),"","number"),textField("HC percentile دستگاه",state.hcP,v=>set("hcP",v),"","number"),textField("AC mm",state.ac,v=>set("ac",v),"","number"),textField("AC percentile دستگاه",state.acP,v=>set("acP",v),"","number"),textField("FL mm",state.fl,v=>set("fl",v),"","number"),textField("FL percentile دستگاه",state.flP,v=>set("flP",v),"","number"),textField("EFW دستگاه (g)",state.efw,v=>set("efw",v),"","number"),textField("EFW percentile دستگاه",state.efwP,v=>set("efwP",v),"","number"))),
   state.includeTable?h("section",{style:panel},h("h2",{style:{marginTop:0}},"جدول محاسبات استاندارد"),h(GrowthTable,{rows:tableRows,language:state.language==="en"?"en":"fa"}),h("p",{style:{...small,marginBottom:0}},"مرجع محاسبات: INTERGROWTH-21st برای بیومتری و استاندارد EFW به‌روز‌شده با فرمول سه‌پارامتری Hadlock (HC، AC، FL).")):null,
   h(PreviousScansSection,{state,setState,previousComputed,updatePrev}),
-  state.includeCharts?h("section",{style:panel},h("h2",{style:{marginTop:0}},"نمودارهای رشد"),h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"12px"}},h("button",{type:"button",onClick:printGrowthCharts},"چاپ جداگانه نمودارها")),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"16px"}},efwChart?h("img",{src:efwChart,alt:"EFW growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null,acChart?h("img",{src:acChart,alt:"AC growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null)):null,
+  state.includeChart?h("section",{style:panel},h("h2",{style:{marginTop:0}},"نمودارهای رشد"),h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"12px"}},h("button",{type:"button",onClick:printGrowthCharts},"چاپ جداگانه نمودارها")),h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"16px"}},efwChart?h("img",{src:efwChart,alt:"EFW growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null,acChart?h("img",{src:acChart,alt:"AC growth chart",style:{width:"100%",borderRadius:"10px",background:"white"}}):null)):null,
   h("section",{style:panel},h("h2",{style:{marginTop:0}},"اطلاعات بارداری و کالر داپلر"),h("div",{style:grid},textField("تعداد جنین",state.fetuses,v=>set("fetuses",v),"1","number"),selectField("Presentation",state.presentation,v=>set("presentation",v),[["cephalic","سفالیک"],["breech","بریچ"],["transverse","عرضی"]]),textField("FHR",state.fhr,v=>set("fhr",v),"","number"),selectField("روش مایع",state.afiMethod,v=>set("afiMethod",v),[["afi","AFI"],["dvp","DVP"]]),textField("AFI/DVP cm",state.afi,v=>set("afi",v),"","number"),selectField("محل جفت",state.placenta,v=>set("placenta",v),[["anterior","قدامی"],["posterior","خلفی"],["fundal","فوندال"],["lateral","لترال"]]),selectField("Cord insertion",state.cordInsertion,v=>set("cordInsertion",v),[["central","سنترال"],["marginal","مارژینال"],["velamentous","ولامنتوس"]]),selectField("تعداد شریان ناف",state.cordArteries,v=>set("cordArteries",v),[["2","دو شریان"],["1","یک شریان"]]),textField("Cervix mm",state.cervix,v=>set("cervix",v),"","number"),selectField("Internal os",state.internalOs,v=>set("internalOs",v),[["closed","بسته"],["open","باز"]]),h("div",{style:labelStyle},check("Funneling",state.funneling,v=>set("funneling",v))),h("div",{style:labelStyle},check("افت AC بیش از دو quartile — تأیید رادیولوژیست",state.acDrop,v=>set("acDrop",v))),h("div",{style:labelStyle},check("افت EFW بیش از دو quartile — تأیید رادیولوژیست",state.efwDrop,v=>set("efwDrop",v))))),
   h("section",{style:panel},h("h2",{style:{marginTop:0}},"کالر داپلر"),h("div",{style:grid},textField("UA PI",state.uaPi,v=>set("uaPi",v),"","number"),textField("UA PI percentile",state.uaP,v=>set("uaP",v),"","number"),textField("UA S/D",state.uaSd,v=>set("uaSd",v),"","number"),selectField("UA end-diastolic flow",state.uaFlow,v=>set("uaFlow",v),[["positive","Positive EDF"],["aedf","AEDF"],["redf","REDF"]]),textField("MCA PI",state.mcaPi,v=>set("mcaPi",v),"","number"),textField("MCA PI percentile",state.mcaP,v=>set("mcaP",v),"","number"),textField("MCA PSV cm/s",state.mcaPsv,v=>set("mcaPsv",v),"","number"),textField("MCA PSV MoM",state.mcaMom,v=>set("mcaMom",v),"","number"),textField("CPR",state.cpr,v=>set("cpr",v),"","number"),textField("CPR percentile",state.cprP,v=>set("cprP",v),"","number"),textField("DV PI",state.dvPi,v=>set("dvPi",v),"","number"),textField("DV PI percentile",state.dvP,v=>set("dvP",v),"","number"),selectField("DV a-wave",state.dvA,v=>set("dvA",v),[["positive","مثبت"],["absent","غایب"],["reversed","معکوس"]]),textField("Right UtA PI",state.utaR,v=>set("utaR",v),"","number"),textField("Left UtA PI",state.utaL,v=>set("utaL",v),"","number"),textField("Mean UtA PI",state.utaMean,v=>set("utaMean",v),"","number"),textField("Mean UtA percentile",state.utaP,v=>set("utaP",v),"","number"),h("div",{style:labelStyle},check("Right early diastolic notch",state.notchR,v=>set("notchR",v))),h("div",{style:labelStyle},check("Left early diastolic notch",state.notchL,v=>set("notchL",v))),h("div",{style:labelStyle},check("Umbilical vein pulsatile",state.uvPulsatile,v=>set("uvPulsatile",v))))),
   h("section",{style:{...panel,border:"1px solid #f59e0b"}},h("h2",{style:{marginTop:0}},"Decision Support — نیازمند تأیید رادیولوژیست"),h("p",{style:muted},`پیشنهاد خودکار: ${auto.classification==="insufficient"?"داده ناکافی":auto.classification==="normal"?"رشد مناسب":auto.classification==="sga"?"SGA":`FGR stage ${auto.stage}`} — ${auto.early===null?"زمان‌بندی نامشخص":auto.early?"Early (<32W)":"Late (≥32W)"}`),h("ul",null,auto.criteria.map((x,i)=>h("li",{key:i},x))),autoTrend.acDrop||autoTrend.efwDrop?h("p",{style:{color:"#fbbf24"}},`هشدار روند: ${autoTrend.acDrop?"افت AC ":""}${autoTrend.efwDrop?"افت EFW":""} از حداقل دو باند چارکی توسط نرم‌افزار شناسایی شد.`):null,h("div",{style:grid},selectField("Override طبقه‌بندی",state.override,v=>set("override",v),[["auto","پیشنهاد خودکار"],["normal","رشد مناسب"],["sga","SGA"],["fgr1","FGR stage I"],["fgr2","FGR stage II"],["fgr3","FGR stage III"],["fgr4","FGR stage IV"],["insufficient","داده ناکافی"]]),h("div",{style:labelStyle},check("نتیجه پیشنهادی/انتخاب‌شده توسط رادیولوژیست تأیید شد",state.confirmDecision,v=>set("confirmDecision",v))))),
   h("section",{style:panel},h("div",{style:grid},textAreaField("یافته آزاد",state.customFinding,v=>set("customFinding",v)),textAreaField("نتیجه‌گیری آزاد",state.customImpression,v=>set("customImpression",v)),textAreaField("پیشنهاد آزاد",state.customRecommendation,v=>set("customRecommendation",v)))),
-  h(ReportOutput,{finding:"",impression:"",recommendation:"",plainText:simpleReport,examTitle:"سونوگرافی بارداری بیومتری و کالر داپلر جهت SGA/FGR",sessionKey:"fgr-v25",wordExtras:(state.includeTable||state.includeCharts)?wordExtras:null})
+  h(ReportOutput,{plainText:simpleReport,examTitle:"سونوگرافی بارداری بیومتری و کالر داپلر جهت SGA/FGR",sessionKey:"fgr-v25",wordExtras:(state.includeTable||state.includeChart)?{tables:state.includeTable?wordExtras.tables:[],images:state.includeChart?wordExtras.images:[]}:null})
  )
 }
 
