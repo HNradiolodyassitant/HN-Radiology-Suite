@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v2.5.5 — Final Editor Stability Fix" />
-  <title>HN Radiology Suite v2.5.5</title>
+  <meta name="description" content="HN Radiology Suite v2.5.4 — Selectable Ultrasound Titles" />
+  <title>HN Radiology Suite v2.5.4</title>
   <style>
 * {
   box-sizing: border-box;
@@ -89,8 +89,8 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   "use strict";
   window.HN_APP=Object.freeze({
     name:"HN Radiology Suite",
-    version:"2.5.5",
-    versionLabel:"v2.5.5",
+    version:"2.6.0",
+    versionLabel:"v2.6.0",
     channel:"selectable-ultrasound-titles",
     architecture:"modular-source + bundled-production",
     buildDate:"2026-07-31"
@@ -134,14 +134,14 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   function exportReport(){
     const report={diagnostics:run(),events:events.slice()};
     const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.5.5_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.5.4_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
-  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5.5 Stable":"v2.5.5 Check";}}
+  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5.4 Stable":"v2.5.4 Check";}}
   function createUI(){
     if(document.getElementById("hn-stability-badge"))return;
-    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.5.5 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
+    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.6.0 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
     const panel=document.createElement("section");panel.id="hn-diagnostics-panel";panel.hidden=true;
-    panel.innerHTML='<h2>HN Diagnostics — v2.5.5</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
+    panel.innerHTML='<h2>HN Diagnostics — v2.5.4</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
     document.body.append(panel,badge);
     const render=()=>{document.getElementById("hn-diag-output").textContent=JSON.stringify(run(),null,2)};
     badge.addEventListener("click",()=>{panel.hidden=false;render()});
@@ -17714,37 +17714,25 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
     const textToHtml = value => escapeHtml(value).replace(/\n/g,"<br>");
     const [copyStatus, setCopyStatus] = React.useState("");
     const [editableReport, setEditableReport] = React.useState(generatedReport);
+    const [editableHtml, setEditableHtml] = React.useState(textToHtml(generatedReport));
     const [manuallyEdited, setManuallyEdited] = React.useState(false);
     const [includeImpression, setIncludeImpression] = React.useState(true);
     const [patientId, setPatientId] = React.useState("");
     const [patientName, setPatientName] = React.useState("");
     const [reportTitle, setReportTitle] = React.useState(() => normalizeUltrasoundTitle(examTitle));
     const editorRef = React.useRef(null);
-    // Keep the contentEditable DOM uncontrolled while the user is typing.
-    // Re-applying innerHTML on every keystroke moves the caret and corrupts RTL input.
-    const editorHtmlRef = React.useRef(textToHtml(generatedReport));
-    const attachEditor = React.useCallback(node => {
-        editorRef.current = node;
-        if (node) node.innerHTML = editorHtmlRef.current;
-    }, []);
     const lastGenerated = React.useRef(generatedReport);
-    const replaceEditorContent = value => {
-        const text = String(value || "");
-        const html = textToHtml(text);
-        editorHtmlRef.current = html;
-        setEditableReport(text);
-        if (editorRef.current && editorRef.current.innerHTML !== html) editorRef.current.innerHTML = html;
-    };
     React.useEffect(() => {
         setCopyStatus("");
-        replaceEditorContent(generatedReport);
+        setEditableReport(generatedReport);
+        setEditableHtml(textToHtml(generatedReport));
         setManuallyEdited(false);
     }, [sessionKey]);
     React.useEffect(() => {
         setReportTitle(normalizeUltrasoundTitle(examTitle));
     }, [examTitle, sessionKey]);
     React.useEffect(() => {
-        if (!manuallyEdited) replaceEditorContent(generatedReport);
+        if (!manuallyEdited) { setEditableReport(generatedReport); setEditableHtml(textToHtml(generatedReport)); }
         lastGenerated.current = generatedReport;
     }, [generatedReport, manuallyEdited]);
     const flash = (value, ms = 2400) => {
@@ -17772,6 +17760,7 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
     const syncEditor = () => {
         const value = editorText();
         setEditableReport(value);
+        if (editorRef.current) setEditableHtml(editorRef.current.innerHTML);
         setManuallyEdited(true);
         setCopyStatus("");
     };
@@ -17788,14 +17777,14 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
             if (!String(current[key] || "").trim() || String(current[key] || "").trim() === String(previous[key] || "").trim()) current[key] = next[key];
         });
         const merged = buildGeneratedReport(current.finding, includeImpression ? current.impression : "", current.recommendation);
-        replaceEditorContent(merged); setManuallyEdited(true); lastGenerated.current = generatedReport;
+        setEditableReport(merged); setEditableHtml(textToHtml(merged)); setManuallyEdited(true); lastGenerated.current = generatedReport;
         flash("بخش‌های ویرایش‌نشده به‌روزرسانی شدند");
     };
     const rebuildAll = () => {
         if (manuallyEdited && !window.confirm("بازسازی کامل، همه ویرایش‌های دستی متن را حذف می‌کند. ادامه می‌دهید؟")) return;
         const sections = splitReportText(generatedReport);
         const value = buildGeneratedReport(sections.finding, includeImpression ? sections.impression : "", sections.recommendation);
-        replaceEditorContent(value); setManuallyEdited(false); flash("گزارش کامل بازسازی شد");
+        setEditableReport(value); setEditableHtml(textToHtml(value)); setManuallyEdited(false); flash("گزارش کامل بازسازی شد");
     };
     const printReport = () => {
         const text = editorText();
@@ -17804,7 +17793,7 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         if (!win) return flash("پنجره چاپ توسط مرورگر مسدود شد");
         const tables = wordExtras && Array.isArray(wordExtras.tables) ? wordExtras.tables.map(t => `<section><h2>${t.title||""}</h2><table><thead><tr>${(t.headers||[]).map(v=>`<th>${v}</th>`).join("")}</tr></thead><tbody>${(t.rows||[]).map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`).join("") : "";
         const images = wordExtras && Array.isArray(wordExtras.images) ? wordExtras.images.map(x => `<img src="${x.dataUrl || x.src || ""}" style="max-width:100%;page-break-inside:avoid;margin:16px 0">`).join("") : "";
-        const reportHtml = editorRef.current ? editorRef.current.innerHTML : editorHtmlRef.current;
+        const reportHtml = editorRef.current ? editorRef.current.innerHTML : editableHtml;
         const safeReportTitle = escapeHtml(reportTitle.trim());
         const safePatientName = escapeHtml(patientName.trim());
         const safePatientId = escapeHtml(patientId.trim());
@@ -17862,8 +17851,9 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
     const exportWord = () => {
         if (!validate()) return;
         try {
-            const sections = splitReportText(editableReport);
+            const sections = splitReportText(editorText());
             const bytes = window.HNWord.createDocxBytes({
+                title: reportTitle.trim() || normalizeUltrasoundTitle(examTitle),
                 finding: sections.finding,
                 impression: sections.impression,
                 recommendation: sections.recommendation,
@@ -17876,7 +17866,7 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
         catch (_a) { flash("ساخت فایل Word انجام نشد", 3500); }
     };
     const resetGeneratedText = () => {
-        replaceEditorContent(generatedReport);
+        setEditableReport(generatedReport);
         setManuallyEdited(false);
         flash("متن تولیدشده بازیابی شد");
     };
@@ -17924,18 +17914,16 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
             h("button",{type:"button",onClick:()=>command("undo")},"Undo"),
             h("button",{type:"button",onClick:()=>command("redo")},"Redo"),
             h("button",{type:"button",onClick:()=>command("removeFormat")},"پاک‌کردن قالب"),
-            h("button",{type:"button",onClick:()=>{const q=prompt("عبارت مورد نظر برای جست‌وجو");if(!q)return;const v=prompt("جایگزین با");if(v===null)return;const next=editorText().split(q).join(v);replaceEditorContent(next);setManuallyEdited(true)}},"Find & Replace"),
+            h("button",{type:"button",onClick:()=>{const q=prompt("عبارت مورد نظر برای جست‌وجو");if(!q)return;const v=prompt("جایگزین با");if(v===null)return;const next=editorText().split(q).join(v);setEditableReport(next);setEditableHtml(textToHtml(next));setManuallyEdited(true)}},"Find & Replace"),
             h("button",{type:"button",onClick:()=>command("insertText","در سایر قسمت‌ها یافته پاتولوژیک بارزی مشاهده نشد.")},"عبارت آماده")
         ),
-        h("p", {
-            style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0, minHeight: "22px", visibility: manuallyEdited ? "visible" : "hidden" },
-            "aria-live": "polite"
-        }, manuallyEdited ? "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید." : "متن نهایی ویرایش نشده است."),
+        manuallyEdited && h("p", { style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0 } }, "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید."),
         h("div", {
-            ref: attachEditor, contentEditable: true, suppressContentEditableWarning: true,
+            ref: editorRef, contentEditable: true, suppressContentEditableWarning: true,
             onInput: syncEditor,
             style: Object.assign({}, textareaStyle, { marginTop: "14px", overflow:"auto" }),
-            spellCheck: false, "aria-label": "گزارش نهایی"
+            spellCheck: false, "aria-label": "گزارش نهایی",
+            dangerouslySetInnerHTML:{__html:editableHtml}
         }),
         h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word شامل متن گزارش، جدول‌های محاسباتی و نمودارهای رشد است. هیچ Patient ID یا اطلاعات هویتی به گزارش افزوده نمی‌شود." : "گزارش نهایی فقط در یک باکس نمایش داده می‌شود و هیچ Patient ID، تاریخ، ساعت یا عنوان اضافی به متن آن افزوده نمی‌شود.")
     );
@@ -18123,7 +18111,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.5.5")),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.5.4")),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
@@ -22050,7 +22038,7 @@ exports.default = ColorDopplerClinic;
   const runXml = (text, options = {}) => {
     const bold = options.bold ? '<w:b w:val="1"/><w:bCs w:val="1"/>' : "";
     const size = options.size || 24;
-    return `<w:r><w:rPr><w:rFonts w:ascii="B Yekan" w:hAnsi="B Yekan" w:eastAsia="B Yekan" w:cs="B Yekan"/><w:rtl w:val="1"/>${bold}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
+    return `<w:r><w:rPr><w:rFonts w:ascii="Peyda" w:hAnsi="Peyda" w:eastAsia="Peyda" w:cs="Peyda"/><w:rtl w:val="1"/>${bold}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/><w:lang w:val="fa-IR" w:bidi="fa-IR"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
   };
   const paragraphXml = (text, options = {}) => {
     const align = options.center ? "center" : (options.left ? "left" : "right");
@@ -22093,6 +22081,9 @@ exports.default = ColorDopplerClinic;
   };
   const createDocumentXml = data => {
     const body = [];
+    if (String(data.title || "").trim()) {
+      body.push(paragraphXml(String(data.title).trim(), { bold: true, size: 30, center: true, after: 320 }));
+    }
     if (String(data.finding || "").trim()) {
       body.push(paragraphXml("یافته‌ها", { bold: true, size: 25, after: 80 }));
       body.push(paragraphXml(String(data.finding).trim(), { size: 24, after: 220 }));
@@ -22133,7 +22124,7 @@ exports.default = ColorDopplerClinic;
       { name: "[Content_Types].xml", data: contentTypes },
       { name: "_rels/.rels", data: rootRels },
       { name: "word/document.xml", data: createDocumentXml({...data, images}) },
-      { name: "word/styles.xml", data: stylesXml },
+      { name: "word/styles.xml", data: stylesXml.replace(/B Yekan/g, "Peyda") },
       { name: "word/_rels/document.xml.rels", data: documentRels }
     ];
     images.forEach((x, i) => files.push({name:`word/media/image${i+1}.png`, data:x.bytes}));
@@ -22268,6 +22259,66 @@ function hnGaText(days,fa=true){if(!Number.isFinite(days))return "";const rounde
 function hnCalculateCrlDating(crlValue,scanDateValue){const crl=Number(hnToAsciiDigits(crlValue));if(!Number.isFinite(crl)||crl<=0)return {ok:false,error:"CRL معتبر وارد نشده است."};const scan=hnParseJalali(scanDateValue);if(!scan)return {ok:false,error:"تاریخ شمسی بررسی معتبر نیست."};const gaRaw=40.9041+3.21585*Math.sqrt(crl)+0.348956*crl,gaDays=Math.round(gaRaw),eddJdn=scan.jdn+(280-gaDays),eddJ=hnD2j(eddJdn),eddG=hnD2g(eddJdn),warnings=[];if(gaDays<63||gaDays>97)warnings.push("سن محاسبه‌شده خارج از بازه اصلی ۹+۰ تا ۱۳+۶ هفته‌ای است که استاندارد INTERGROWTH-21st در آن توسعه یافته است.");if(crl<45||crl>84)warnings.push("CRL خارج از بازه رایج انجام NT یعنی ۴۵ تا ۸۴ میلی‌متر است.");return {ok:true,crl,gaRaw,gaDays,weeks:Math.floor(gaDays/7),days:gaDays%7,scan,eddJdn,eddJ,eddG,eddJFa:hnFormatJalali(eddJ,true),eddJEn:hnFormatJalali(eddJ,false),eddGText:hnFormatGregorian(eddG),warnings}}
 function hnCalculateGaFromNt(ntDateValue,ntWeeksValue,ntDaysValue,targetDateValue){const nt=hnParseJalali(ntDateValue),target=hnParseJalali(targetDateValue),w=Number(hnToAsciiDigits(ntWeeksValue)),d=Number(hnToAsciiDigits(ntDaysValue));if(!nt)return {ok:false,error:"تاریخ سونوگرافی NT معتبر نیست."};if(!target)return {ok:false,error:"تاریخ بررسی فعلی معتبر نیست."};if(!Number.isInteger(w)||w<0||w>45||!Number.isInteger(d)||d<0||d>6)return {ok:false,error:"سن بارداری NT را به‌صورت هفته و روز معتبر وارد کنید."};const delta=target.jdn-nt.jdn;if(delta<0)return {ok:false,error:"تاریخ بررسی فعلی قبل از تاریخ NT است."};const gaDays=w*7+d+delta,eddJdn=nt.jdn+(280-(w*7+d)),eddJ=hnD2j(eddJdn),eddG=hnD2g(eddJdn);return {ok:true,delta,gaDays,weeks:Math.floor(gaDays/7),days:gaDays%7,eddJ,eddG,eddJFa:hnFormatJalali(eddJ,true),eddGText:hnFormatGregorian(eddG)}}
 
+function hnDatingResult(gaDaysValue,scanDateValue){const gaDays=Math.round(Number(gaDaysValue)),scan=hnParseJalali(scanDateValue);if(!Number.isFinite(gaDays)||gaDays<0)return {ok:false,error:"سن بارداری قابل محاسبه نیست."};if(!scan)return {ok:false,error:"تاریخ شمسی بررسی معتبر نیست."};const eddJdn=scan.jdn+(280-gaDays),eddJ=hnD2j(eddJdn),eddG=hnD2g(eddJdn);return {ok:true,gaDays,weeks:Math.floor(gaDays/7),days:gaDays%7,eddJFa:hnFormatJalali(eddJ,true),eddJEn:hnFormatJalali(eddJ,false),eddGText:hnFormatGregorian(eddG)}}
+function hnCalculateMsdDating(msdValue,scanDateValue){const msd=Number(hnToAsciiDigits(msdValue));if(!Number.isFinite(msd)||msd<=0)return {ok:false,error:"MSD معتبر وارد نشده است."};return {...hnDatingResult(msd+30,scanDateValue),msd,method:"MSD + 30 days"}}
+function hnCalculateEarlyCrlDating(crlValue,scanDateValue){const crl=Number(hnToAsciiDigits(crlValue));if(!Number.isFinite(crl)||crl<=0)return {ok:false,error:"CRL معتبر وارد نشده است."};return {...hnDatingResult(8.052*Math.sqrt(crl)+23.73,scanDateValue),crl,method:"Robinson–Fleming"}}
+function hnLmpDating(lmpValue,scanDateValue){const lmp=hnParseJalali(lmpValue),scan=hnParseJalali(scanDateValue);if(!lmp||!scan)return {ok:false,error:"تاریخ LMP یا تاریخ بررسی معتبر نیست."};const gaDays=scan.jdn-lmp.jdn;if(gaDays<0)return {ok:false,error:"LMP بعد از تاریخ بررسی است."};const eddJdn=lmp.jdn+280,eddJ=hnD2j(eddJdn),eddG=hnD2g(eddJdn);return {ok:true,gaDays,weeks:Math.floor(gaDays/7),days:gaDays%7,eddJFa:hnFormatJalali(eddJ,true),eddGText:hnFormatGregorian(eddG)}}
+
+/* ---------- Early pregnancy: MSD / CRL / viability ---------- */
+const earlyDefiniteCriteria=[
+ {id:"crl7",fa:"CRL ≥ 7 mm و عدم فعالیت قلبی پس از مشاهده حداقل ۳۰ ثانیه در TVS",en:"CRL ≥7 mm with no cardiac activity after at least 30 seconds of observation on TVS"},
+ {id:"msd25",fa:"MSD ≥ 25 mm و عدم مشاهده جنین در TVS",en:"MSD ≥25 mm with no embryo on TVS"},
+ {id:"noembryo14",fa:"عدم مشاهده جنین دارای فعالیت قلبی، حداقل ۱۴ روز پس از ساک بدون Yolk sac",en:"No embryo with cardiac activity at least 14 days after a scan showing a sac without a yolk sac"},
+ {id:"noembryo11",fa:"عدم مشاهده جنین دارای فعالیت قلبی، حداقل ۱۱ روز پس از ساک همراه Yolk sac",en:"No embryo with cardiac activity at least 11 days after a scan showing a sac with a yolk sac"},
+ {id:"noheartbeat7",fa:"عدم فعالیت قلبی حداقل ۷ روز پس از مشاهده Fetal pole با CRL < 7 mm و بدون فعالیت قلبی",en:"No cardiac activity at least 7 days after a fetal pole <7 mm without cardiac activity"},
+ {id:"previousheartbeat",fa:"عدم فعالیت قلبی در جنینی که قبلاً فعالیت قلبی مستند داشته است، با کیفیت مناسب بررسی فعلی",en:"Absent cardiac activity after previously documented cardiac activity, with an adequate current examination"}
+];
+const earlySuspiciousCriteria=[
+ {id:"crllt7",fa:"CRL < 7 mm بدون فعالیت قلبی",en:"CRL <7 mm without cardiac activity"},
+ {id:"msd16to24",fa:"MSD بین 16 تا 24 mm بدون مشاهده جنین",en:"MSD 16–24 mm without an embryo"},
+ {id:"seven13",fa:"عدم مشاهده جنین دارای فعالیت قلبی، ۷ تا ۱۳ روز پس از ساک بدون Yolk sac",en:"No embryo with cardiac activity 7–13 days after a sac without a yolk sac"},
+ {id:"seven10",fa:"عدم مشاهده جنین دارای فعالیت قلبی، ۷ تا ۱۰ روز پس از ساک همراه Yolk sac",en:"No embryo with cardiac activity 7–10 days after a sac with a yolk sac"},
+ {id:"sixweeks",fa:"عدم مشاهده جنین در سن بارداری ≥ ۶ هفته براساس LMP",en:"No embryo at ≥6 weeks by LMP"},
+ {id:"emptyamnion",fa:"Empty amnion sign",en:"Empty amnion sign"},
+ {id:"largeyolk",fa:"قطر Yolk sac بیش از 7 mm",en:"Yolk sac diameter >7 mm"},
+ {id:"smallsac",fa:"کوچک‌بودن ساک نسبت به جنین: MSD − CRL < 5 mm",en:"Small gestational sac relative to embryo: MSD − CRL <5 mm"}
+];
+const makeEarlySac=index=>({id:`sac-${Date.now()}-${index}`,location:"intrauterine",shape:"normal",margin:"regular",d1:"",d2:"",d3:"",yolkStatus:"notassessed",yolkSize:"",yolkAppearance:"normal",embryoStatus:"notassessed",crl:"",cardiacStatus:"notassessed",fhr:""});
+const earlyInitial=()=>({language:"fa",scanDate:hnTodayJalali(),lmp:"",method:"tvs",quality:"good",sacs:[makeEarlySac(1)],definite:[],suspicious:[],confirmDefinite:false,previousScanDate:"",previousFinding:"none",hematoma:false,hematomaD1:"",hematomaD2:"",hematomaD3:"",hematomaLocation:"",uterus:"طبیعی",cervix:"بسته",adnexa:"یافته پاتولوژیک بارزی مشاهده نشد",corpusLuteum:"none",corpusLuteumSide:"right",freeFluid:"none",customFinding:"",customImpression:"",customRecommendation:""});
+const earlyToggle=(list,id)=>list.includes(id)?list.filter(x=>x!==id):[...list,id];
+function EarlyPregnancyEngine(){
+ const [state,setState]=React.useState(earlyInitial);const [session,setSession]=React.useState(1);const set=(k,v)=>setState(p=>({...p,[k]:v}));
+ const updateSac=(index,key,value)=>setState(p=>({...p,sacs:p.sacs.map((s,i)=>i===index?{...s,[key]:value}:s)}));
+ const addSac=()=>setState(p=>({...p,sacs:[...p.sacs,makeEarlySac(p.sacs.length+1)]}));
+ const removeSac=index=>setState(p=>p.sacs.length<=1?p:{...p,sacs:p.sacs.filter((_,i)=>i!==index)});
+ const lmpCalc=React.useMemo(()=>hnLmpDating(state.lmp,state.scanDate),[state.lmp,state.scanDate]);
+ const previousDelta=React.useMemo(()=>{const previous=hnParseJalali(state.previousScanDate),current=hnParseJalali(state.scanDate);return previous&&current?current.jdn-previous.jdn:null},[state.previousScanDate,state.scanDate]);
+ const sacCalcs=React.useMemo(()=>state.sacs.map(s=>{const values=[s.d1,s.d2,s.d3].map(n).filter(x=>x!==null),msd=values.length===3?values.reduce((a,b)=>a+b,0)/3:null;return {msd,msdDating:msd?hnCalculateMsdDating(msd,state.scanDate):null,crlDating:s.crl?hnCalculateEarlyCrlDating(s.crl,state.scanDate):null}}),[state.sacs,state.scanDate]);
+ const hasLive=state.sacs.some(s=>s.cardiacStatus==="seen");
+ const tvsQuality=(state.method==="tvs"||state.method==="combined")&&state.quality==="good";
+ const derived=React.useMemo(()=>{const definite=[],suspicious=[];state.sacs.forEach((s,i)=>{const c=sacCalcs[i],crl=n(s.crl);if(crl!==null&&crl>=7&&s.cardiacStatus==="absent")definite.push("crl7");if(c.msd!==null&&c.msd>=25&&s.embryoStatus==="notseen")definite.push("msd25");if(crl!==null&&crl<7&&s.cardiacStatus==="absent")suspicious.push("crllt7");if(c.msd!==null&&c.msd>=16&&c.msd<=24&&s.embryoStatus==="notseen")suspicious.push("msd16to24");if(n(s.yolkSize)!==null&&n(s.yolkSize)>7)suspicious.push("largeyolk");if(c.msd!==null&&crl!==null&&c.msd-crl<5)suspicious.push("smallsac")});if(lmpCalc.ok&&lmpCalc.gaDays>=42&&state.sacs.every(s=>s.embryoStatus==="notseen"))suspicious.push("sixweeks");if(previousDelta!==null&&!hasLive){if(state.previousFinding==="sac_no_yolk"){if(previousDelta>=14)definite.push("noembryo14");else if(previousDelta>=7&&previousDelta<=13)suspicious.push("seven13")}if(state.previousFinding==="sac_with_yolk"){if(previousDelta>=11)definite.push("noembryo11");else if(previousDelta>=7&&previousDelta<=10)suspicious.push("seven10")}if(state.previousFinding==="pole_lt7_no_fhr"&&previousDelta>=7)definite.push("noheartbeat7");if(state.previousFinding==="previous_fhr")definite.push("previousheartbeat")}return {definite:[...new Set(definite)],suspicious:[...new Set(suspicious)]}},[state.sacs,state.previousFinding,sacCalcs,lmpCalc,previousDelta,hasLive]);
+ const warnings=[];
+ if(state.definite.length&&!tvsQuality)warnings.push("معیار قطعی فقط با TVS باکیفیت معتبر است؛ خروجی قطعی مسدود شده است.");
+ if(hasLive&&state.definite.length)warnings.push("وجود فعالیت قلبی با معیار انتخاب‌شده عدم حیات تناقض دارد؛ گزینه‌ها را بازبینی کنید.");
+ if(state.definite.length&&!state.confirmDefinite)warnings.push("معیار قطعی انتخاب شده، اما تأیید نهایی رادیولوژیست هنوز ثبت نشده است.");
+ if(previousDelta!==null&&previousDelta<0)warnings.push("تاریخ بررسی قبلی بعد از تاریخ بررسی فعلی است.");
+ const selectedText=(catalog,ids,lang)=>ids.map(id=>{const x=catalog.find(c=>c.id===id);return x?(lang==="fa"?x.fa:x.en):id});
+ const report=React.useMemo(()=>{const faF=[],faI=[],faR=[],enF=[],enI=[],enR=[];const methodFa={tvs:"ترانس‌واژینال",ta:"ترانس‌ابدومینال",combined:"ترانس‌ابدومینال و ترانس‌واژینال"}[state.method],methodEn={tvs:"transvaginal",ta:"transabdominal",combined:"combined transabdominal and transvaginal"}[state.method];faF.push(`بررسی به روش ${methodFa} با کیفیت ${state.quality==="good"?"مطلوب":state.quality==="limited"?"محدود":"متوسط"} انجام شد.`);enF.push(`The examination was performed by ${methodEn} ultrasound with ${state.quality} technical quality.`);if(lmpCalc.ok){faF.push(`سن بارداری براساس LMP برابر ${hnGaText(lmpCalc.gaDays,true)} و EDD برابر ${lmpCalc.eddJFa} شمسی (${lmpCalc.eddGText}) است.`);enF.push(`Gestational age by LMP is ${hnGaText(lmpCalc.gaDays,false)}; EDD is ${lmpCalc.eddGText}.`)}state.sacs.forEach((s,i)=>{const c=sacCalcs[i],num=state.sacs.length>1?`ساک ${hnToFaDigits(i+1)}: `:"";const numEn=state.sacs.length>1?`Sac ${i+1}: `:"";const locFa=s.location==="intrauterine"?"داخل حفره اندومتر":s.location==="cervical"?"در ناحیه سرویکس":"در محل نامشخص";const locEn=s.location==="intrauterine"?"within the endometrial cavity":s.location==="cervical"?"in the cervical region":"of indeterminate location";faF.push(`${num}ساک بارداری ${locFa} با شکل ${s.shape==="normal"?"طبیعی":"نامنظم"} و حاشیه ${s.margin==="regular"?"منظم":"نامنظم"} مشاهده شد.`);enF.push(`${numEn}A gestational sac is seen ${locEn}, with ${s.shape} shape and ${s.margin} margin.`);if(c.msd!==null){faF.push(`${num}ابعاد ساک ${faNum(s.d1)} × ${faNum(s.d2)} × ${faNum(s.d3)} میلی‌متر و MSD برابر ${faNum(c.msd)} میلی‌متر است${c.msdDating&&c.msdDating.ok?`؛ سن تقریبی براساس MSD ${hnGaText(c.msdDating.gaDays,true)} و EDD ${c.msdDating.eddJFa} است`:""}.`);enF.push(`${numEn}Sac dimensions are ${enNum(s.d1)} × ${enNum(s.d2)} × ${enNum(s.d3)} mm; MSD is ${enNum(c.msd)} mm${c.msdDating&&c.msdDating.ok?`, corresponding approximately to ${hnGaText(c.msdDating.gaDays,false)}`:""}.`)}if(s.yolkStatus==="seen"){faF.push(`${num}Yolk sac رؤیت شد${s.yolkSize?` و قطر آن ${faNum(s.yolkSize)} میلی‌متر است`:""}${s.yolkAppearance==="normal"?" با نمای طبیعی":" با نمای غیرطبیعی"}.`);enF.push(`${numEn}A yolk sac is visualized${s.yolkSize?` measuring ${enNum(s.yolkSize)} mm`:""}, with ${s.yolkAppearance} appearance.`)}else if(s.yolkStatus==="notseen"){faF.push(`${num}Yolk sac رؤیت نشد.`);enF.push(`${numEn}No yolk sac is visualized.`)}if(s.embryoStatus==="seen"){faF.push(`${num}جنین رؤیت شد${s.crl?`؛ CRL برابر ${faNum(s.crl)} میلی‌متر${c.crlDating&&c.crlDating.ok?` معادل ${hnGaText(c.crlDating.gaDays,true)} و EDD ${c.crlDating.eddJFa}`:""}`:""}.`);enF.push(`${numEn}An embryo is visualized${s.crl?`; CRL is ${enNum(s.crl)} mm${c.crlDating&&c.crlDating.ok?`, corresponding to ${hnGaText(c.crlDating.gaDays,false)}`:""}`:""}.`)}else if(s.embryoStatus==="notseen"){faF.push(`${num}جنین رؤیت نشد.`);enF.push(`${numEn}No embryo is visualized.`)}if(s.cardiacStatus==="seen"){faF.push(`${num}فعالیت قلبی جنین رؤیت شد${s.fhr?`؛ FHR برابر ${faNum(s.fhr)} bpm است`:""}.`);enF.push(`${numEn}Embryonic cardiac activity is present${s.fhr?`; FHR is ${enNum(s.fhr)} bpm`:""}.`)}else if(s.cardiacStatus==="absent"){faF.push(`${num}فعالیت قلبی جنین رؤیت نشد.`);enF.push(`${numEn}No embryonic cardiac activity is demonstrated.`)}});if(state.hematoma){faF.push(`هماتوم ساب‌کوریونیک به ابعاد ${faNum(state.hematomaD1)||"—"} × ${faNum(state.hematomaD2)||"—"} × ${faNum(state.hematomaD3)||"—"} میلی‌متر در ${state.hematomaLocation||"محل ذکرشده"} مشاهده شد.`);enF.push(`A subchorionic hematoma measuring ${enNum(state.hematomaD1)||"—"} × ${enNum(state.hematomaD2)||"—"} × ${enNum(state.hematomaD3)||"—"} mm is seen at ${state.hematomaLocation||"the stated location"}.`)}faF.push(`رحم: ${state.uterus}. سرویکس: ${state.cervix}. آدنکس‌ها: ${state.adnexa}.`);enF.push(`Uterus: ${state.uterus}. Cervix: ${state.cervix}. Adnexa: ${state.adnexa}.`);if(state.corpusLuteum!=="none"){faF.push(`Corpus luteum cyst در تخمدان ${state.corpusLuteumSide==="right"?"راست":"چپ"} مشاهده شد.`);enF.push(`A corpus luteum cyst is seen in the ${state.corpusLuteumSide} ovary.`)}if(state.freeFluid!=="none"){faF.push(`مایع آزاد ${state.freeFluid==="mild"?"مختصر":"قابل توجه"} در لگن مشاهده شد.`);enF.push(`${state.freeFluid} free pelvic fluid is present.`)}if(state.customFinding.trim()){faF.push(state.customFinding.trim());enF.push(state.customFinding.trim())}const confirmed=state.definite.length&&state.confirmDefinite&&tvsQuality&&!hasLive;if(confirmed){faI.push(`معیارهای سونوگرافیک قطعی به نفع Early Pregnancy Loss احراز شد: ${selectedText(earlyDefiniteCriteria,state.definite,"fa").join("؛ ")}.`);enI.push(`Definitive ultrasound criteria for early pregnancy loss are met: ${selectedText(earlyDefiniteCriteria,state.definite,"en").join("; ")}.`)}else if(state.definite.length||state.suspicious.length){faI.push(`یافته‌ها مشکوک به اختلال در روند بارداری هستند، اما در خروجی فعلی تشخیص قطعی ثبت نمی‌شود${state.suspicious.length?`: ${selectedText(earlySuspiciousCriteria,state.suspicious,"fa").join("؛ ")}`:""}.`);enI.push(`Findings are suspicious for early pregnancy loss, but no definitive diagnosis is issued in the current output${state.suspicious.length?`: ${selectedText(earlySuspiciousCriteria,state.suspicious,"en").join("; ")}`:""}.`)}else if(hasLive){faI.push("بارداری زنده داخل رحمی مشاهده شد.");enI.push("A live intrauterine pregnancy is demonstrated.")}else if(state.sacs.every(s=>s.location!=="intrauterine")){faI.push("در حال حاضر ساک بارداری داخل رحمی مشاهده نشد؛ Pregnancy of unknown location مطرح است.");enI.push("No intrauterine gestational sac is demonstrated; pregnancy of unknown location is considered.")}else{faI.push("بارداری داخل رحمی اولیه مشاهده شد؛ ارزیابی حیات براساس یافته‌های فعلی انجام شود.");enI.push("An early intrauterine pregnancy is demonstrated; viability should be assessed from the current findings.")}if(state.customImpression.trim()){faI.push(state.customImpression.trim());enI.push(state.customImpression.trim())}if(!confirmed&&(state.definite.length||state.suspicious.length)){faR.push("پیگیری با TVS طی ۷ تا ۱۰ روز و تطبیق بالینی توصیه می‌شود.");enR.push("Follow-up TVS in 7–10 days with clinical correlation is recommended.")}if(state.sacs.every(s=>s.location!=="intrauterine")){faR.push("پیگیری نزدیک با β-hCG سریال و TVS تا تعیین محل بارداری توصیه می‌شود.");enR.push("Close follow-up with serial β-hCG and TVS until pregnancy location is established is recommended.")}if(confirmed){faR.push("تطبیق فوری با متخصص زنان و تأیید یافته‌ها پیش از هرگونه مداخله توصیه می‌شود.");enR.push("Prompt obstetric correlation and confirmation before intervention are recommended.")}if(state.customRecommendation.trim()){faR.push(state.customRecommendation.trim());enR.push(state.customRecommendation.trim())}return {finding:chooseLanguage(state.language,faF.join("\n"),enF.join("\n")),impression:chooseLanguage(state.language,faI.join(" "),enI.join(" ")),recommendation:chooseLanguage(state.language,faR.join(" "),enR.join(" "))}},[state,lmpCalc,sacCalcs,tvsQuality,hasLive]);
+ const criteriaPanel=(title,catalog,key,tone)=>h("details",{style:{...panel,border:`1px solid ${tone}`}},h("summary",{style:{cursor:"pointer",fontWeight:"bold",fontSize:"17px"}},`${title} — ${state[key].length?`${hnToFaDigits(state[key].length)} مورد انتخاب شده`:"بازکردن فهرست"}`),h("div",{style:{display:"grid",gap:"10px",marginTop:"14px"}},catalog.map(item=>h("label",{key:item.id,style:{display:"flex",gap:"8px",alignItems:"flex-start",lineHeight:1.9}},h("input",{type:"checkbox",checked:state[key].includes(item.id),disabled:key==="definite"&&!tvsQuality,onChange:()=>set(key,earlyToggle(state[key],item.id)),style:{marginTop:"7px"}}),h("span",null,item.fa,h("small",{style:{display:"block",color:"#94a3b8",direction:"ltr",textAlign:"right"}},item.en))))));
+ return h("div",null,
+  h("section",{style:panel},languageControls(state.language,v=>set("language",v)),h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",alignItems:"center",flexWrap:"wrap",marginTop:"12px"}},h("h2",{style:{margin:0}},"بارداری اولیه — MSD / CRL"),h("button",{type:"button",style:btn(false,false,"warn"),onClick:()=>{setState(earlyInitial());setSession(x=>x+1)}},"Reset مستقل")),h("div",{style:grid},textField("تاریخ سونوگرافی (شمسی)",state.scanDate,v=>set("scanDate",v),hnTodayJalali()),textField("LMP (شمسی) — اختیاری",state.lmp,v=>set("lmp",v),"1405/04/01"),selectField("روش بررسی",state.method,v=>set("method",v),[["tvs","Transvaginal"],["ta","Transabdominal"],["combined","Combined"]]),selectField("کیفیت بررسی",state.quality,v=>set("quality",v),[["good","مطلوب"],["moderate","متوسط"],["limited","محدود"]])),lmpCalc.ok?h("div",{style:{...subPanel,gridColumn:"1 / -1"}},`GA براساس LMP: ${hnGaText(lmpCalc.gaDays,true)} — EDD: ${lmpCalc.eddJFa} / ${lmpCalc.eddGText}`):null),
+  state.sacs.map((s,i)=>{const c=sacCalcs[i];return h("section",{key:s.id,style:{...panel,border:"1px solid #38bdf8"}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}},h("h2",{style:{margin:0}},`ساک بارداری ${hnToFaDigits(i+1)}`),state.sacs.length>1?h("button",{type:"button",style:btn(false,false,"warn"),onClick:()=>removeSac(i)},"حذف ساک"):null),h("div",{style:grid},selectField("محل ساک",s.location,v=>updateSac(i,"location",v),[["intrauterine","داخل رحم"],["cervical","سرویکال"],["unknown","محل نامشخص"]]),selectField("شکل ساک",s.shape,v=>updateSac(i,"shape",v),[["normal","طبیعی"],["irregular","نامنظم"]]),selectField("حاشیه ساک",s.margin,v=>updateSac(i,"margin",v),[["regular","منظم"],["irregular","نامنظم"]]),textField("قطر ساک ۱ (mm)",s.d1,v=>updateSac(i,"d1",v),"","number"),textField("قطر ساک ۲ (mm)",s.d2,v=>updateSac(i,"d2",v),"","number"),textField("قطر ساک ۳ (mm)",s.d3,v=>updateSac(i,"d3",v),"","number"),selectField("Yolk sac",s.yolkStatus,v=>updateSac(i,"yolkStatus",v),[["notassessed","ارزیابی نشده"],["seen","رؤیت شد"],["notseen","رؤیت نشد"]]),s.yolkStatus==="seen"?textField("قطر Yolk sac (mm)",s.yolkSize,v=>updateSac(i,"yolkSize",v),"","number"):null,s.yolkStatus==="seen"?selectField("نمای Yolk sac",s.yolkAppearance,v=>updateSac(i,"yolkAppearance",v),[["normal","طبیعی"],["abnormal","غیرطبیعی"]]):null,selectField("Embryo / Fetal pole",s.embryoStatus,v=>updateSac(i,"embryoStatus",v),[["notassessed","ارزیابی نشده"],["seen","رؤیت شد"],["notseen","رؤیت نشد"]]),s.embryoStatus==="seen"?textField("CRL (mm)",s.crl,v=>updateSac(i,"crl",v),"","number"):null,selectField("فعالیت قلبی",s.cardiacStatus,v=>updateSac(i,"cardiacStatus",v),[["notassessed","ارزیابی نشده"],["seen","رؤیت شد"],["absent","رؤیت نشد"]]),s.cardiacStatus==="seen"?textField("FHR (bpm)",s.fhr,v=>updateSac(i,"fhr",v),"","number"):null),c.msd!==null?h("div",{style:subPanel},`MSD = ${faNum(c.msd)} mm${c.msdDating&&c.msdDating.ok?` — GA تقریبی ${hnGaText(c.msdDating.gaDays,true)} — EDD ${c.msdDating.eddJFa}`:""}`):null,c.crlDating&&c.crlDating.ok?h("div",{style:subPanel},`GA براساس CRL = ${hnGaText(c.crlDating.gaDays,true)} — EDD ${c.crlDating.eddJFa} / ${c.crlDating.eddGText}`):null)}),
+  h("button",{type:"button",style:{...btn(false,false,"good"),marginTop:"14px"},onClick:addSac},"+ افزودن ساک بارداری"),
+  h("section",{style:panel},h("h2",{style:{marginTop:0}},"بررسی قبلی برای معیارهای زمانی"),h("div",{style:grid},textField("تاریخ سونوگرافی قبلی (شمسی)",state.previousScanDate,v=>set("previousScanDate",v),""),selectField("یافته بررسی قبلی",state.previousFinding,v=>set("previousFinding",v),[["none","ثبت نشده"],["sac_no_yolk","ساک بدون Yolk sac"],["sac_with_yolk","ساک همراه Yolk sac"],["pole_lt7_no_fhr","Fetal pole <7 mm بدون FHR"],["previous_fhr","فعالیت قلبی قبلاً مستند بوده"]]),previousDelta!==null?h("div",{style:subPanel},`فاصله دو بررسی: ${hnToFaDigits(previousDelta)} روز`):null)),
+  criteriaPanel("معیارهای قطعی Early Pregnancy Loss",earlyDefiniteCriteria,"definite","#ef4444"),criteriaPanel("یافته‌های مشکوک ولی غیرتشخیصی",earlySuspiciousCriteria,"suspicious","#f59e0b"),
+  (derived.definite.length||derived.suspicious.length)?h("section",{style:{...panel,border:"1px solid #a855f7"}},h("h3",{style:{marginTop:0}},"پیشنهاد نرم‌افزار برای بازبینی — انتخاب خودکار نیست"),derived.definite.length?h("p",null,`قطعی محتمل: ${selectedText(earlyDefiniteCriteria,derived.definite,"fa").join("؛ ")}`):null,derived.suspicious.length?h("p",null,`مشکوک محتمل: ${selectedText(earlySuspiciousCriteria,derived.suspicious,"fa").join("؛ ")}`):null):null,
+  h("section",{style:panel},h("div",{style:labelStyle},check("تأیید نهایی رادیولوژیست برای درج نتیجه قطعی Early Pregnancy Loss",state.confirmDefinite,v=>set("confirmDefinite",v))),h("p",{style:small},"تشخیص قطعی فقط در TVS باکیفیت، بدون تناقض با فعالیت قلبی و پس از این تأیید وارد Impression می‌شود.")),
+  warnings.length?h("section",{style:{...panel,border:"1px solid #f59e0b",color:"#fde68a"}},h("strong",null,"کنترل ایمنی"),h("ul",null,warnings.map((x,i)=>h("li",{key:i},x)))):null,
+  h("section",{style:panel},h("h2",{style:{marginTop:0}},"یافته‌های همراه"),h("div",{style:grid},h("div",{style:labelStyle},check("Subchorionic hematoma",state.hematoma,v=>set("hematoma",v))),state.hematoma?textField("اندازه ۱ هماتوم (mm)",state.hematomaD1,v=>set("hematomaD1",v),"","number"):null,state.hematoma?textField("اندازه ۲ هماتوم (mm)",state.hematomaD2,v=>set("hematomaD2",v),"","number"):null,state.hematoma?textField("اندازه ۳ هماتوم (mm)",state.hematomaD3,v=>set("hematomaD3",v),"","number"):null,state.hematoma?textField("محل هماتوم",state.hematomaLocation,v=>set("hematomaLocation",v)):null,textField("رحم",state.uterus,v=>set("uterus",v)),textField("سرویکس",state.cervix,v=>set("cervix",v)),textField("آدنکس‌ها",state.adnexa,v=>set("adnexa",v)),selectField("Corpus luteum cyst",state.corpusLuteum,v=>set("corpusLuteum",v),[["none","ندارد"],["present","دارد"]]),state.corpusLuteum!=="none"?selectField("سمت Corpus luteum",state.corpusLuteumSide,v=>set("corpusLuteumSide",v),[["right","راست"],["left","چپ"]]):null,selectField("Free fluid",state.freeFluid,v=>set("freeFluid",v),[["none","ندارد"],["mild","مختصر"],["significant","قابل توجه"]]),textAreaField("سایر یافته‌ها",state.customFinding,v=>set("customFinding",v)),textAreaField("نتیجه‌گیری آزاد",state.customImpression,v=>set("customImpression",v)),textAreaField("Recommendation آزاد",state.customRecommendation,v=>set("customRecommendation",v)))),
+  h(ReportOutput,{...report,examTitle:"سونوگرافی بارداری سه‌ماهه اول",sessionKey:`early-v260-${session}`})
+ )
+}
+
 /* ---------- First trimester / NT ---------- */
 const ntBasic = [
   {key:"cranium",fa:"اسیفیکاسیون، شکل و کنتور جمجمه",en:"cranial ossification, shape and contour"},
@@ -22283,7 +22334,6 @@ const ntAdvanced = [
   {key:"posterior",fa:"پوستریور فوسا شامل BS، IT و CM",en:"posterior fossa including BS, IT and CM"},
   {key:"retronasal",fa:"مثلث رترو‌نازال",en:"retronasal triangle"},
   {key:"orbits",fa:"اوربیت‌ها",en:"orbits"},
-  {key:"nasal",fa:"استخوان بینی",en:"nasal bone"},
   {key:"lungs",fa:"ریه‌ها و حدود دیافراگم",en:"lungs and diaphragmatic contours"},
   {key:"cardiac",fa:"محور، سایز، پوزیشن و ریتم قلب",en:"cardiac axis, size, position and rhythm"},
   {key:"outflows",fa:"خروجی‌های قلب و نمای 3VT",en:"cardiac outflow tracts and 3VT view"},
@@ -22294,7 +22344,7 @@ const ntAdvanced = [
   {key:"spine",fa:"شکل و پیوستگی ستون فقرات",en:"spinal shape and continuity"}
 ];
 const ntItems = [...ntBasic,...ntAdvanced];
-const ntInitial = () => ({language:"fa",mode:"basic",quality:"good",fetuses:"1",viable:true,scanDateJalali:hnTodayJalali(),crl:"",gaWeeks:"",gaDays:"",includeCrlDatingInReport:true,fhr:"",nt1:"",nt2:"",nt3:"",placenta:"posterior",placentaAppearance:"normal",cervix:"",it:"",customFinding:"",customImpression:"",customRecommendation:"",structures:makeStructures(ntItems)});
+const ntInitial = () => ({language:"fa",mode:"basic",quality:"good",fetuses:"1",viable:true,scanDateJalali:hnTodayJalali(),crl:"",gaWeeks:"",gaDays:"",includeCrlDatingInReport:true,fhr:"",nt1:"",nt2:"",nt3:"",nbStatus:"",nbSize:"",placenta:"posterior",placentaAppearance:"normal",cervix:"",it:"",customFinding:"",customImpression:"",customRecommendation:"",structures:makeStructures(ntItems)});
 function NtEngine(){
   const [state,setState]=React.useState(ntInitial); const [session,setSession]=React.useState(1);
   const set=(k,v)=>setState(p=>({...p,[k]:v})); const items=state.mode==="advanced"?ntItems:ntBasic;
@@ -22310,6 +22360,9 @@ function NtEngine(){
     if(state.crl) { const faGa=crlCalc.ok?hnGaText(crlCalc.gaDays,true):`${state.gaWeeks||"…"} هفته و ${state.gaDays||"…"} روز`,enGa=crlCalc.ok?hnGaText(crlCalc.gaDays,false):`${state.gaWeeks||"…"} weeks and ${state.gaDays||"…"} days`;faF.push(`CRL برابر ${faNum(state.crl)} میلی‌متر و سن بارداری معادل ${faGa} است.`); enF.push(`CRL measures ${enNum(state.crl)} mm, corresponding to ${enGa}.`);if(crlCalc.ok&&state.includeCrlDatingInReport){faF.push(`تاریخ تقریبی زایمان براساس CRL برابر ${crlCalc.eddJFa} شمسی، معادل ${crlCalc.eddGText} میلادی است.`);enF.push(`The CRL-based estimated date of delivery is ${crlCalc.eddGText}, corresponding to ${crlCalc.eddJEn} in the Solar Hijri calendar.`);} }
     if(state.fhr){faF.push(`ضربان قلب جنین ${faNum(state.fhr)} در دقیقه و منظم است.`);enF.push(`Fetal heart rate is ${enNum(state.fhr)} bpm and regular.`)}
     if(maxNt!==null){faF.push(`NT در سه اندازه‌گیری استاندارد، حداکثر ${faNum(maxNt)} میلی‌متر است.`);enF.push(`The maximum NT from three standard measurements is ${enNum(maxNt)} mm.`)}
+    if(state.nbStatus==="seen"){faF.push(`استخوان بینی (NB) رؤیت شد${state.nbSize?` و طول آن ${faNum(state.nbSize)} میلی‌متر است`:""}.`);enF.push(`The nasal bone (NB) is visualized${state.nbSize?` and measures ${enNum(state.nbSize)} mm`:""}.`)}
+    if(state.nbStatus==="notseen"){faF.push("استخوان بینی (NB) رؤیت نشد.");enF.push("The nasal bone (NB) is not visualized.")}
+    if(state.nbStatus==="suboptimal"){faF.push("استخوان بینی (NB) به‌خوبی قابل رؤیت نبود.");enF.push("The nasal bone (NB) is not adequately visualized.")}
     if(state.placenta){const pfa={anterior:"قدامی",posterior:"خلفی",fundal:"فوندال",low:"تحتانی"}[state.placenta];const pen={anterior:"anterior",posterior:"posterior",fundal:"fundal",low:"low-lying"}[state.placenta];faF.push(`جفت در موقعیت ${pfa} با نمای ${state.placentaAppearance==="normal"?"طبیعی":"غیرطبیعی"} قرار دارد.`);enF.push(`The placenta is ${pen} with ${state.placentaAppearance==="normal"?"normal":"abnormal"} appearance.`)}
     if(state.cervix){faF.push(`طول سرویکس در بررسی شکمی ${faNum(state.cervix)} میلی‌متر است.`);enF.push(`Transabdominal cervical length is ${enNum(state.cervix)} mm.`)}
     if(state.mode==="advanced"&&state.it){faF.push(`ضخامت IT برابر ${faNum(state.it)} میلی‌متر است.`);enF.push(`IT thickness is ${enNum(state.it)} mm.`)}
@@ -22337,6 +22390,8 @@ function NtEngine(){
         selectField("Viability",state.viable?"yes":"no",v=>set("viable",v==="yes"),[["yes","جنین زنده"],["no","فعالیت قلبی مشاهده نشد"]]),
         textField("تاریخ سونوگرافی (شمسی)",state.scanDateJalali,v=>set("scanDateJalali",v),"1405/05/06"),textField("CRL (mm)",state.crl,v=>set("crl",v),"","number"),textField("GA هفته — جایگزین دستی",state.gaWeeks,v=>set("gaWeeks",v),"","number"),textField("GA روز — جایگزین دستی",state.gaDays,v=>set("gaDays",v),"","number"),
         textField("FHR (bpm)",state.fhr,v=>set("fhr",v),"","number"),textField("NT اندازه ۱ (mm)",state.nt1,v=>set("nt1",v),"","number"),textField("NT اندازه ۲ (mm)",state.nt2,v=>set("nt2",v),"","number"),textField("NT اندازه ۳ (mm)",state.nt3,v=>set("nt3",v),"","number"),
+        selectField("وضعیت استخوان بینی (NB)",state.nbStatus,v=>setState(p=>({...p,nbStatus:v,nbSize:v==="seen"?p.nbSize:""})),[["","انتخاب وضعیت NB…"],["seen","NB رؤیت شد"],["notseen","NB رؤیت نشد"],["suboptimal","NB به‌خوبی قابل رؤیت نبود"]]),
+        state.nbStatus==="seen"?textField("طول NB (mm) — اختیاری",state.nbSize,v=>set("nbSize",v),"","number"):null,
         selectField("محل جفت",state.placenta,v=>set("placenta",v),[["anterior","قدامی"],["posterior","خلفی"],["fundal","فوندال"],["low","تحتانی"]]),
         selectField("نمای جفت",state.placentaAppearance,v=>set("placentaAppearance",v),[["normal","طبیعی"],["abnormal","غیرطبیعی"]]),
         textField("طول سرویکس شکمی (mm)",state.cervix,v=>set("cervix",v),"","number"),
@@ -22560,6 +22615,7 @@ function BppEngine(){
 }
 
 const engines=[
+ {id:"early",title:"بارداری اولیه؛ MSD، CRL و ارزیابی حیات",en:"Early pregnancy dating and viability",icon:"◌",keywords:"early pregnancy msd crl yolk sac viability miscarriage بارداری اولیه ساک شکست بارداری"},
  {id:"nt",title:"NT و آنومالی سه‌ماهه اول",en:"First-trimester screening",icon:"◉",keywords:"nt crl edd dating تاریخ زایمان سه ماهه اول آنومالی غربالگری"},
  {id:"anomaly",title:"آنومالی اسکن سه‌ماهه دوم",en:"Second-trimester anomaly scan",icon:"◎",keywords:"anomaly bpd hc ac fl آنومالی سه ماهه دوم"},
  {id:"fgr",title:"بیومتری، کالر داپلر، SGA و FGR",en:"Biometry and fetal Doppler",icon:"⌁",keywords:"fgr sga doppler ua mca cpr dv uterine رشد داپلر dating nt تاریخ سن بارداری"},
@@ -22568,12 +22624,12 @@ const engines=[
 function WomenPregnancyCore({goBack}){
  const [active,setActive]=React.useState(null);const [query,setQuery]=React.useState("");React.useEffect(()=>{try{window.scrollTo(0,0)}catch(_e){}},[active]);
  const visible=engines.filter(e=>(`${e.title} ${e.en} ${e.keywords}`).toLowerCase().includes(query.trim().toLowerCase()));
- if(active){const e=engines.find(x=>x.id===active);return h("main",{style:pageStyle},h("div",{style:shell},h(Header,{title:e.title,subtitle:e.en,onBack:()=>setActive(null)}),active==="nt"?h(NtEngine):active==="anomaly"?h(AnomalyEngine):active==="fgr"?h(FgrEngine):h(BppEngine)))}
- return h("main",{style:pageStyle},h("div",{style:shell},h(Header,{title:"زنان و بارداری",subtitle:"HN Women & Pregnancy Core — چهار موتور پرکاربرد + Pregnancy Dating",onBack:goBack}),
+ if(active){const e=engines.find(x=>x.id===active);return h("main",{style:pageStyle},h("div",{style:shell},h(Header,{title:e.title,subtitle:e.en,onBack:()=>setActive(null)}),active==="early"?h(EarlyPregnancyEngine):active==="nt"?h(NtEngine):active==="anomaly"?h(AnomalyEngine):active==="fgr"?h(FgrEngine):h(BppEngine)))}
+ return h("main",{style:pageStyle},h("div",{style:shell},h(Header,{title:"زنان و بارداری",subtitle:"HN Women & Pregnancy Core — پنج موتور تخصصی + Pregnancy Dating",onBack:goBack}),
   h("section",{style:panel},h("input",{style:{...input,fontSize:"16px"},value:query,onChange:e=>setQuery(e.target.value),placeholder:"جست‌وجو: NT، CRL، EDD، FGR، داپلر، BPP، آنومالی..."}),h("p",{style:{...small,marginBottom:0}},"موتورها بر پایه قالب‌های ارسالی انجمن رادیولوژی ایران طراحی شده‌اند و متن نهایی قبل از ذخیره و Word قابل ویرایش است.")),
   h("section",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:"14px",marginTop:"16px"}},visible.map(e=>h("button",{key:e.id,type:"button",onClick:()=>setActive(e.id),style:{textAlign:"right",background:"#1e293b",color:"white",border:"1px solid #475569",borderRadius:"16px",padding:"22px",cursor:"pointer",minHeight:"160px"}},h("div",{style:{fontSize:"38px",marginBottom:"10px",color:"#38bdf8"}},e.icon),h("div",{style:{fontSize:"20px",fontWeight:"bold"}},e.title),h("div",{style:{...small,marginTop:"8px"}},e.en)))),
   !visible.length?h("div",{style:{...panel,textAlign:"center",color:"#fbbf24"}},"موتوری با این عبارت پیدا نشد."):null,
-  h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("strong",null,"وضعیت نسخه:"),h("span",{style:{marginRight:"8px",color:"#86efac"}},"آزمایشی و آماده استفاده روی کیس‌های واقعی"),h("p",{style:{...small,marginBottom:0}},"Dating براساس CRL و EDD دو‌تقویمی فعال است. خروجی FGR در دو حالت متن ساده یا جدول و نمودار ارائه می‌شود. تشخیص خودکار FGR تنها پس از واردکردن داده‌های لازم و تأیید صریح رادیولوژیست وارد Impression می‌شود."))
+  h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("strong",null,"وضعیت نسخه:"),h("span",{style:{marginRight:"8px",color:"#86efac"}},"v2.6.0 — آماده استفاده کنترل‌شده"),h("p",{style:{...small,marginBottom:0}},"ماژول بارداری اولیه با MSD/CRL، معیارهای قطعی و مشکوک Early Pregnancy Loss و کنترل تأیید رادیولوژیست فعال است. در بخش NT نیز وضعیت NB و اندازه اختیاری آن افزوده شده است."))
  ));
 }
 exports.default = WomenPregnancyCore;
