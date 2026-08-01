@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="HN Radiology Suite v2.5.4 — Selectable Ultrasound Titles" />
-  <title>HN Radiology Suite v2.5.4</title>
+  <meta name="description" content="HN Radiology Suite v2.5.5 — Final Editor Stability Fix" />
+  <title>HN Radiology Suite v2.5.5</title>
   <style>
 * {
   box-sizing: border-box;
@@ -89,8 +89,8 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   "use strict";
   window.HN_APP=Object.freeze({
     name:"HN Radiology Suite",
-    version:"2.5.4",
-    versionLabel:"v2.5.4",
+    version:"2.5.5",
+    versionLabel:"v2.5.5",
     channel:"selectable-ultrasound-titles",
     architecture:"modular-source + bundled-production",
     buildDate:"2026-07-31"
@@ -134,14 +134,14 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   function exportReport(){
     const report={diagnostics:run(),events:events.slice()};
     const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.5.4_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`HN_v2.5.5_diagnostics_${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
-  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5.4 Stable":"v2.5.4 Check";}}
+  function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5.5 Stable":"v2.5.5 Check";}}
   function createUI(){
     if(document.getElementById("hn-stability-badge"))return;
-    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.5.4 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
+    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.5.5 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
     const panel=document.createElement("section");panel.id="hn-diagnostics-panel";panel.hidden=true;
-    panel.innerHTML='<h2>HN Diagnostics — v2.5.4</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
+    panel.innerHTML='<h2>HN Diagnostics — v2.5.5</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
     document.body.append(panel,badge);
     const render=()=>{document.getElementById("hn-diag-output").textContent=JSON.stringify(run(),null,2)};
     badge.addEventListener("click",()=>{panel.hidden=false;render()});
@@ -17714,25 +17714,37 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
     const textToHtml = value => escapeHtml(value).replace(/\n/g,"<br>");
     const [copyStatus, setCopyStatus] = React.useState("");
     const [editableReport, setEditableReport] = React.useState(generatedReport);
-    const [editableHtml, setEditableHtml] = React.useState(textToHtml(generatedReport));
     const [manuallyEdited, setManuallyEdited] = React.useState(false);
     const [includeImpression, setIncludeImpression] = React.useState(true);
     const [patientId, setPatientId] = React.useState("");
     const [patientName, setPatientName] = React.useState("");
     const [reportTitle, setReportTitle] = React.useState(() => normalizeUltrasoundTitle(examTitle));
     const editorRef = React.useRef(null);
+    // Keep the contentEditable DOM uncontrolled while the user is typing.
+    // Re-applying innerHTML on every keystroke moves the caret and corrupts RTL input.
+    const editorHtmlRef = React.useRef(textToHtml(generatedReport));
+    const attachEditor = React.useCallback(node => {
+        editorRef.current = node;
+        if (node) node.innerHTML = editorHtmlRef.current;
+    }, []);
     const lastGenerated = React.useRef(generatedReport);
+    const replaceEditorContent = value => {
+        const text = String(value || "");
+        const html = textToHtml(text);
+        editorHtmlRef.current = html;
+        setEditableReport(text);
+        if (editorRef.current && editorRef.current.innerHTML !== html) editorRef.current.innerHTML = html;
+    };
     React.useEffect(() => {
         setCopyStatus("");
-        setEditableReport(generatedReport);
-        setEditableHtml(textToHtml(generatedReport));
+        replaceEditorContent(generatedReport);
         setManuallyEdited(false);
     }, [sessionKey]);
     React.useEffect(() => {
         setReportTitle(normalizeUltrasoundTitle(examTitle));
     }, [examTitle, sessionKey]);
     React.useEffect(() => {
-        if (!manuallyEdited) { setEditableReport(generatedReport); setEditableHtml(textToHtml(generatedReport)); }
+        if (!manuallyEdited) replaceEditorContent(generatedReport);
         lastGenerated.current = generatedReport;
     }, [generatedReport, manuallyEdited]);
     const flash = (value, ms = 2400) => {
@@ -17760,7 +17772,6 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
     const syncEditor = () => {
         const value = editorText();
         setEditableReport(value);
-        if (editorRef.current) setEditableHtml(editorRef.current.innerHTML);
         setManuallyEdited(true);
         setCopyStatus("");
     };
@@ -17777,14 +17788,14 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
             if (!String(current[key] || "").trim() || String(current[key] || "").trim() === String(previous[key] || "").trim()) current[key] = next[key];
         });
         const merged = buildGeneratedReport(current.finding, includeImpression ? current.impression : "", current.recommendation);
-        setEditableReport(merged); setEditableHtml(textToHtml(merged)); setManuallyEdited(true); lastGenerated.current = generatedReport;
+        replaceEditorContent(merged); setManuallyEdited(true); lastGenerated.current = generatedReport;
         flash("بخش‌های ویرایش‌نشده به‌روزرسانی شدند");
     };
     const rebuildAll = () => {
         if (manuallyEdited && !window.confirm("بازسازی کامل، همه ویرایش‌های دستی متن را حذف می‌کند. ادامه می‌دهید؟")) return;
         const sections = splitReportText(generatedReport);
         const value = buildGeneratedReport(sections.finding, includeImpression ? sections.impression : "", sections.recommendation);
-        setEditableReport(value); setEditableHtml(textToHtml(value)); setManuallyEdited(false); flash("گزارش کامل بازسازی شد");
+        replaceEditorContent(value); setManuallyEdited(false); flash("گزارش کامل بازسازی شد");
     };
     const printReport = () => {
         const text = editorText();
@@ -17793,7 +17804,7 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         if (!win) return flash("پنجره چاپ توسط مرورگر مسدود شد");
         const tables = wordExtras && Array.isArray(wordExtras.tables) ? wordExtras.tables.map(t => `<section><h2>${t.title||""}</h2><table><thead><tr>${(t.headers||[]).map(v=>`<th>${v}</th>`).join("")}</tr></thead><tbody>${(t.rows||[]).map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`).join("") : "";
         const images = wordExtras && Array.isArray(wordExtras.images) ? wordExtras.images.map(x => `<img src="${x.dataUrl || x.src || ""}" style="max-width:100%;page-break-inside:avoid;margin:16px 0">`).join("") : "";
-        const reportHtml = editorRef.current ? editorRef.current.innerHTML : editableHtml;
+        const reportHtml = editorRef.current ? editorRef.current.innerHTML : editorHtmlRef.current;
         const safeReportTitle = escapeHtml(reportTitle.trim());
         const safePatientName = escapeHtml(patientName.trim());
         const safePatientId = escapeHtml(patientId.trim());
@@ -17865,7 +17876,7 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
         catch (_a) { flash("ساخت فایل Word انجام نشد", 3500); }
     };
     const resetGeneratedText = () => {
-        setEditableReport(generatedReport);
+        replaceEditorContent(generatedReport);
         setManuallyEdited(false);
         flash("متن تولیدشده بازیابی شد");
     };
@@ -17913,16 +17924,18 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
             h("button",{type:"button",onClick:()=>command("undo")},"Undo"),
             h("button",{type:"button",onClick:()=>command("redo")},"Redo"),
             h("button",{type:"button",onClick:()=>command("removeFormat")},"پاک‌کردن قالب"),
-            h("button",{type:"button",onClick:()=>{const q=prompt("عبارت مورد نظر برای جست‌وجو");if(!q)return;const v=prompt("جایگزین با");if(v===null)return;const next=editorText().split(q).join(v);setEditableReport(next);setEditableHtml(textToHtml(next));setManuallyEdited(true)}},"Find & Replace"),
+            h("button",{type:"button",onClick:()=>{const q=prompt("عبارت مورد نظر برای جست‌وجو");if(!q)return;const v=prompt("جایگزین با");if(v===null)return;const next=editorText().split(q).join(v);replaceEditorContent(next);setManuallyEdited(true)}},"Find & Replace"),
             h("button",{type:"button",onClick:()=>command("insertText","در سایر قسمت‌ها یافته پاتولوژیک بارزی مشاهده نشد.")},"عبارت آماده")
         ),
-        manuallyEdited && h("p", { style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0 } }, "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید."),
+        h("p", {
+            style: { color: "#fbbf24", fontSize: "12px", marginBottom: 0, minHeight: "22px", visibility: manuallyEdited ? "visible" : "hidden" },
+            "aria-live": "polite"
+        }, manuallyEdited ? "متن نهایی به‌صورت دستی ویرایش شده است. برای دریافت دوباره متن فرم‌ها، دکمه «بازنشانی متن تولیدشده» را بزنید." : "متن نهایی ویرایش نشده است."),
         h("div", {
-            ref: editorRef, contentEditable: true, suppressContentEditableWarning: true,
+            ref: attachEditor, contentEditable: true, suppressContentEditableWarning: true,
             onInput: syncEditor,
             style: Object.assign({}, textareaStyle, { marginTop: "14px", overflow:"auto" }),
-            spellCheck: false, "aria-label": "گزارش نهایی",
-            dangerouslySetInnerHTML:{__html:editableHtml}
+            spellCheck: false, "aria-label": "گزارش نهایی"
         }),
         h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word شامل متن گزارش، جدول‌های محاسباتی و نمودارهای رشد است. هیچ Patient ID یا اطلاعات هویتی به گزارش افزوده نمی‌شود." : "گزارش نهایی فقط در یک باکس نمایش داده می‌شود و هیچ Patient ID، تاریخ، ساعت یا عنوان اضافی به متن آن افزوده نمی‌شود.")
     );
@@ -18110,7 +18123,7 @@ function Home({ goUltrasound, goDoppler, goObGyn, goReports }) {
                 ),
                 h("section", { className: "hn-hero" },
                     h("div", { className: "hn-copy" },
-                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.5.4")),
+                        h("div", { className: "hn-kicker" }, h("span", { "aria-hidden": "true" }, "✦"), "HN Radiology Suite " + ((window.HN_APP && window.HN_APP.versionLabel) || "v2.5.5")),
                         h("h1", { className: "hn-title" }, "گزارش‌نویسی هوشمند", h("span", null, "سونوگرافی")),
                         h("p", { className: "hn-lead" }, "سریع‌تر، دقیق‌تر و حرفه‌ای‌تر؛ با دستیار ساختاریافته گزارش‌نویسی رادیولوژی"),
                         h("div", { className: "hn-feature-row" },
