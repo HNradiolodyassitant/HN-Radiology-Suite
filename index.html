@@ -89,8 +89,8 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   "use strict";
   window.HN_APP=Object.freeze({
     name:"HN Radiology Suite",
-    version:"2.6.0",
-    versionLabel:"v2.6.0",
+    version:"2.6.1",
+    versionLabel:"v2.6.1",
     channel:"selectable-ultrasound-titles",
     architecture:"modular-source + bundled-production",
     buildDate:"2026-07-31"
@@ -139,7 +139,7 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   function updateBadge(state){const b=document.getElementById("hn-stability-badge");if(b){b.dataset.state=state;b.textContent=state==="ok"?"v2.5.4 Stable":"v2.5.4 Check";}}
   function createUI(){
     if(document.getElementById("hn-stability-badge"))return;
-    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.6.0 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
+    const badge=document.createElement("button");badge.id="hn-stability-badge";badge.type="button";badge.textContent="v2.6.1 Stable";badge.dataset.state="ok";badge.title="وضعیت و اطلاعات فنی نسخه";
     const panel=document.createElement("section");panel.id="hn-diagnostics-panel";panel.hidden=true;
     panel.innerHTML='<h2>HN Diagnostics — v2.5.4</h2><p>این صفحه فقط اطلاعات فنی مرورگر و وضعیت ماژول‌ها را نشان می‌دهد و اطلاعات بیمار را ارسال نمی‌کند.</p><div><button type="button" id="hn-diag-refresh">بازبینی</button><button type="button" id="hn-diag-export">ذخیره گزارش فنی</button><button type="button" id="hn-diag-close">بستن</button></div><pre id="hn-diag-output"></pre>';
     document.body.append(panel,badge);
@@ -17735,6 +17735,11 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         if (!manuallyEdited) { setEditableReport(generatedReport); setEditableHtml(textToHtml(generatedReport)); }
         lastGenerated.current = generatedReport;
     }, [generatedReport, manuallyEdited]);
+    React.useEffect(() => {
+        const editor = editorRef.current;
+        if (!editor || editor.innerHTML === editableHtml) return;
+        editor.innerHTML = editableHtml;
+    }, [editableHtml]);
     const flash = (value, ms = 2400) => {
         setCopyStatus(value);
         window.setTimeout(() => setCopyStatus(""), ms);
@@ -17748,12 +17753,12 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         }
     };
     const validate = () => {
-        if (!editableReport.trim()) { flash("متن گزارش هنوز خالی است"); return false; }
+        if (!editorText()) { flash("متن گزارش هنوز خالی است"); return false; }
         return true;
     };
     const copyReport = async () => {
         if (!validate()) return;
-        await copyText(editableReport.trim());
+        await copyText(editorText());
         flash("گزارش کپی شد");
     };
     const editorText = () => editorRef.current ? String(editorRef.current.innerText || "").trim() : editableReport.trim();
@@ -17867,6 +17872,7 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
     };
     const resetGeneratedText = () => {
         setEditableReport(generatedReport);
+        setEditableHtml(textToHtml(generatedReport));
         setManuallyEdited(false);
         flash("متن تولیدشده بازیابی شد");
     };
@@ -17922,8 +17928,7 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
             ref: editorRef, contentEditable: true, suppressContentEditableWarning: true,
             onInput: syncEditor,
             style: Object.assign({}, textareaStyle, { marginTop: "14px", overflow:"auto" }),
-            spellCheck: false, "aria-label": "گزارش نهایی",
-            dangerouslySetInnerHTML:{__html:editableHtml}
+            spellCheck: false, "aria-label": "گزارش نهایی"
         }),
         h("p", { style: { color: "#94a3b8", fontSize: "12px", lineHeight: 1.8, marginBottom: 0 } }, wordExtras ? "فایل Word شامل متن گزارش، جدول‌های محاسباتی و نمودارهای رشد است. هیچ Patient ID یا اطلاعات هویتی به گزارش افزوده نمی‌شود." : "گزارش نهایی فقط در یک باکس نمایش داده می‌شود و هیچ Patient ID، تاریخ، ساعت یا عنوان اضافی به متن آن افزوده نمی‌شود.")
     );
@@ -22629,7 +22634,7 @@ function WomenPregnancyCore({goBack}){
   h("section",{style:panel},h("input",{style:{...input,fontSize:"16px"},value:query,onChange:e=>setQuery(e.target.value),placeholder:"جست‌وجو: NT، CRL، EDD، FGR، داپلر، BPP، آنومالی..."}),h("p",{style:{...small,marginBottom:0}},"موتورها بر پایه قالب‌های ارسالی انجمن رادیولوژی ایران طراحی شده‌اند و متن نهایی قبل از ذخیره و Word قابل ویرایش است.")),
   h("section",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:"14px",marginTop:"16px"}},visible.map(e=>h("button",{key:e.id,type:"button",onClick:()=>setActive(e.id),style:{textAlign:"right",background:"#1e293b",color:"white",border:"1px solid #475569",borderRadius:"16px",padding:"22px",cursor:"pointer",minHeight:"160px"}},h("div",{style:{fontSize:"38px",marginBottom:"10px",color:"#38bdf8"}},e.icon),h("div",{style:{fontSize:"20px",fontWeight:"bold"}},e.title),h("div",{style:{...small,marginTop:"8px"}},e.en)))),
   !visible.length?h("div",{style:{...panel,textAlign:"center",color:"#fbbf24"}},"موتوری با این عبارت پیدا نشد."):null,
-  h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("strong",null,"وضعیت نسخه:"),h("span",{style:{marginRight:"8px",color:"#86efac"}},"v2.6.0 — آماده استفاده کنترل‌شده"),h("p",{style:{...small,marginBottom:0}},"ماژول بارداری اولیه با MSD/CRL، معیارهای قطعی و مشکوک Early Pregnancy Loss و کنترل تأیید رادیولوژیست فعال است. در بخش NT نیز وضعیت NB و اندازه اختیاری آن افزوده شده است."))
+  h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("strong",null,"وضعیت نسخه:"),h("span",{style:{marginRight:"8px",color:"#86efac"}},"v2.6.1 — آماده استفاده کنترل‌شده"),h("p",{style:{...small,marginBottom:0}},"ماژول بارداری اولیه با MSD/CRL، معیارهای قطعی و مشکوک Early Pregnancy Loss و کنترل تأیید رادیولوژیست فعال است. در بخش NT نیز وضعیت NB و اندازه اختیاری آن افزوده شده است."))
  ));
 }
 exports.default = WomenPregnancyCore;
