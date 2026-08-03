@@ -89,11 +89,11 @@ html{background:#0f172a} input,select,textarea{font-family:Arial,Tahoma,sans-ser
   "use strict";
   window.HN_APP=Object.freeze({
     name:"HN Radiology Suite",
-    version:"2.7.0",
-    versionLabel:"v2.7.0",
-    channel:"breast-imaging",
+    version:"2.8.0",
+    versionLabel:"v2.8.0",
+    channel:"advanced-vascular-doppler",
     architecture:"modular-source + bundled-production",
-    buildDate:"2026-08-02"
+    buildDate:"2026-08-03"
   });
 })();
 
@@ -21690,6 +21690,391 @@ exports.default = VaricoceleCard;
 };
 
 
+/* module: src/components/Doppler/VisceralDopplerCards.jsx */
+__modules["src/components/Doppler/VisceralDopplerCards.jsx"] = function(module, exports, require){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = require("react");
+const h = React.createElement;
+const ReportOutput = require("../Common/ReportOutput.jsx").default;
+const panel={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"16px",marginTop:"16px"};
+const sub={background:"#111827",border:"1px solid #475569",borderRadius:"12px",padding:"14px",marginTop:"12px"};
+const grid={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(185px,1fr))",gap:"10px",marginTop:"10px"};
+const inp={width:"100%",padding:"9px 10px",borderRadius:"8px",border:"1px solid #64748b",background:"#f8fafc",color:"#0f172a",marginTop:"5px"};
+const lab={display:"grid",gap:"4px",alignContent:"start"};
+const muted={color:"#cbd5e1",lineHeight:1.9};
+const small={color:"#94a3b8",fontSize:"12px",lineHeight:1.8};
+const btn=(active)=>({padding:"10px 13px",borderRadius:"9px",border:active?"2px solid #38bdf8":"1px solid #64748b",background:active?"#0369a1":"#334155",color:"white",cursor:"pointer"});
+const num=v=>{const n=Number.parseFloat(v);return Number.isFinite(n)?n:null};
+const fa=v=>{const n=num(v);return n===null?"":new Intl.NumberFormat("fa-IR",{maximumFractionDigits:2}).format(n)};
+const en=v=>{const n=num(v);return n===null?"":new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(n)};
+const field=(label,value,onChange,placeholder="",type="text")=>h("label",{style:lab},label,h("input",{style:inp,type,value,onChange:e=>onChange(e.target.value),placeholder}));
+const select=(label,value,onChange,options)=>h("label",{style:lab},label,h("select",{style:inp,value,onChange:e=>onChange(e.target.value)},options.map(o=>h("option",{key:o[0],value:o[0]},o[1]))));
+const area=(label,value,onChange,placeholder="")=>h("label",{style:{...lab,gridColumn:"1 / -1"}},label,h("textarea",{style:{...inp,minHeight:"72px",resize:"vertical",direction:"rtl",textAlign:"right"},value,onChange:e=>onChange(e.target.value),placeholder}));
+const check=(label,value,onChange)=>h("label",{style:{display:"flex",gap:"7px",alignItems:"flex-start",lineHeight:1.8}},h("input",{type:"checkbox",checked:value,onChange:e=>onChange(e.target.checked),style:{marginTop:"6px"}}),label);
+const controls=(state,setState)=>h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},
+  h("div",{style:{display:"flex",gap:"7px",flexWrap:"wrap",alignItems:"center"}},h("strong",null,"زبان خروجی:"),[["fa","فارسی"],["en","English"],["bilingual","فارسی + English"]].map(x=>h("button",{key:x[0],type:"button",style:btn(state.language===x[0]),onClick:()=>setState(s=>({...s,language:x[0]}))},x[1]))));
+const combine=(a,b)=>"گزارش فارسی:\n"+a+"\n\nEnglish Report:\n"+b;
+const choose=(language,a,b)=>language==="fa"?a:language==="en"?b:combine(a,b);
+function ReportBlock({report,title}){
+ return h(React.Fragment,null,
+  report.warnings&&report.warnings.length?h("div",{style:{...panel,background:"#451a03",border:"1px solid #f59e0b",color:"#fde68a"}},h("strong",null,"کنترل تکمیل داده‌ها و تناقض‌ها"),h("ul",{style:{marginBottom:0}},report.warnings.map((w,i)=>h("li",{key:i},w)))):null,
+  h(ReportOutput,{finding:report.finding,impression:report.impression,recommendation:report.recommendation,examTitle:title})
+ );
+}
+
+const renalBlank=()=>({
+ length:"",originPsv:"",originEdv:"",proxPsv:"",proxEdv:"",midPsv:"",midEdv:"",distPsv:"",distEdv:"",hilarPsv:"",
+ riUpper:"",riMid:"",riLower:"",accelerationTime:"",accessory:"none",accessoryPsv:"",vein:"patent",
+ status:"auto",stent:false,stentPsv:"",parenchyma:"normal",additional:""
+});
+const renalInitial=()=>({language:"fa",fasting:true,aortaPsv:"",aortaStatus:"normal",right:renalBlank(),left:renalBlank(),limitation:false,limitationText:"",additionalFinding:"",additionalImpression:"",additionalRecommendation:""});
+const renalStatusOptions=[["auto","پیشنهاد خودکار؛ تأیید با رادیولوژیست"],["normal","بدون تنگی همودینامیک مهم"],["lt60","تنگی کمتر از ۶۰٪"],["ge60","تنگی ≥۶۰٪"],["severe","تنگی شدید / near occlusion"],["occluded","انسداد"],["fmd","الگوی مشکوک به FMD"],["stent_restenosis","restenosis داخل stent"],["indeterminate","نامعین / بررسی ناکافی"]];
+function renalMetrics(d,aortaPsv){
+ const ps=[d.originPsv,d.proxPsv,d.midPsv,d.distPsv].map(num).filter(v=>v!==null);
+ const maxPsv=ps.length?Math.max(...ps):null,a=num(aortaPsv),rar=maxPsv!==null&&a&&a>0?maxPsv/a:null;
+ const ris=[d.riUpper,d.riMid,d.riLower].map(num).filter(v=>v!==null),meanRi=ris.length?ris.reduce((x,y)=>x+y,0)/ris.length:null;
+ let suggestion="insufficient";
+ if(maxPsv!==null&&rar!==null) suggestion=maxPsv>=200&&rar>=3.5?"ge60":maxPsv>=180||rar>=3.5?"borderline":"normal";
+ return {maxPsv,rar,meanRi,suggestion};
+}
+function RenalSide({side,d,set,aortaPsv}){
+ const m=renalMetrics(d,aortaPsv),sideFa=side==="right"?"راست":"چپ";
+ const put=(k,v)=>set({...d,[k]:v});
+ const sug=m.suggestion==="ge60"?"مشکوک به تنگی ≥۶۰٪":m.suggestion==="borderline"?"مرزی/نیازمند تطبیق":m.suggestion==="normal"?"بدون معیار مستقیم واضح":"داده ناکافی";
+ return h("section",{style:{...panel,border:"1px solid #0ea5e9"}},
+  h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap",alignItems:"center"}},h("h2",{style:{margin:0}},"عروق کلیه "+sideFa),h("span",{style:{background:"#075985",padding:"5px 10px",borderRadius:"999px"}},"پیشنهاد: "+sug)),
+  h("div",{style:grid},
+   field("طول کلیه (mm)",d.length,v=>put("length",v),"","number"),
+   select("نتیجه نهایی این سمت",d.status,v=>put("status",v),renalStatusOptions),
+   select("ورید کلیوی",d.vein,v=>put("vein",v),[["patent","باز با جریان طبیعی"],["thrombosed","ترومبوز"],["not_seen","به‌خوبی دیده نشد"]]),
+   select("اکوی پارانشیم",d.parenchyma,v=>put("parenchyma",v),[["normal","طبیعی"],["increased","افزایش یافته"],["thinned","کاهش ضخامت پارانشیم"],["abnormal","غیرطبیعی"]])
+  ),
+  h("div",{style:sub},h("h3",{style:{marginTop:0}},"Main renal artery velocities"),
+   h("div",{style:grid},
+    field("Origin PSV (cm/s)",d.originPsv,v=>put("originPsv",v),"","number"),field("Origin EDV",d.originEdv,v=>put("originEdv",v),"","number"),
+    field("Proximal PSV",d.proxPsv,v=>put("proxPsv",v),"","number"),field("Proximal EDV",d.proxEdv,v=>put("proxEdv",v),"","number"),
+    field("Mid PSV",d.midPsv,v=>put("midPsv",v),"","number"),field("Mid EDV",d.midEdv,v=>put("midEdv",v),"","number"),
+    field("Distal PSV",d.distPsv,v=>put("distPsv",v),"","number"),field("Distal EDV",d.distEdv,v=>put("distEdv",v),"","number"),
+    field("Hilar PSV",d.hilarPsv,v=>put("hilarPsv",v),"","number")
+   ),
+   h("p",{style:{...small,marginBottom:0}},"Max PSV: "+(m.maxPsv===null?"—":en(m.maxPsv)+" cm/s")+" | RAR: "+(m.rar===null?"—":en(m.rar)))
+  ),
+  h("div",{style:sub},h("h3",{style:{marginTop:0}},"Intrarenal indices"),
+   h("div",{style:grid},field("Upper pole RI",d.riUpper,v=>put("riUpper",v),"","number"),field("Mid pole RI",d.riMid,v=>put("riMid",v),"","number"),field("Lower pole RI",d.riLower,v=>put("riLower",v),"","number"),field("Acceleration time (ms)",d.accelerationTime,v=>put("accelerationTime",v),"","number")),
+   h("p",{style:{...small,marginBottom:0}},"Mean RI: "+(m.meanRi===null?"—":en(m.meanRi)))
+  ),
+  h("div",{style:sub},
+   h("div",{style:grid},
+    select("Accessory renal artery",d.accessory,v=>put("accessory",v),[["none","مشاهده نشد"],["patent","وجود دارد و باز است"],["stenotic","وجود دارد و مشکوک به تنگی است"],["not_assessed","بررسی نشد"]]),
+    d.accessory==="patent"||d.accessory==="stenotic"?field("Accessory PSV (cm/s)",d.accessoryPsv,v=>put("accessoryPsv",v),"","number"):null
+   ),
+   check("Renal artery stent وجود دارد",d.stent,v=>put("stent",v)),
+   d.stent?h("div",{style:grid},field("Maximum in-stent PSV",d.stentPsv,v=>put("stentPsv",v),"","number")):null
+  ),
+  h("div",{style:grid},area("یافته آزاد این سمت",d.additional,v=>put("additional",v)))
+ );
+}
+function renalLabel(code,faLang){
+ const x={
+  normal:["شواهدی از تنگی همودینامیک مهم شریان کلیوی مشاهده نشد","No hemodynamically significant renal artery stenosis"],
+  lt60:["تنگی کمتر از ۶۰٪ شریان کلیوی","Less than 60% renal artery stenosis"],
+  ge60:["تنگی همودینامیک معنی‌دار (حداقل ۶۰٪) شریان کلیوی","Hemodynamically significant renal artery stenosis (at least 60%)"],
+  severe:["تنگی شدید / نزدیک به انسداد شریان کلیوی","Severe/near-occlusive renal artery stenosis"],
+  occluded:["انسداد شریان کلیوی","Renal artery occlusion"],fmd:["الگوی داپلر مشکوک به فیبروموسکولار دیسپلازی","Doppler pattern suspicious for fibromuscular dysplasia"],
+  stent_restenosis:["یافته‌های مشکوک به restenosis داخل stent شریان کلیوی","Findings suspicious for renal artery in-stent restenosis"],
+  indeterminate:["ارزیابی شریان کلیوی نامعین/محدود است","Indeterminate/limited renal artery assessment"]
+ };return (x[code]||x.indeterminate)[faLang?0:1];
+}
+function buildRenal(state){
+ const ff=[],fi=[],fr=[],ef=[],ei=[],er=[],warnings=[],a=num(state.aortaPsv);
+ ff.push("بررسی داپلکس عروق کلیوی دوطرفه با B-mode، Color و Spectral Doppler انجام شد.");ef.push("Bilateral renal vascular duplex examination was performed using B-mode, color, and spectral Doppler.");
+ if(state.fasting){ff.push("بررسی در وضعیت ناشتایی انجام شد.");ef.push("The examination was performed after fasting.");}
+ if(a!==null){ff.push("PSV آئورت در سطح منشأ شریان‌های کلیوی "+fa(a)+" سانتی‌متر بر ثانیه است.");ef.push("Aortic PSV at the renal artery origins is "+en(a)+" cm/s.");if(a<40||a>100)warnings.push("PSV آئورت خارج از محدوده معمول 40–100 cm/s است؛ RAR ممکن است قابل اتکا نباشد.");}
+ ["right","left"].forEach(side=>{
+  const d=state[side],m=renalMetrics(d,state.aortaPsv),sf=side==="right"?"راست":"چپ",se=side;
+  if(d.length) {ff.push("طول کلیه "+sf+" "+fa(d.length)+" میلی‌متر است.");ef.push("The "+se+" kidney measures "+en(d.length)+" mm in length.");}
+  const vals=[["origin",d.originPsv,d.originEdv],["proximal",d.proxPsv,d.proxEdv],["mid",d.midPsv,d.midEdv],["distal",d.distPsv,d.distEdv]].filter(x=>x[1]||x[2]);
+  if(vals.length){ff.push("سرعت‌های شریان کلیوی "+sf+": "+vals.map(x=>x[0]+" PSV/EDV "+fa(x[1])+"/"+fa(x[2])+" cm/s").join("، ")+".");ef.push(se[0].toUpperCase()+se.slice(1)+" renal artery velocities: "+vals.map(x=>x[0]+" PSV/EDV "+en(x[1])+"/"+en(x[2])+" cm/s").join(", ")+".");}
+  if(m.maxPsv!==null) {ff.push("حداکثر PSV شریان کلیوی "+sf+" "+fa(m.maxPsv)+" cm/s"+(m.rar!==null?" و RAR برابر "+fa(m.rar):"")+" است.");ef.push("Maximum "+se+" renal artery PSV is "+en(m.maxPsv)+" cm/s"+(m.rar!==null?", with RAR "+en(m.rar):"")+".");}
+  if(m.meanRi!==null){ff.push("میانگین RI داخل پارانشیمی کلیه "+sf+" برابر "+fa(m.meanRi)+(d.accelerationTime?" و acceleration time برابر "+fa(d.accelerationTime)+" ms":"")+" است.");ef.push("Mean intrarenal RI on the "+se+" is "+en(m.meanRi)+(d.accelerationTime?", with acceleration time "+en(d.accelerationTime)+" ms":"")+".");if(m.meanRi>0.8)warnings.push("RI متوسط کلیه "+sf+" بیش از 0.80 است؛ تطبیق با سن، بیماری پارانشیمی و شرایط همودینامیک انجام شود.");}
+  if(d.vein==="patent"){ff.push("ورید کلیوی "+sf+" باز است.");ef.push("The "+se+" renal vein is patent.");} else if(d.vein==="thrombosed"){ff.push("ترومبوز ورید کلیوی "+sf+" مشاهده شد.");ef.push("Right/left renal vein thrombosis is present on the "+se+".");fi.push("ترومبوز ورید کلیوی "+sf+".");ei.push(se[0].toUpperCase()+se.slice(1)+" renal vein thrombosis.");}
+  if(d.accessory==="patent"||d.accessory==="stenotic"){ff.push("شریان کلیوی فرعی در سمت "+sf+" مشاهده شد"+(d.accessoryPsv?"؛ PSV: "+fa(d.accessoryPsv)+" cm/s":"")+(d.accessory==="stenotic"?" و مشکوک به تنگی است":" و باز است")+".");ef.push("An accessory "+se+" renal artery is identified"+(d.accessoryPsv?", PSV "+en(d.accessoryPsv)+" cm/s":"")+(d.accessory==="stenotic"?", suspicious for stenosis":", and is patent")+".");}
+  if(d.stent){ff.push("stent شریان کلیوی "+sf+" بررسی شد"+(d.stentPsv?"؛ حداکثر PSV داخل stent برابر "+fa(d.stentPsv)+" cm/s است":"")+".");ef.push("The "+se+" renal artery stent was assessed"+(d.stentPsv?", with maximum in-stent PSV "+en(d.stentPsv)+" cm/s":"")+".");}
+  let final=d.status;if(final==="auto")final=m.suggestion==="ge60"?"ge60":m.suggestion==="normal"?"normal":"indeterminate";
+  fi.push(renalLabel(final,true)+" سمت "+sf+".");ei.push(renalLabel(final,false)+" on the "+se+".");
+  if(d.status==="auto"&&m.suggestion==="borderline")warnings.push("معیارهای مستقیم سمت "+sf+" مرزی است؛ نتیجه نهایی را با waveform، تکنیک و معیار آزمایشگاه تأیید کنید.");
+  if(final==="ge60"&&!(m.maxPsv!==null&&m.maxPsv>=180))warnings.push("تنگی ≥۶۰٪ سمت "+sf+" انتخاب شده ولی PSV بالا ثبت نشده است؛ داده‌ها بازبینی شوند.");
+  if(d.additional.trim()){ff.push(d.additional.trim());ef.push(d.additional.trim());}
+ });
+ if(state.limitation){ff.push("مطالعه به علت "+(state.limitationText||"محدودیت تکنیکی")+" محدود است.");ef.push("The study is limited by "+(state.limitationText||"technical factors")+".");}
+ if(state.additionalFinding.trim()){ff.push(state.additionalFinding.trim());ef.push(state.additionalFinding.trim());}
+ if(state.additionalImpression.trim()){fi.push(state.additionalImpression.trim());ei.push(state.additionalImpression.trim());}
+ if(state.additionalRecommendation.trim()){fr.push(state.additionalRecommendation.trim());er.push(state.additionalRecommendation.trim());}
+ const significant=fi.some(x=>/۶۰|شدید|انسداد|ترومبوز|FMD|stent/i.test(x));if(significant&&!fr.length){fr.push("تطبیق با شرح حال و فشار خون و در صورت تأیید بالینی، ارزیابی تکمیلی با CTA/MRA یا آنژیوگرافی توصیه می‌شود.");er.push("Correlation with clinical findings and blood pressure is recommended; CTA/MRA or angiography may be considered when clinically indicated.");}
+ return {finding:choose(state.language,ff.join("\n\n"),ef.join("\n\n")),impression:choose(state.language,fi.join("\n"),ei.join("\n")),recommendation:choose(state.language,fr.join("\n"),er.join("\n")),warnings};
+}
+function RenalVascularCard(){
+ const[state,setState]=React.useState(renalInitial);const report=React.useMemo(()=>buildRenal(state),[state]);const put=(side,d)=>setState(s=>({...s,[side]:d}));
+ return h("div",null,
+  h("section",{style:panel},h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"}},h("div",null,h("h1",{style:{margin:"0 0 6px"}},"Renal Vascular Duplex"),h("p",{style:{...muted,margin:0}},"شریان‌های اصلی و فرعی، RAR، شاخص‌های داخل‌کلیوی و وریدهای کلیوی")),h("button",{type:"button",style:btn(false),onClick:()=>setState(renalInitial())},"پاک‌کردن فرم")),controls(state,setState),
+   h("div",{style:grid},field("Aortic PSV at renal origins (cm/s)",state.aortaPsv,v=>setState(s=>({...s,aortaPsv:v})),"","number"),select("وضعیت آئورت",state.aortaStatus,v=>setState(s=>({...s,aortaStatus:v})),[["normal","طبیعی"],["atherosclerotic","آترواسکلروتیک"],["aneurysmal","آنوریسمال"],["not_seen","به‌خوبی دیده نشد"]])),
+   h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},check("بیمار ناشتا بوده است",state.fasting,v=>setState(s=>({...s,fasting:v}))),check("محدودیت تکنیکی وجود دارد",state.limitation,v=>setState(s=>({...s,limitation:v})))),
+   state.limitation?h("div",{style:grid},area("شرح محدودیت",state.limitationText,v=>setState(s=>({...s,limitationText:v})))):null
+  ),
+  h(RenalSide,{side:"right",d:state.right,set:d=>put("right",d),aortaPsv:state.aortaPsv}),h(RenalSide,{side:"left",d:state.left,set:d=>put("left",d),aortaPsv:state.aortaPsv}),
+  h("section",{style:panel},h("div",{style:grid},area("یافته تکمیلی",state.additionalFinding,v=>setState(s=>({...s,additionalFinding:v}))),area("نتیجه‌گیری تکمیلی",state.additionalImpression,v=>setState(s=>({...s,additionalImpression:v}))),area("Recommendation تکمیلی",state.additionalRecommendation,v=>setState(s=>({...s,additionalRecommendation:v}))))),
+  h(ReportBlock,{report,title:"سونوگرافی کالر داپلر عروق کلیوی"})
+ );
+}
+
+const abdominalInitial=()=>({
+ language:"fa",fasting:true,includeAorta:true,includeMesenteric:true,includePortal:true,limitation:false,limitationText:"",
+ aortaProxAp:"",aortaProxTr:"",aortaMidAp:"",aortaMidTr:"",aortaDistAp:"",aortaDistTr:"",ciaR:"",ciaL:"",aortaPlaque:"none",aortaStatus:"normal",aortaPsv:"",aneurysmLength:"",muralThrombus:false,dissection:false,
+ celiacPsv:"",celiacEdv:"",celiacStatus:"normal",celiacInspPsv:"",celiacUprightPsv:"",smaOriginPsv:"",smaOriginEdv:"",smaMidPsv:"",smaDistPsv:"",smaStatus:"normal",imaPsv:"",imaStatus:"normal",hepaticDirection:"antegrade",splenicArtery:"patent",smv:"patent",
+ portalDiameter:"",portalVelocity:"",portalDirection:"hepatopetal",portalThrombus:"none",rightPortal:"patent",leftPortal:"patent",splenicVein:"patent",hepaticVeins:"triphasic",ivc:"patent",hepaticPsv:"",hepaticRi:"",collaterals:false,recanalizedUmbilical:false,spleenLength:"",ascites:false,
+ additionalFinding:"",additionalImpression:"",additionalRecommendation:""
+});
+function buildAbdominal(s){
+ const ff=[],fi=[],fr=[],ef=[],ei=[],er=[],warnings=[];
+ ff.push("بررسی عروق شکمی با B-mode، Color و Spectral Doppler انجام شد.");ef.push("Abdominal vascular duplex examination was performed using B-mode, color, and spectral Doppler.");
+ if(s.fasting){ff.push("بررسی در وضعیت ناشتایی انجام شد.");ef.push("The examination was performed after fasting.");}
+ if(s.includeAorta){
+  const dims=[["پروگزیمال","proximal",s.aortaProxAp,s.aortaProxTr],["میانی","mid",s.aortaMidAp,s.aortaMidTr],["دیستال","distal",s.aortaDistAp,s.aortaDistTr]].filter(x=>x[2]||x[3]);
+  if(dims.length){ff.push("ابعاد آئورت شکمی outer-to-outer: "+dims.map(x=>x[0]+" AP/TR "+fa(x[2])+"/"+fa(x[3])+" میلی‌متر").join("، ")+".");ef.push("Outer-to-outer abdominal aortic dimensions: "+dims.map(x=>x[1]+" AP/TR "+en(x[2])+"/"+en(x[3])+" mm").join(", ")+".");}
+  if(s.ciaR||s.ciaL){ff.push("قطر شریان‌های ایلیاک مشترک راست/چپ "+fa(s.ciaR)+"/"+fa(s.ciaL)+" میلی‌متر است.");ef.push("Right/left common iliac diameters are "+en(s.ciaR)+"/"+en(s.ciaL)+" mm.");}
+  if(s.aortaPsv){ff.push("PSV آئورت شکمی "+fa(s.aortaPsv)+" cm/s است.");ef.push("Abdominal aortic PSV is "+en(s.aortaPsv)+" cm/s.");}
+  if(s.aortaPlaque!=="none"){const p=s.aortaPlaque==="mild"?"خفیف":s.aortaPlaque==="moderate"?"متوسط":"شدید";ff.push("پلاک آترواسکلروتیک "+p+" در آئورت/ایلیاک‌ها مشاهده شد.");ef.push((p==="خفیف"?"Mild":p==="متوسط"?"Moderate":"Severe")+" aortoiliac atherosclerotic plaque is present.");}
+  if(s.aortaStatus==="normal"){fi.push("کالیبر آئورت شکمی و شریان‌های ایلیاک مشترک در محدوده طبیعی است.");ei.push("Normal caliber abdominal aorta and common iliac arteries.");}
+  if(s.aortaStatus==="ectatic"){fi.push("اکتازی آئورت شکمی.");ei.push("Abdominal aortic ectasia.");}
+  if(s.aortaStatus==="aneurysm"){fi.push("آنوریسم آئورت شکمی"+(s.aneurysmLength?" به طول تقریبی "+fa(s.aneurysmLength)+" میلی‌متر":"")+(s.muralThrombus?" همراه با ترومبوز جداری":"")+".");ei.push("Abdominal aortic aneurysm"+(s.aneurysmLength?", approximately "+en(s.aneurysmLength)+" mm long":"")+(s.muralThrombus?", with mural thrombus":"")+".");fr.push("ارجاع جهت ارزیابی و پیگیری عروقی بر اساس حداکثر قطر آنوریسم توصیه می‌شود.");er.push("Vascular referral and surveillance according to maximum aneurysm diameter are recommended.");}
+  if(s.aortaStatus==="stenotic"){fi.push("بیماری انسدادی/تنگی آئورتوایلیاک.");ei.push("Aortoiliac occlusive/stenotic disease.");}
+  if(s.aortaStatus==="occluded"){fi.push("انسداد آئورتوایلیاک.");ei.push("Aortoiliac occlusion.");}
+  if(s.dissection){fi.push("فلپ مشکوک به دایسکشن آئورت مشاهده شد.");ei.push("Findings suspicious for an aortic dissection flap.");fr.push("ارزیابی فوری تکمیلی با CTA توصیه می‌شود.");er.push("Urgent further assessment with CTA is recommended.");}
+ }
+ if(s.includeMesenteric){
+  if(s.celiacPsv||s.celiacEdv){ff.push("Celiac artery PSV/EDV برابر "+fa(s.celiacPsv)+"/"+fa(s.celiacEdv)+" cm/s است.");ef.push("Celiac artery PSV/EDV is "+en(s.celiacPsv)+"/"+en(s.celiacEdv)+" cm/s.");}
+  if(s.celiacInspPsv||s.celiacUprightPsv){ff.push("PSV شریان سلیاک در دم عمیق/وضعیت نشسته "+fa(s.celiacInspPsv)+"/"+fa(s.celiacUprightPsv)+" cm/s است.");ef.push("Celiac PSV during deep inspiration/upright positioning is "+en(s.celiacInspPsv)+"/"+en(s.celiacUprightPsv)+" cm/s.");}
+  if(s.smaOriginPsv||s.smaOriginEdv){ff.push("SMA origin PSV/EDV برابر "+fa(s.smaOriginPsv)+"/"+fa(s.smaOriginEdv)+" cm/s است"+(s.smaMidPsv||s.smaDistPsv?"؛ PSV میانی/دیستال "+fa(s.smaMidPsv)+"/"+fa(s.smaDistPsv)+" cm/s":"")+".");ef.push("SMA origin PSV/EDV is "+en(s.smaOriginPsv)+"/"+en(s.smaOriginEdv)+" cm/s"+(s.smaMidPsv||s.smaDistPsv?", with mid/distal PSV "+en(s.smaMidPsv)+"/"+en(s.smaDistPsv)+" cm/s":"")+".");}
+  if(s.imaPsv){ff.push("IMA PSV برابر "+fa(s.imaPsv)+" cm/s است.");ef.push("IMA PSV is "+en(s.imaPsv)+" cm/s.");}
+  const stFa={normal:"بدون تنگی معنی‌دار",stenosis:"مشکوک به تنگی همودینامیک معنی‌دار",occluded:"انسداد",indeterminate:"ارزیابی نامعین"};
+  const stEn={normal:"No significant stenosis",stenosis:"Hemodynamically significant stenosis suspected",occluded:"Occlusion",indeterminate:"Indeterminate assessment"};
+  if(s.celiacStatus!=="mals"){fi.push(stFa[s.celiacStatus]+" شریان سلیاک.");ei.push(stEn[s.celiacStatus]+" of the celiac artery.");}
+  fi.push(stFa[s.smaStatus]+" شریان مزانتریک فوقانی.");ei.push(stEn[s.smaStatus]+" of the superior mesenteric artery.");
+  if(s.imaStatus!=="normal"){fi.push(stFa[s.imaStatus]+" شریان مزانتریک تحتانی.");ei.push(stEn[s.imaStatus]+" of the inferior mesenteric artery.");}
+  if(s.celiacStatus==="mals"){fi.push("تغییرات وابسته به تنفس/پوزیشن به نفع فشردگی شریان سلیاک توسط median arcuate ligament است.");ei.push("Respiratory/positional changes support median arcuate ligament compression of the celiac artery.");}
+  if(s.hepaticDirection==="retrograde"){ff.push("جریان شریان هپاتیک رتروگراد است.");ef.push("Hepatic arterial flow is retrograde.");warnings.push("جریان رتروگراد شریان هپاتیک می‌تواند در انسداد سلیاک دیده شود؛ مسیرهای کولترال و SMA بازبینی شود.");}
+  if(s.smv==="patent"){ff.push("SMV باز است.");ef.push("The SMV is patent.");}else{fi.push("ترومبوز/انسداد SMV.");ei.push("SMV thrombosis/occlusion.");}
+ }
+ if(s.includePortal){
+  if(s.portalDiameter||s.portalVelocity){ff.push("قطر و سرعت ورید پورت اصلی به‌ترتیب "+fa(s.portalDiameter)+" میلی‌متر و "+fa(s.portalVelocity)+" cm/s است و جریان "+(s.portalDirection==="hepatopetal"?"هپاتوپتال":s.portalDirection==="hepatofugal"?"هپاتوفوگال":"دوطرفه")+" دارد.");ef.push("Main portal vein diameter and velocity are "+en(s.portalDiameter)+" mm and "+en(s.portalVelocity)+" cm/s, with "+(s.portalDirection==="hepatopetal"?"hepatopetal":s.portalDirection==="hepatofugal"?"hepatofugal":"bidirectional")+" flow.");}
+  if(s.portalThrombus==="none"){ff.push("ورید پورت اصلی و شاخه‌های داخل‌کبدی باز هستند و ترومبوز مشاهده نشد.");ef.push("The main and intrahepatic portal veins are patent without thrombosis.");}
+  if(s.portalThrombus==="partial"){fi.push("ترومبوز ناکامل ورید پورت.");ei.push("Non-occlusive portal vein thrombosis.");}
+  if(s.portalThrombus==="complete"){fi.push("ترومبوز کامل ورید پورت.");ei.push("Occlusive portal vein thrombosis.");}
+  if(s.portalThrombus==="cavernoma"){fi.push("ترومبوز مزمن ورید پورت همراه با cavernous transformation.");ei.push("Chronic portal vein thrombosis with cavernous transformation.");}
+  if(s.splenicVein!=="patent"){fi.push("ترومبوز/انسداد ورید اسپلنیک.");ei.push("Splenic vein thrombosis/occlusion.");}
+  if(s.hepaticVeins==="triphasic"){ff.push("وریدهای هپاتیک باز و دارای الگوی تری‌فازیک هستند؛ IVC نیز باز است.");ef.push("The hepatic veins are patent with triphasic waveforms; the IVC is patent.");}
+  if(s.hepaticVeins==="blunted"){ff.push("phasicity وریدهای هپاتیک کاهش یافته است.");ef.push("Hepatic venous phasicity is blunted.");}
+  if(s.hepaticVeins==="thrombosed"){fi.push("ترومبوز/انسداد وریدهای هپاتیک، مشکوک به Budd–Chiari syndrome.");ei.push("Hepatic venous thrombosis/occlusion suspicious for Budd–Chiari syndrome.");}
+  if(s.ivc==="thrombosed"){fi.push("ترومبوز IVC.");ei.push("IVC thrombosis.");}
+  if(s.hepaticPsv||s.hepaticRi){ff.push("شریان هپاتیک PSV/RI برابر "+fa(s.hepaticPsv)+"/"+fa(s.hepaticRi)+" است.");ef.push("Hepatic artery PSV/RI is "+en(s.hepaticPsv)+"/"+en(s.hepaticRi)+".");}
+  if(s.collaterals){ff.push("کولترال‌های پورتوسیستمیک مشاهده شد.");ef.push("Portosystemic collaterals are present.");}
+  if(s.recanalizedUmbilical){ff.push("ورید پاراآمبیلیکال بازگشایی‌شده مشاهده شد.");ef.push("A recanalized paraumbilical vein is present.");}
+  if(s.spleenLength){ff.push("طول طحال "+fa(s.spleenLength)+" میلی‌متر است.");ef.push("Splenic length is "+en(s.spleenLength)+" mm.");}
+  if(s.ascites){ff.push("آسیت مشاهده شد.");ef.push("Ascites is present.");}
+  if(s.portalDirection!=="hepatopetal"||s.collaterals||s.recanalizedUmbilical){fi.push("یافته‌های داپلر به نفع پورتال هایپرتنشن است.");ei.push("Doppler findings support portal hypertension.");}
+ }
+ if(s.limitation){ff.push("مطالعه به علت "+(s.limitationText||"محدودیت تکنیکی")+" محدود است.");ef.push("The examination is limited by "+(s.limitationText||"technical factors")+".");}
+ if(s.additionalFinding.trim()){ff.push(s.additionalFinding.trim());ef.push(s.additionalFinding.trim());}
+ if(s.additionalImpression.trim()){fi.push(s.additionalImpression.trim());ei.push(s.additionalImpression.trim());}
+ if(s.additionalRecommendation.trim()){fr.push(s.additionalRecommendation.trim());er.push(s.additionalRecommendation.trim());}
+ return {finding:choose(s.language,ff.join("\n\n"),ef.join("\n\n")),impression:choose(s.language,fi.join("\n"),ei.join("\n")),recommendation:choose(s.language,fr.join("\n"),er.join("\n")),warnings};
+}
+function AbdominalVascularCard(){
+ const[s,setS]=React.useState(abdominalInitial);const report=React.useMemo(()=>buildAbdominal(s),[s]);const set=(k,v)=>setS(x=>({...x,[k]:v}));
+ return h("div",null,
+  h("section",{style:panel},h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"}},h("div",null,h("h1",{style:{margin:"0 0 6px"}},"Abdominal Vascular Duplex"),h("p",{style:{...muted,margin:0}},"Aortoiliac + Mesenteric/Splanchnic + Portal/Hepatic systems")),h("button",{type:"button",style:btn(false),onClick:()=>setS(abdominalInitial())},"پاک‌کردن فرم")),controls(s,setS),
+   h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"14px"}},check("Aortoiliac / AAA",s.includeAorta,v=>set("includeAorta",v)),check("Mesenteric / Splanchnic",s.includeMesenteric,v=>set("includeMesenteric",v)),check("Portal / Hepatic / IVC",s.includePortal,v=>set("includePortal",v)),check("بیمار ناشتا بوده",s.fasting,v=>set("fasting",v)),check("محدودیت تکنیکی",s.limitation,v=>set("limitation",v))),
+   s.limitation?h("div",{style:grid},area("شرح محدودیت",s.limitationText,v=>set("limitationText",v))):null
+  ),
+  s.includeAorta?h("section",{style:panel},h("h2",{style:{marginTop:0}},"Aortoiliac / AAA"),h("div",{style:grid},
+   field("Prox aorta AP (mm)",s.aortaProxAp,v=>set("aortaProxAp",v),"","number"),field("Prox aorta TR",s.aortaProxTr,v=>set("aortaProxTr",v),"","number"),
+   field("Mid aorta AP",s.aortaMidAp,v=>set("aortaMidAp",v),"","number"),field("Mid aorta TR",s.aortaMidTr,v=>set("aortaMidTr",v),"","number"),
+   field("Distal aorta AP",s.aortaDistAp,v=>set("aortaDistAp",v),"","number"),field("Distal aorta TR",s.aortaDistTr,v=>set("aortaDistTr",v),"","number"),
+   field("Right CIA diameter",s.ciaR,v=>set("ciaR",v),"","number"),field("Left CIA diameter",s.ciaL,v=>set("ciaL",v),"","number"),field("Aortic PSV",s.aortaPsv,v=>set("aortaPsv",v),"","number"),
+   select("وضعیت آئورتوایلیاک",s.aortaStatus,v=>set("aortaStatus",v),[["normal","طبیعی"],["ectatic","Ectasia"],["aneurysm","AAA"],["stenotic","Stenotic disease"],["occluded","Occlusion"]]),
+   select("پلاک",s.aortaPlaque,v=>set("aortaPlaque",v),[["none","مشاهده نشد"],["mild","خفیف"],["moderate","متوسط"],["severe","شدید"]]),
+   s.aortaStatus==="aneurysm"?field("طول آنوریسم (mm)",s.aneurysmLength,v=>set("aneurysmLength",v),"","number"):null
+  ),h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},check("ترومبوز جداری",s.muralThrombus,v=>set("muralThrombus",v)),check("فلپ دایسکشن",s.dissection,v=>set("dissection",v)))):null,
+  s.includeMesenteric?h("section",{style:panel},h("h2",{style:{marginTop:0}},"Mesenteric / Splanchnic arteries"),h("div",{style:grid},
+   field("Celiac PSV",s.celiacPsv,v=>set("celiacPsv",v),"","number"),field("Celiac EDV",s.celiacEdv,v=>set("celiacEdv",v),"","number"),
+   field("Celiac PSV — deep inspiration",s.celiacInspPsv,v=>set("celiacInspPsv",v),"","number"),field("Celiac PSV — upright",s.celiacUprightPsv,v=>set("celiacUprightPsv",v),"","number"),
+   select("Celiac assessment",s.celiacStatus,v=>set("celiacStatus",v),[["normal","بدون تنگی مهم"],["stenosis","تنگی معنی‌دار"],["occluded","انسداد"],["mals","MALS / respiratory compression"],["indeterminate","نامعین"]]),
+   field("SMA origin PSV",s.smaOriginPsv,v=>set("smaOriginPsv",v),"","number"),field("SMA origin EDV",s.smaOriginEdv,v=>set("smaOriginEdv",v),"","number"),field("SMA mid PSV",s.smaMidPsv,v=>set("smaMidPsv",v),"","number"),field("SMA distal PSV",s.smaDistPsv,v=>set("smaDistPsv",v),"","number"),
+   select("SMA assessment",s.smaStatus,v=>set("smaStatus",v),[["normal","بدون تنگی مهم"],["stenosis","تنگی معنی‌دار"],["occluded","انسداد"],["indeterminate","نامعین"]]),
+   field("IMA PSV",s.imaPsv,v=>set("imaPsv",v),"","number"),select("IMA assessment",s.imaStatus,v=>set("imaStatus",v),[["normal","طبیعی"],["stenosis","تنگی"],["occluded","انسداد"],["indeterminate","نامعین"]]),
+   select("جهت جریان شریان هپاتیک",s.hepaticDirection,v=>set("hepaticDirection",v),[["antegrade","Antegrade"],["retrograde","Retrograde"]]),select("شریان اسپلنیک",s.splenicArtery,v=>set("splenicArtery",v),[["patent","باز"],["stenotic","تنگی"],["aneurysm","آنوریسم"],["occluded","انسداد"]]),select("SMV",s.smv,v=>set("smv",v),[["patent","باز"],["thrombosed","ترومبوز/انسداد"]])
+  )):null,
+  s.includePortal?h("section",{style:panel},h("h2",{style:{marginTop:0}},"Portal / Hepatic venous Doppler"),h("div",{style:grid},
+   field("Main portal vein diameter (mm)",s.portalDiameter,v=>set("portalDiameter",v),"","number"),field("Portal vein velocity (cm/s)",s.portalVelocity,v=>set("portalVelocity",v),"","number"),
+   select("جهت جریان پورت",s.portalDirection,v=>set("portalDirection",v),[["hepatopetal","Hepatopetal"],["hepatofugal","Hepatofugal"],["bidirectional","Bidirectional/to-and-fro"]]),
+   select("ترومبوز پورت",s.portalThrombus,v=>set("portalThrombus",v),[["none","مشاهده نشد"],["partial","Partial"],["complete","Complete"],["cavernoma","Chronic + cavernoma"]]),
+   select("Right portal branch",s.rightPortal,v=>set("rightPortal",v),[["patent","باز"],["thrombosed","ترومبوز"]]),select("Left portal branch",s.leftPortal,v=>set("leftPortal",v),[["patent","باز"],["thrombosed","ترومبوز"]]),
+   select("Splenic vein",s.splenicVein,v=>set("splenicVein",v),[["patent","باز"],["thrombosed","ترومبوز"]]),select("Hepatic veins",s.hepaticVeins,v=>set("hepaticVeins",v),[["triphasic","باز و triphasic"],["blunted","Blunted phasicity"],["thrombosed","ترومبوز/انسداد"]]),
+   select("IVC",s.ivc,v=>set("ivc",v),[["patent","باز"],["thrombosed","ترومبوز"],["dilated","متسع"],["collapsed","کلاپس‌شده"]]),field("Hepatic artery PSV",s.hepaticPsv,v=>set("hepaticPsv",v),"","number"),field("Hepatic artery RI",s.hepaticRi,v=>set("hepaticRi",v),"","number"),field("Spleen length (mm)",s.spleenLength,v=>set("spleenLength",v),"","number")
+  ),h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},check("کولترال پورتوسیستمیک",s.collaterals,v=>set("collaterals",v)),check("Recanalized paraumbilical vein",s.recanalizedUmbilical,v=>set("recanalizedUmbilical",v)),check("آسیت",s.ascites,v=>set("ascites",v)))):null,
+  h("section",{style:panel},h("div",{style:grid},area("یافته تکمیلی",s.additionalFinding,v=>set("additionalFinding",v)),area("نتیجه‌گیری تکمیلی",s.additionalImpression,v=>set("additionalImpression",v)),area("Recommendation تکمیلی",s.additionalRecommendation,v=>set("additionalRecommendation",v)))),
+  h(ReportBlock,{report,title:"سونوگرافی کالر داپلر عروق شکمی"})
+ );
+}
+exports.RenalVascularCard=RenalVascularCard;
+exports.AbdominalVascularCard=AbdominalVascularCard;
+};
+
+/* module: src/components/Doppler/ExtremityDopplerCards.jsx */
+__modules["src/components/Doppler/ExtremityDopplerCards.jsx"] = function(module, exports, require){
+"use strict";
+Object.defineProperty(exports,"__esModule",{value:true});
+const React=require("react"),h=React.createElement,ReportOutput=require("../Common/ReportOutput.jsx").default;
+const panel={background:"#1e293b",border:"1px solid #334155",borderRadius:"14px",padding:"16px",marginTop:"16px"};
+const sub={background:"#111827",border:"1px solid #475569",borderRadius:"12px",padding:"14px",marginTop:"12px"};
+const grid={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:"10px",marginTop:"10px"};
+const inp={width:"100%",padding:"8px 9px",borderRadius:"8px",border:"1px solid #64748b",background:"#f8fafc",color:"#0f172a",marginTop:"4px"};
+const lab={display:"grid",gap:"3px",alignContent:"start"},muted={color:"#cbd5e1",lineHeight:1.9},small={color:"#94a3b8",fontSize:"12px",lineHeight:1.75};
+const btn=(a)=>({padding:"10px 13px",borderRadius:"9px",border:a?"2px solid #38bdf8":"1px solid #64748b",background:a?"#0369a1":"#334155",color:"white",cursor:"pointer"});
+const num=v=>{const n=Number.parseFloat(v);return Number.isFinite(n)?n:null},fa=v=>{const n=num(v);return n===null?"":new Intl.NumberFormat("fa-IR",{maximumFractionDigits:2}).format(n)},en=v=>{const n=num(v);return n===null?"":new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(n)};
+const field=(l,v,c,p="",t="text")=>h("label",{style:lab},l,h("input",{style:inp,type:t,value:v,onChange:e=>c(e.target.value),placeholder:p}));
+const select=(l,v,c,o)=>h("label",{style:lab},l,h("select",{style:inp,value:v,onChange:e=>c(e.target.value)},o.map(x=>h("option",{key:x[0],value:x[0]},x[1]))));
+const area=(l,v,c,p="")=>h("label",{style:{...lab,gridColumn:"1 / -1"}},l,h("textarea",{style:{...inp,minHeight:"70px",resize:"vertical",direction:"rtl",textAlign:"right"},value:v,onChange:e=>c(e.target.value),placeholder:p}));
+const check=(l,v,c)=>h("label",{style:{display:"flex",gap:"7px",alignItems:"flex-start",lineHeight:1.8}},h("input",{type:"checkbox",checked:v,onChange:e=>c(e.target.checked),style:{marginTop:"6px"}}),l);
+const activeSides=s=>s==="bilateral"?["right","left"]:[s],sideFa=s=>s==="right"?"راست":"چپ",sideEn=s=>s==="right"?"right":"left";
+const combine=(a,b)=>"گزارش فارسی:\n"+a+"\n\nEnglish Report:\n"+b,choose=(l,a,b)=>l==="fa"?a:l==="en"?b:combine(a,b);
+const controls=(s,setS)=>h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},
+ h("div",{style:{display:"flex",gap:"7px",flexWrap:"wrap",alignItems:"center"}},h("strong",null,"سمت:"),[["right","راست"],["left","چپ"],["bilateral","دوطرفه"]].map(x=>h("button",{key:x[0],type:"button",style:btn(s.scope===x[0]),onClick:()=>setS(q=>({...q,scope:x[0]}))},x[1]))),
+ h("div",{style:{display:"flex",gap:"7px",flexWrap:"wrap",alignItems:"center"}},h("strong",null,"خروجی:"),[["fa","فارسی"],["en","English"],["bilingual","دوزبانه"]].map(x=>h("button",{key:x[0],type:"button",style:btn(s.language===x[0]),onClick:()=>setS(q=>({...q,language:x[0]}))},x[1]))));
+function Out({report,title}){return h(React.Fragment,null,report.warnings.length?h("div",{style:{...panel,background:"#451a03",border:"1px solid #f59e0b",color:"#fde68a"}},h("strong",null,"کنترل تکمیل/تناقض"),h("ul",{style:{marginBottom:0}},report.warnings.map((w,i)=>h("li",{key:i},w)))):null,h(ReportOutput,{finding:report.finding,impression:report.impression,recommendation:report.recommendation,examTitle:title}));}
+
+const lowerSeg=[["eia","EIA","external iliac artery"],["cfa","CFA","common femoral artery"],["pfa","PFA","profunda femoris artery"],["sfaProx","SFA پروگزیمال","proximal SFA"],["sfaMid","SFA میانی","mid SFA"],["sfaDist","SFA دیستال","distal SFA"],["pop","Popliteal","popliteal artery"],["tpt","Tibioperoneal trunk","tibioperoneal trunk"],["ata","ATA","anterior tibial artery"],["pta","PTA","posterior tibial artery"],["per","Peroneal","peroneal artery"],["dpa","Dorsalis pedis","dorsalis pedis artery"]];
+const upperSeg=[["subclavian","Subclavian","subclavian artery"],["axillary","Axillary","axillary artery"],["brachial","Brachial","brachial artery"],["radial","Radial","radial artery"],["ulnar","Ulnar","ulnar artery"]];
+const artBlank=segments=>Object.fromEntries(segments.map(x=>[x[0],{status:"normal",psv:"",waveform:"triphasic",plaque:"none",note:""}]));
+const lesionBlank=()=>({site:"",severity:"50_74",proxPsv:"",lesionPsv:"",distPsv:"",length:"",plaque:"mixed",calcified:false});
+const artInitial=(segments,upper=false)=>({scope:"bilateral",language:"fa",technique:"complete",right:artBlank(segments),left:artBlank(segments),lesionsRight:[],lesionsLeft:[],abiRight:"",abiLeft:"",tbiRight:"",tbiLeft:"",brachialRight:"",brachialLeft:"",radialPressureRight:"",radialPressureLeft:"",ulnarPressureRight:"",ulnarPressureLeft:"",tos:false,tosNeutralPsv:"",tosAbductionPsv:"",tosWaveformChange:false,tosSymptoms:false,pseudoaneurysm:false,avf:false,limitation:false,limitationText:"",additionalFinding:"",additionalImpression:"",additionalRecommendation:"",upper});
+const statusOpt=[["normal","طبیعی"],["plaque","پلاک بدون تنگی مهم"],["stenosis","تنگی"],["occluded","انسداد"],["reconstituted","پرشدگی مجدد دیستال"],["not_seen","قابل ارزیابی نبود"]];
+const waveOpt=[["triphasic","Multiphasic/triphasic"],["biphasic","Biphasic"],["monophasic","Monophasic"],["tardus","Tardus-parvus"],["absent","Absent"]];
+function ArterialSide({side,data,setData,segments,lesions,setLesions}){
+ const setSeg=(k,p,v)=>setData({...data,[k]:{...data[k],[p]:v}}),add=()=>setLesions([...lesions,lesionBlank()]),putLes=(i,p,v)=>setLesions(lesions.map((x,j)=>j===i?{...x,[p]:v}:x));
+ return h("section",{style:{...panel,border:"1px solid #0ea5e9"}},
+  h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",alignItems:"center",flexWrap:"wrap"}},h("h2",{style:{margin:0}},"اندام "+sideFa(side)),h("button",{type:"button",style:btn(false),onClick:add},"+ افزودن ضایعه فوکال")),
+  h("div",{style:{overflowX:"auto",marginTop:"12px"}},h("table",{style:{width:"100%",borderCollapse:"collapse",minWidth:"760px"}},
+   h("thead",null,h("tr",null,["سگمان","وضعیت","PSV (cm/s)","Waveform","Plaque","یادداشت"].map(x=>h("th",{key:x,style:{padding:"8px",borderBottom:"1px solid #475569",textAlign:"right"}},x)))),
+   h("tbody",null,segments.map(seg=>{const d=data[seg[0]];return h("tr",{key:seg[0]},
+    h("td",{style:{padding:"6px",whiteSpace:"nowrap"}},seg[1]),
+    h("td",{style:{padding:"6px"}},h("select",{style:inp,value:d.status,onChange:e=>setSeg(seg[0],"status",e.target.value)},statusOpt.map(o=>h("option",{key:o[0],value:o[0]},o[1])))),
+    h("td",{style:{padding:"6px"}},h("input",{style:inp,type:"number",value:d.psv,onChange:e=>setSeg(seg[0],"psv",e.target.value)})),
+    h("td",{style:{padding:"6px"}},h("select",{style:inp,value:d.waveform,onChange:e=>setSeg(seg[0],"waveform",e.target.value)},waveOpt.map(o=>h("option",{key:o[0],value:o[0]},o[1])))),
+    h("td",{style:{padding:"6px"}},h("select",{style:inp,value:d.plaque,onChange:e=>setSeg(seg[0],"plaque",e.target.value)},[["none","—"],["mild","خفیف"],["moderate","متوسط"],["severe","شدید"]].map(o=>h("option",{key:o[0],value:o[0]},o[1])))),
+    h("td",{style:{padding:"6px"}},h("input",{style:inp,value:d.note,onChange:e=>setSeg(seg[0],"note",e.target.value)}))
+   )}))
+  )),
+  lesions.map((l,i)=>{const pr=num(l.proxPsv),lv=num(l.lesionPsv),ratio=pr&&lv!==null?lv/pr:null;return h("div",{key:i,style:sub},
+   h("div",{style:{display:"flex",justifyContent:"space-between",gap:"8px"}},h("h3",{style:{marginTop:0}},"ضایعه فوکال "+(i+1)),h("button",{type:"button",style:btn(false),onClick:()=>setLesions(lesions.filter((_,j)=>j!==i))},"حذف")),
+   h("div",{style:grid},field("محل دقیق",l.site,v=>putLes(i,"site",v),"مثلاً mid SFA"),select("درجه",l.severity,v=>putLes(i,"severity",v),[["lt50","کمتر از ۵۰٪"],["50_74","۵۰–۷۴٪"],["ge75","≥۷۵٪"],["near","Near occlusion"],["occluded","Occlusion"]]),field("PSV پروگزیمال",l.proxPsv,v=>putLes(i,"proxPsv",v),"","number"),field("PSV در ضایعه",l.lesionPsv,v=>putLes(i,"lesionPsv",v),"","number"),field("PSV دیستال",l.distPsv,v=>putLes(i,"distPsv",v),"","number"),field("طول ضایعه (mm)",l.length,v=>putLes(i,"length",v),"","number"),select("نوع پلاک",l.plaque,v=>putLes(i,"plaque",v),[["soft","نرم"],["calcified","کلسیفیه"],["mixed","مختلط"],["thrombus","ترومبوتیک"]])),
+   h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"10px"}},check("کلسیفیکاسیون باعث shadowing شده",l.calcified,v=>putLes(i,"calcified",v)),h("span",{style:small},"PSV ratio: "+(ratio===null?"—":en(ratio))))
+  )})
+ );
+}
+function artReport(s,segments,territory){
+ const ff=[],fi=[],fr=[],ef=[],ei=[],er=[],warnings=[];
+ const upper=territory==="upper";ff.push("بررسی داپلکس شریانی "+(upper?"اندام فوقانی":"اندام تحتانی")+" با B-mode، Color و Spectral Doppler انجام شد.");ef.push((upper?"Upper":"Lower")+" extremity arterial duplex was performed using B-mode, color, and spectral Doppler.");
+ activeSides(s.scope).forEach(side=>{
+  const data=s[side],sf=sideFa(side),se=sideEn(side),abn=segments.filter(x=>data[x[0]].status!=="normal"||data[x[0]].waveform!=="triphasic"||data[x[0]].plaque!=="none");
+  const velocities=segments.filter(x=>data[x[0]].psv).map(x=>x[1]+": "+fa(data[x[0]].psv)).join("، ");
+  if(velocities){ff.push("PSV سگمان‌های شریانی سمت "+sf+" (cm/s): "+velocities+".");ef.push("Segmental PSV values in the "+se+" extremity (cm/s): "+segments.filter(x=>data[x[0]].psv).map(x=>x[2]+": "+en(data[x[0]].psv)).join(", ")+".");}
+  if(!abn.length){ff.push("شریان‌های بررسی‌شده سمت "+sf+" باز بوده، جریان رنگی مناسب و waveform مولتی‌فازیک دارند؛ تنگی همودینامیک مهم یا انسداد مشاهده نشد.");ef.push("The examined "+se+" arteries are patent with normal color filling and multiphasic waveforms; no hemodynamically significant stenosis or occlusion is identified.");fi.push("شواهدی از بیماری شریانی انسدادی مهم در سمت "+sf+" مشاهده نشد.");ei.push("No significant occlusive arterial disease in the "+se+" extremity.");}
+  else abn.forEach(seg=>{const d=data[seg[0]],stFa={plaque:"پلاک بدون تنگی مهم",stenosis:"تنگی",occluded:"انسداد",reconstituted:"پرشدگی مجدد دیستال",not_seen:"عدم ارزیابی کافی",normal:"تغییر waveform"},stEn={plaque:"plaque without significant stenosis",stenosis:"stenosis",occluded:"occlusion",reconstituted:"distal reconstitution",not_seen:"limited assessment",normal:"waveform abnormality"};ff.push(stFa[d.status]+" در "+seg[1]+" سمت "+sf+(d.psv?" با PSV "+fa(d.psv)+" cm/s":"")+"؛ waveform: "+d.waveform+(d.note?"؛ "+d.note:"")+".");ef.push(stEn[d.status]+" in the "+se+" "+seg[2]+(d.psv?", PSV "+en(d.psv)+" cm/s":"")+"; waveform: "+d.waveform+(d.note?"; "+d.note:"")+".");if(["stenosis","occluded"].includes(d.status)){fi.push(stFa[d.status]+" "+seg[1]+" سمت "+sf+".");ei.push(stEn[d.status]+" of the "+se+" "+seg[2]+".");}});
+  const lesions=side==="right"?s.lesionsRight:s.lesionsLeft;lesions.forEach((l,i)=>{const pr=num(l.proxPsv),lv=num(l.lesionPsv),ratio=pr&&lv!==null?lv/pr:null,sevFa={lt50:"کمتر از ۵۰٪",50_74:"۵۰–۷۴٪",ge75:"حداقل ۷۵٪",near:"نزدیک به انسداد",occluded:"انسداد"},sevEn={lt50:"less than 50%",50_74:"50–74%",ge75:"at least 75%",near:"near-occlusive",occluded:"occlusive"};ff.push("ضایعه فوکال در "+(l.site||"محل مشخص‌نشده")+" سمت "+sf+" با تنگی "+sevFa[l.severity]+(l.proxPsv||l.lesionPsv?"؛ PSV پروگزیمال/ضایعه/دیستال "+fa(l.proxPsv)+"/"+fa(l.lesionPsv)+"/"+fa(l.distPsv)+" cm/s":"")+(ratio!==null?"؛ نسبت PSV "+fa(ratio):"")+(l.length?"؛ طول "+fa(l.length)+" mm":"")+".");ef.push("Focal "+sevEn[l.severity]+" lesion at the "+(l.site||"unspecified site")+" in the "+se+" extremity"+(l.proxPsv||l.lesionPsv?"; proximal/lesion/distal PSV "+en(l.proxPsv)+"/"+en(l.lesionPsv)+"/"+en(l.distPsv)+" cm/s":"")+(ratio!==null?"; PSV ratio "+en(ratio):"")+(l.length?"; length "+en(l.length)+" mm":"")+".");fi.push("تنگی "+sevFa[l.severity]+" در "+(l.site||"محل مشخص‌نشده")+" سمت "+sf+".");ei.push(sevEn[l.severity]+" stenosis at the "+(l.site||"unspecified site")+" in the "+se+" extremity.");if(!l.site)warnings.push("محل ضایعه فوکال شماره "+(i+1)+" سمت "+sf+" مشخص نشده است.");});
+ });
+ if(!upper&&(s.abiRight||s.abiLeft)){ff.push("ABI راست/چپ "+fa(s.abiRight)+"/"+fa(s.abiLeft)+" و TBI راست/چپ "+fa(s.tbiRight)+"/"+fa(s.tbiLeft)+" است.");ef.push("Right/left ABI is "+en(s.abiRight)+"/"+en(s.abiLeft)+" and right/left TBI is "+en(s.tbiRight)+"/"+en(s.tbiLeft)+".");}
+ if(upper&&(s.brachialRight||s.brachialLeft)){ff.push("فشار بازویی راست/چپ "+fa(s.brachialRight)+"/"+fa(s.brachialLeft)+" mmHg است.");ef.push("Right/left brachial pressures are "+en(s.brachialRight)+"/"+en(s.brachialLeft)+" mmHg.");}
+ if(upper&&s.tos){ff.push("ارزیابی دینامیک TOS انجام شد؛ PSV ساب‌کلاوین در وضعیت خنثی/abduction برابر "+fa(s.tosNeutralPsv)+"/"+fa(s.tosAbductionPsv)+" cm/s است"+(s.tosWaveformChange?" و تغییر معنی‌دار waveform ایجاد شد":"")+(s.tosSymptoms?" و علائم بیمار بازتولید شد":"")+".");ef.push("Dynamic TOS assessment was performed; neutral/abduction subclavian PSV is "+en(s.tosNeutralPsv)+"/"+en(s.tosAbductionPsv)+" cm/s"+(s.tosWaveformChange?", with significant waveform change":"")+(s.tosSymptoms?", and symptom reproduction":"")+".");if(s.tosWaveformChange)fi.push("یافته‌های دینامیک مشکوک به arterial thoracic outlet compression است.");if(s.tosWaveformChange)ei.push("Dynamic findings suspicious for arterial thoracic outlet compression.");}
+ if(s.pseudoaneurysm){fi.push("Pseudoaneurysm شریانی مشاهده شد.");ei.push("Arterial pseudoaneurysm is present.");}if(s.avf){fi.push("فیستول شریانی‌وریدی مشاهده شد.");ei.push("An arteriovenous fistula is present.");}
+ if(s.limitation){ff.push("مطالعه به علت "+(s.limitationText||"محدودیت تکنیکی")+" محدود است.");ef.push("The study is limited by "+(s.limitationText||"technical factors")+".");}
+ if(s.additionalFinding.trim()){ff.push(s.additionalFinding.trim());ef.push(s.additionalFinding.trim());}if(s.additionalImpression.trim()){fi.push(s.additionalImpression.trim());ei.push(s.additionalImpression.trim());}if(s.additionalRecommendation.trim()){fr.push(s.additionalRecommendation.trim());er.push(s.additionalRecommendation.trim());}
+ return {finding:choose(s.language,ff.join("\n\n"),ef.join("\n\n")),impression:choose(s.language,fi.join("\n"),ei.join("\n")),recommendation:choose(s.language,fr.join("\n"),er.join("\n")),warnings};
+}
+function ArterialCard({upper=false}){
+ const segments=upper?upperSeg:lowerSeg,[s,setS]=React.useState(()=>artInitial(segments,upper)),report=React.useMemo(()=>artReport(s,segments,upper?"upper":"lower"),[s,upper]);
+ const putSide=(side,d)=>setS(q=>({...q,[side]:d})),putLes=(side,d)=>setS(q=>({...q,[side==="right"?"lesionsRight":"lesionsLeft"]:d}));
+ return h("div",null,h("section",{style:panel},h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"}},h("div",null,h("h1",{style:{margin:"0 0 6px"}},upper?"Upper Limb Arterial Doppler":"Lower Limb Arterial Doppler"),h("p",{style:{...muted,margin:0}},"ارزیابی segmental PSV، waveform، plaque، stenosis/occlusion و ضایعات فوکال")),h("button",{type:"button",style:btn(false),onClick:()=>setS(artInitial(segments,upper))},"پاک‌کردن فرم")),controls(s,setS),
+  !upper?h("div",{style:grid},field("ABI راست",s.abiRight,v=>setS(q=>({...q,abiRight:v})),"","number"),field("ABI چپ",s.abiLeft,v=>setS(q=>({...q,abiLeft:v})),"","number"),field("TBI راست",s.tbiRight,v=>setS(q=>({...q,tbiRight:v})),"","number"),field("TBI چپ",s.tbiLeft,v=>setS(q=>({...q,tbiLeft:v})),"","number")):h("div",{style:grid},field("Brachial pressure راست",s.brachialRight,v=>setS(q=>({...q,brachialRight:v})),"","number"),field("Brachial pressure چپ",s.brachialLeft,v=>setS(q=>({...q,brachialLeft:v})),"","number"),field("Radial pressure راست",s.radialPressureRight,v=>setS(q=>({...q,radialPressureRight:v})),"","number"),field("Radial pressure چپ",s.radialPressureLeft,v=>setS(q=>({...q,radialPressureLeft:v})),"","number")),
+  h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},upper?check("ارزیابی دینامیک arterial TOS",s.tos,v=>setS(q=>({...q,tos:v}))):null,check("Pseudoaneurysm",s.pseudoaneurysm,v=>setS(q=>({...q,pseudoaneurysm:v}))),check("AV fistula",s.avf,v=>setS(q=>({...q,avf:v}))),check("محدودیت تکنیکی",s.limitation,v=>setS(q=>({...q,limitation:v})))),
+  upper&&s.tos?h("div",{style:grid},field("Subclavian PSV neutral",s.tosNeutralPsv,v=>setS(q=>({...q,tosNeutralPsv:v})),"","number"),field("Subclavian PSV abduction",s.tosAbductionPsv,v=>setS(q=>({...q,tosAbductionPsv:v})),"","number"),check("تغییر معنی‌دار waveform",s.tosWaveformChange,v=>setS(q=>({...q,tosWaveformChange:v}))),check("باز تولید علائم",s.tosSymptoms,v=>setS(q=>({...q,tosSymptoms:v})))):null,
+  s.limitation?h("div",{style:grid},area("شرح محدودیت",s.limitationText,v=>setS(q=>({...q,limitationText:v})))):null),
+  activeSides(s.scope).map(side=>h(ArterialSide,{key:side,side,data:s[side],setData:d=>putSide(side,d),segments,lesions:side==="right"?s.lesionsRight:s.lesionsLeft,setLesions:d=>putLes(side,d)})),
+  h("section",{style:panel},h("div",{style:grid},area("یافته تکمیلی",s.additionalFinding,v=>setS(q=>({...q,additionalFinding:v}))),area("نتیجه‌گیری تکمیلی",s.additionalImpression,v=>setS(q=>({...q,additionalImpression:v}))),area("Recommendation تکمیلی",s.additionalRecommendation,v=>setS(q=>({...q,additionalRecommendation:v}))))),
+  h(Out,{report,title:upper?"سونوگرافی کالر داپلر شریانی اندام فوقانی":"سونوگرافی کالر داپلر شریانی اندام تحتانی"}));
+}
+
+const lowerVeins=[["cfv","ورید فمورال مشترک","common femoral vein"],["fv","ورید فمورال","femoral vein"],["pop","ورید پوپلیتئال","popliteal vein"],["ptv","وریدهای تیبیال خلفی","posterior tibial veins"],["per","وریدهای پرونئال","peroneal veins"],["gastroc","وریدهای گاستروکنمیوس","gastrocnemius veins"],["soleal","وریدهای سولئال","soleal veins"],["gsv","GSV","great saphenous vein"],["ssv","SSV","small saphenous vein"]];
+const upperVeins=[["ijv","Internal jugular","internal jugular vein"],["brachio","Brachiocephalic","brachiocephalic vein"],["subclavian","Subclavian","subclavian vein"],["axillary","Axillary","axillary vein"],["brachial","Brachial","brachial veins"],["radial","Radial","radial veins"],["ulnar","Ulnar","ulnar veins"],["cephalic","Cephalic","cephalic vein"],["basilic","Basilic","basilic vein"]];
+const venBlank=()=>({status:"normal",segments:[],occlusion:"nonocclusive",compressibility:"partial",colorFlow:"reduced",phasicity:"normal",augmentation:"normal",svt:false,svtSegments:[],catheter:false,catheterType:"PICC",centralObstruction:false,edema:false,additional:""});
+function VenousSide({side,d,set,segments}){
+ const put=(k,v)=>set({...d,[k]:v}),tog=(k,arrKey)=>put(arrKey,d[arrKey].includes(k)?d[arrKey].filter(x=>x!==k):[...d[arrKey],k]),ab=d.status!=="normal";
+ return h("section",{style:{...panel,border:"1px solid #0ea5e9"}},h("h2",{style:{marginTop:0}},"سیستم وریدی سمت "+sideFa(side)),h("div",{style:grid},
+  select("وضعیت DVT",d.status,v=>put("status",v),[["normal","بدون DVT"],["acute","DVT حاد"],["chronic","تغییرات پساترومبوتیک مزمن"],["indeterminate","سن ترومبوز نامعین"]]),
+  ab?select("انسداد",d.occlusion,v=>put("occlusion",v),[["occlusive","انسدادی"],["nonocclusive","غیرانسدادی"]]):null,
+  ab?select("Compressibility",d.compressibility,v=>put("compressibility",v),[["none","غیرقابل فشرده‌شدن"],["partial","تاحدی قابل فشرده‌شدن"]]):null,
+  ab?select("Color flow",d.colorFlow,v=>put("colorFlow",v),[["absent","مشاهده نشد"],["reduced","کاهش یافته"],["present","وجود دارد"]]):null,
+  select("Phasicity",d.phasicity,v=>put("phasicity",v),[["normal","طبیعی"],["reduced","کاهش یافته"],["continuous","Continuous"],["absent","مشاهده نشد"]]),select("Augmentation",d.augmentation,v=>put("augmentation",v),[["normal","طبیعی"],["reduced","کاهش یافته"],["absent","مشاهده نشد"]])
+ ),ab?h("div",{style:sub},
+   h("h3",{style:{marginTop:0}},"سگمان‌های DVT"),
+   h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"6px"}},
+     segments.map(x=>h("div",{key:x[0]},check(x[1],d.segments.includes(x[0]),()=>tog(x[0],"segments"))))
+   )
+ ):null,
+ h("div",{style:sub},check("ترومبوز سطحی (SVT)",d.svt,v=>put("svt",v)),d.svt?h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"6px",marginTop:"8px"}},segments.filter(x=>["gsv","ssv","cephalic","basilic"].includes(x[0])).map(x=>h("div",{key:x[0]},check(x[1],d.svtSegments.includes(x[0]),()=>tog(x[0],"svtSegments"))))):null),
+ h("div",{style:sub},h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap"}},check("کاتتر/لاین داخل وریدی",d.catheter,v=>put("catheter",v)),check("الگوی انسداد ورید مرکزی",d.centralObstruction,v=>put("centralObstruction",v)),check("ادم بافت نرم",d.edema,v=>put("edema",v))),d.catheter?h("div",{style:grid},field("نوع کاتتر",d.catheterType,v=>put("catheterType",v),"PICC / CVC / Port")):null),
+ h("div",{style:grid},area("یافته آزاد این سمت",d.additional,v=>put("additional",v)))
+ );
+}
+function venReport(s,segments,upper){
+ const ff=[],fi=[],fr=[],ef=[],ei=[],er=[],warnings=[];ff.push("بررسی داپلکس وریدی "+(upper?"اندام فوقانی":"اندام تحتانی")+" با compression، Color/Spectral Doppler و augmentation انجام شد.");ef.push((upper?"Upper":"Lower")+" extremity venous duplex was performed using compression, color/spectral Doppler, and augmentation.");
+ activeSides(s.scope).forEach(side=>{const d=s[side],sf=sideFa(side),se=sideEn(side),segFa=segments.filter(x=>d.segments.includes(x[0])).map(x=>x[1]),segEn=segments.filter(x=>d.segments.includes(x[0])).map(x=>x[2]);
+  if(d.status==="normal"){ff.push("وریدهای عمقی قابل بررسی سمت "+sf+" باز و قابل فشرده‌شدن هستند؛ جریان دارای phasicity و augmentation مناسب است و شواهدی از DVT مشاهده نشد.");ef.push("The examined deep veins of the "+se+" extremity are patent and compressible with normal phasicity and augmentation; no DVT is identified.");fi.push("شواهدی از DVT در اندام "+(upper?"فوقانی ":"تحتانی ")+sf+" مشاهده نشد.");ei.push("No DVT in the "+se+" "+(upper?"upper":"lower")+" extremity.");}
+  else{const stFa=d.status==="acute"?"ترومبوز حاد":d.status==="chronic"?"تغییرات پساترومبوتیک مزمن":"ترومبوز با سن نامشخص",stEn=d.status==="acute"?"acute thrombus":d.status==="chronic"?"chronic post-thrombotic change":"thrombus of indeterminate age";ff.push(stFa+" "+(d.occlusion==="occlusive"?"انسدادی":"غیرانسدادی")+" در "+(segFa.join("، ")||"سگمان نامشخص")+" سمت "+sf+"؛ "+(d.compressibility==="none"?"غیرقابل فشرده‌شدن":"تاحدی قابل فشرده‌شدن")+" و جریان رنگی "+(d.colorFlow==="absent"?"مشاهده نشد":d.colorFlow==="reduced"?"کاهش یافته":"باقی‌مانده است")+".");ef.push((d.occlusion==="occlusive"?"Occlusive ":"Non-occlusive ")+stEn+" in the "+(segEn.join(", ")||"unspecified segment")+" of the "+se+" extremity.");fi.push(stFa+" در "+(segFa.join("، ")||"سگمان نامشخص")+" سمت "+sf+".");ei.push(stEn+" in the "+(segEn.join(", ")||"unspecified segment")+" of the "+se+" extremity.");if(!d.segments.length)warnings.push("برای DVT سمت "+sf+" سگمان درگیر انتخاب نشده است.");if(d.status==="acute"){fr.push("ارزیابی سریع بالینی و اطلاع‌رسانی طبق پروتکل مرکز توصیه می‌شود.");er.push("Prompt clinical assessment and communication according to institutional protocol are recommended.");}}
+  if(d.svt){const sfv=segments.filter(x=>d.svtSegments.includes(x[0])).map(x=>x[1]),sev=segments.filter(x=>d.svtSegments.includes(x[0])).map(x=>x[2]);ff.push("SVT در "+(sfv.join("، ")||"ورید سطحی نامشخص")+" سمت "+sf+" مشاهده شد.");ef.push("Superficial venous thrombosis is present in the "+(sev.join(", ")||"unspecified superficial vein")+" on the "+se+".");fi.push("SVT سمت "+sf+".");ei.push("Superficial venous thrombosis on the "+se+".");}
+  if(d.phasicity==="continuous"||d.centralObstruction){ff.push("جریان وریدی سمت "+sf+" continuous و فاقد phasicity طبیعی است که می‌تواند مطرح‌کننده انسداد پروگزیمال/مرکزی باشد.");ef.push("Continuous loss of normal venous phasicity on the "+se+" raises concern for proximal/central venous obstruction.");fi.push("یافته غیرمستقیم مشکوک به انسداد ورید مرکزی سمت "+sf+".");ei.push("Indirect finding suspicious for "+se+" central venous obstruction.");}
+  if(d.catheter){ff.push((d.catheterType||"کاتتر")+" در مسیر وریدی سمت "+sf+" مشاهده شد.");ef.push((d.catheterType||"A catheter")+" is present in the "+se+" venous system.");}if(d.edema){ff.push("ادم بافت نرم اندام سمت "+sf+" مشاهده شد.");ef.push("Soft-tissue edema is present in the "+se+" extremity.");}if(d.additional.trim()){ff.push(d.additional.trim());ef.push(d.additional.trim());}
+ });
+ if(s.limitation){ff.push("مطالعه به علت "+(s.limitationText||"محدودیت تکنیکی")+" محدود است.");ef.push("The study is limited by "+(s.limitationText||"technical factors")+".");}if(s.additionalFinding.trim()){ff.push(s.additionalFinding.trim());ef.push(s.additionalFinding.trim());}if(s.additionalImpression.trim()){fi.push(s.additionalImpression.trim());ei.push(s.additionalImpression.trim());}if(s.additionalRecommendation.trim()){fr.push(s.additionalRecommendation.trim());er.push(s.additionalRecommendation.trim());}
+ return {finding:choose(s.language,ff.join("\n\n"),ef.join("\n\n")),impression:choose(s.language,fi.join("\n"),ei.join("\n")),recommendation:choose(s.language,fr.join("\n"),er.join("\n")),warnings};
+}
+const venInitial=()=>({scope:"bilateral",language:"fa",right:venBlank(),left:venBlank(),limitation:false,limitationText:"",additionalFinding:"",additionalImpression:"",additionalRecommendation:""});
+function UpperVenousCard(){
+ const[s,setS]=React.useState(venInitial),report=React.useMemo(()=>venReport(s,upperVeins,true),[s]),put=(side,d)=>setS(q=>({...q,[side]:d}));
+ return h("div",null,h("section",{style:panel},h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"}},h("div",null,h("h1",{style:{margin:"0 0 6px"}},"Upper Limb Venous Doppler"),h("p",{style:{...muted,margin:0}},"DVT/SVT، کاتتر، phasicity مرکزی و سگمان‌های گردن تا ساعد")),h("button",{type:"button",style:btn(false),onClick:()=>setS(venInitial())},"پاک‌کردن فرم")),controls(s,setS),h("div",{style:{display:"flex",gap:"18px",flexWrap:"wrap",marginTop:"12px"}},check("محدودیت تکنیکی",s.limitation,v=>setS(q=>({...q,limitation:v})))),s.limitation?h("div",{style:grid},area("شرح محدودیت",s.limitationText,v=>setS(q=>({...q,limitationText:v})))):null),
+ activeSides(s.scope).map(side=>h(VenousSide,{key:side,side,d:s[side],set:d=>put(side,d),segments:upperVeins})),
+ h("section",{style:panel},h("div",{style:grid},area("یافته تکمیلی",s.additionalFinding,v=>setS(q=>({...q,additionalFinding:v}))),area("نتیجه‌گیری تکمیلی",s.additionalImpression,v=>setS(q=>({...q,additionalImpression:v}))),area("Recommendation تکمیلی",s.additionalRecommendation,v=>setS(q=>({...q,additionalRecommendation:v}))))),
+ h(Out,{report,title:"سونوگرافی کالر داپلر وریدی اندام فوقانی"}));
+}
+
+function CombinedLowerCard(){
+ const[a,setA]=React.useState(()=>artInitial(lowerSeg,false)),[v,setV]=React.useState(venInitial);
+ const scope=a.scope,language=a.language,ar=React.useMemo(()=>artReport(a,lowerSeg,"lower"),[a]),vr=React.useMemo(()=>venReport({...v,scope,language},lowerVeins,false),[v,scope,language]);
+ const bilingualReport=React.useMemo(()=>{if(language!=="bilingual")return null;const af=artReport({...a,language:"fa"},lowerSeg,"lower"),vf=venReport({...v,scope,language:"fa"},lowerVeins,false),ae=artReport({...a,language:"en"},lowerSeg,"lower"),ve=venReport({...v,scope,language:"en"},lowerVeins,false);return{finding:combine(af.finding+"\n\n"+vf.finding,ae.finding+"\n\n"+ve.finding),impression:combine(af.impression+"\n"+vf.impression,ae.impression+"\n"+ve.impression),recommendation:combine([af.recommendation,vf.recommendation].filter(Boolean).join("\n"),[ae.recommendation,ve.recommendation].filter(Boolean).join("\n")),warnings:[...af.warnings,...vf.warnings]};},[a,v,scope,language]);
+ const report=bilingualReport||{finding:ar.finding+"\n\n"+vr.finding,impression:ar.impression+"\n"+vr.impression,recommendation:[ar.recommendation,vr.recommendation].filter(Boolean).join("\n"),warnings:[...ar.warnings,...vr.warnings]};
+ return h("div",null,h("section",{style:panel},h("div",{style:{display:"flex",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"}},h("div",null,h("h1",{style:{margin:"0 0 6px"}},"Combined Lower Limb Arterial + Venous Doppler"),h("p",{style:{...muted,margin:0}},"یک گزارش واحد شامل arterial patency/stenosis و venous DVT/SVT")),h("button",{type:"button",style:btn(false),onClick:()=>{setA(artInitial(lowerSeg,false));setV(venInitial());}},"پاک‌کردن فرم")),controls(a,setA),h("div",{style:grid},field("ABI راست",a.abiRight,x=>setA(q=>({...q,abiRight:x})),"","number"),field("ABI چپ",a.abiLeft,x=>setA(q=>({...q,abiLeft:x})),"","number"))),
+ h("h2",{style:{marginTop:"24px"}},"بخش شریانی"),activeSides(scope).map(side=>h(ArterialSide,{key:"a"+side,side,data:a[side],setData:d=>setA(q=>({...q,[side]:d})),segments:lowerSeg,lesions:side==="right"?a.lesionsRight:a.lesionsLeft,setLesions:d=>setA(q=>({...q,[side==="right"?"lesionsRight":"lesionsLeft"]:d}))})),
+ h("h2",{style:{marginTop:"24px"}},"بخش وریدی"),activeSides(scope).map(side=>h(VenousSide,{key:"v"+side,side,d:v[side],set:d=>setV(q=>({...q,[side]:d})),segments:lowerVeins})),
+ h("section",{style:panel},h("div",{style:grid},area("یافته تکمیلی مشترک",a.additionalFinding,x=>setA(q=>({...q,additionalFinding:x}))),area("نتیجه‌گیری تکمیلی مشترک",a.additionalImpression,x=>setA(q=>({...q,additionalImpression:x}))),area("Recommendation تکمیلی",a.additionalRecommendation,x=>setA(q=>({...q,additionalRecommendation:x}))))),
+ h(Out,{report,title:"سونوگرافی کالر داپلر شریانی و وریدی اندام تحتانی"}));
+}
+exports.LowerArterialCard=()=>h(ArterialCard,{upper:false});
+exports.UpperArterialCard=()=>h(ArterialCard,{upper:true});
+exports.UpperVenousCard=UpperVenousCard;
+exports.CombinedLowerCard=CombinedLowerCard;
+};
+
 /* module: src/components/Doppler/ColorDopplerClinic.jsx */
 __modules["src/components/Doppler/ColorDopplerClinic.jsx"] = function(module, exports, require){
 "use strict";
@@ -21699,6 +22084,8 @@ const h = React.createElement;
 const VaricoceleCard = require("./VaricoceleCard.jsx").default;
 const ScrotalDoppler = require("../ClinicalV25.jsx").ScrotalDoppler;
 const ReportOutput = require("../Common/ReportOutput.jsx").default;
+const Visceral = require("./VisceralDopplerCards.jsx");
+const Extremity = require("./ExtremityDopplerCards.jsx");
 
 const panel = { background: "#1e293b", border: "1px solid #334155", borderRadius: "14px", padding: "16px", marginTop: "16px" };
 const subPanel = { background: "#111827", border: "1px solid #475569", borderRadius: "12px", padding: "14px", marginTop: "12px" };
@@ -22035,7 +22422,7 @@ function ColorDopplerClinic({ goBack }) {
   return h("div", { style: { minHeight: "100vh", background: "#0f172a", color: "white", direction: "rtl", padding: "clamp(16px, 4vw, 32px)" } },
     h("button", { type: "button", onClick: goBack }, "بازگشت"),
     h("h1", null, "HN Color Doppler Clinic"),
-    h("p", { style: muted }, "نسخه ۱.۵ — Varicocele Engine + Lower Limb DVT/SVT Engine + Venous Reflux & Varicose Mapping با خروجی فارسی، انگلیسی و دوزبانه."),
+    h("p", { style: muted }, "نسخه ۲.۸ — مجموعه کامل موتورهای ساختاریافته عروق کلیوی، شکمی و عروق اندام‌های فوقانی و تحتانی با خروجی فارسی، انگلیسی و دوزبانه."),
     h("section", { style: panel },
       h("h2", { style: { marginTop: 0 } }, "ماژول‌های کالر داپلر"),
       h("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
@@ -22043,17 +22430,26 @@ function ColorDopplerClinic({ goBack }) {
         h("button", { type: "button", style: btn(activeModule === "scrotal"), onClick: () => setActiveModule("scrotal") }, "Testis & Scrotal Doppler"),
         h("button", { type: "button", style: btn(activeModule === "dvt"), onClick: () => setActiveModule("dvt") }, "Lower Limb Venous Doppler — DVT/SVT"),
         h("button", { type: "button", style: btn(activeModule === "varicose"), onClick: () => setActiveModule("varicose") }, "Venous Reflux / Varicose Mapping"),
-        h("button", { type: "button", style: btn(false, true), disabled: true }, "Lower Limb Arterial Doppler"),
-        h("button", { type: "button", style: btn(false, true), disabled: true }, "Upper Limb Doppler"),
+        h("button", { type: "button", style: btn(activeModule === "lowerArterial"), onClick: () => setActiveModule("lowerArterial") }, "Lower Limb Arterial Doppler"),
+        h("button", { type: "button", style: btn(activeModule === "lowerCombined"), onClick: () => setActiveModule("lowerCombined") }, "Lower Limb Arterial + Venous"),
+        h("button", { type: "button", style: btn(activeModule === "upperArterial"), onClick: () => setActiveModule("upperArterial") }, "Upper Limb Arterial Doppler"),
+        h("button", { type: "button", style: btn(activeModule === "upperVenous"), onClick: () => setActiveModule("upperVenous") }, "Upper Limb Venous Doppler"),
         h("button", { type: "button", style: btn(false, true), disabled: true }, "Dialysis AV Fistula"),
-        h("button", { type: "button", style: btn(false, true), disabled: true }, "Renal & Abdominal Doppler")
+        h("button", { type: "button", style: btn(activeModule === "renal"), onClick: () => setActiveModule("renal") }, "Renal Vascular Doppler"),
+        h("button", { type: "button", style: btn(activeModule === "abdominal"), onClick: () => setActiveModule("abdominal") }, "Abdominal Vascular Doppler")
       ),
       h("p", { style: { ...small, marginBottom: 0 } }, "موتور DVT و موتور واریس عمداً جدا طراحی شده‌اند؛ بررسی DVT بر patency و thrombosis تمرکز دارد و مطالعه واریس بر reflux source، pathway و treatment mapping.")
     ),
     activeModule === "varicocele" ? h(VaricoceleCard, null) : null,
     activeModule === "scrotal" ? h(ScrotalDoppler, null) : null,
     activeModule === "dvt" ? h(LowerLimbDvtCard, null) : null,
-    activeModule === "varicose" ? h(VaricoseVeinCard, null) : null
+    activeModule === "varicose" ? h(VaricoseVeinCard, null) : null,
+    activeModule === "lowerArterial" ? h(Extremity.LowerArterialCard, null) : null,
+    activeModule === "lowerCombined" ? h(Extremity.CombinedLowerCard, null) : null,
+    activeModule === "upperArterial" ? h(Extremity.UpperArterialCard, null) : null,
+    activeModule === "upperVenous" ? h(Extremity.UpperVenousCard, null) : null,
+    activeModule === "renal" ? h(Visceral.RenalVascularCard, null) : null,
+    activeModule === "abdominal" ? h(Visceral.AbdominalVascularCard, null) : null
   );
 }
 exports.default = ColorDopplerClinic;
