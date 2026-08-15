@@ -1,1 +1,46 @@
+name: Publish v2.14 Pregnancy Locked
 
+on:
+  push:
+    paths:
+      - '.github/workflows/deploy.yml'
+      - 'HN_Radiology_Suite_v2.14.0_PREGNANCY_LOCKED_GITHUB_UPLOAD_READY.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract approved v2.14 package
+        run: |
+          rm -rf .v214_publish
+          mkdir .v214_publish
+          unzip -o 'HN_Radiology_Suite_v2.14.0_PREGNANCY_LOCKED_GITHUB_UPLOAD_READY.zip' -d .v214_publish
+          test -f .v214_publish/index.html
+          cp .v214_publish/index.html index.html
+          rm -rf .v214_publish
+
+      - name: Verify pregnancy update markers
+        run: |
+          grep -q 'Hadlock' index.html
+          grep -q 'RPOC' index.html
+          grep -q 'Placenta Accreta' index.html
+          grep -q 'v2.14.0' index.html
+
+      - name: Commit published index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'index.html is already up to date.'
+          else
+            git commit -m 'Publish v2.14.0 Pregnancy Locked to GitHub Pages'
+            git push
+          fi
