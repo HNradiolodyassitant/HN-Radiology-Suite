@@ -1,0 +1,51 @@
+name: Install Twin Pregnancy v2.15.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/install_twin_v215.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Twin Pregnancy module
+        run: python tools/install_twin_v215.py
+      - name: Validate generated files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          index=Path('index.html').read_text(encoding='utf-8')
+          twin=Path('twin-pregnancy.html').read_text(encoding='utf-8')
+          assert index.count('HN_TWIN_V215_START') == 1
+          assert index.count('HN_TWIN_V215_END') == 1
+          assert 'HNClinicOutput' in index
+          assert 'Twin Pregnancy Module — v2.15.0' in twin
+          assert 'INTERGROWTH-21st' in twin and 'Hadlock' in twin
+          assert 'printPersianMultiReport' in twin
+          print('Validation OK')
+          PY
+      - name: Commit production update
+        run: |
+          git config user.name "HN Radiology Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html twin-pregnancy.html
+          if git diff --cached --quiet; then
+            echo "No production changes to commit"
+          else
+            git commit -m "v2.15.0 add twin pregnancy biometry and Doppler"
+            git push origin HEAD:main
+          fi
