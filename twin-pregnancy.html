@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HN Twin Pregnancy v2.15.0</title>
+<style>
+body{margin:0;background:#f4f7fb;font-family:Tahoma,Arial,sans-serif;color:#162033;direction:rtl}.card{max-width:760px;margin:12vh auto;background:#fff;border:1px solid #dfe6ef;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(25,45,80,.08);line-height:2}.muted{color:#667085;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card" id="status"><b>در حال بارگذاری ماژول بارداری دوقلویی v2.15.0…</b><div class="muted">HN Radiology Suite</div></div>
+<script>
+(async()=>{
+  const status=document.getElementById('status');
+  try{
+    if(!('DecompressionStream' in window)) throw new Error('مرورگر از DecompressionStream پشتیبانی نمی‌کند. لطفاً Chrome یا Safari جدید استفاده شود.');
+    const urls=['tools/twin_v215/p1.b64','tools/twin_v215/p2.b64'];
+    const parts=await Promise.all(urls.map(async u=>{const r=await fetch(u+'?v=2150',{cache:'no-store'});if(!r.ok)throw new Error('عدم دریافت '+u+' ('+r.status+')');return (await r.text()).trim()}));
+    const b64=parts.join('').replace(/\s+/g,'');
+    const binary=atob(b64);
+    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const html=await new Response(stream).text();
+    if(!html.includes('Twin Pregnancy Module — v2.15.0')) throw new Error('فایل ماژول پس از بازسازی معتبر نیست.');
+    document.open();document.write(html);document.close();
+  }catch(e){
+    console.error(e);
+    status.innerHTML='<b>خطا در بارگذاری ماژول Twin</b><br><span class="muted">'+String(e && e.message || e)+'</span>';
+  }
+})();
+</script>
+</body>
+</html>
