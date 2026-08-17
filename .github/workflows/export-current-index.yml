@@ -1,0 +1,30 @@
+name: Export Current Stable Index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-current-index.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+      - name: Verify index
+        run: |
+          test -f index.html
+          wc -c index.html
+          sha1sum index.html
+      - name: Upload current index
+        uses: actions/upload-artifact@v4
+        with:
+          name: HN_CURRENT_STABLE_INDEX
+          path: index.html
+          if-no-files-found: error
+          retention-days: 7
