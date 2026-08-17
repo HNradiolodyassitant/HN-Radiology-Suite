@@ -1,0 +1,76 @@
+name: Apply v2.16 Integrated
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/v216_integrated/patch_v216_integrated.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply integrated patch
+        run: python tools/v216_integrated/patch_v216_integrated.py
+
+      - name: Validate required modules
+        run: |
+          grep -q 'Renal Scar — اسکار پارانشیم کلیه' index.html
+          grep -q 'بررسی موقعیت IUD' index.html
+          grep -q 'Residual Products of Conception (RPOC)' index.html
+          grep -q 'Placenta Accreta Spectrum — Gray Scale & Color Doppler' index.html
+          grep -q 'active==="iud"?h(IudEngine)' index.html
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text=Path('index.html').read_text(encoding='utf-8')
+          out=Path('.tmp_v216_scripts'); out.mkdir(exist_ok=True)
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.I|re.S)
+          for i,script in enumerate(scripts):
+              (out/f'script_{i}.js').write_text(script, encoding='utf-8')
+          print('scripts:',len(scripts))
+          PY
+          for f in .tmp_v216_scripts/*.js; do node --check "$f"; done
+
+      - name: Build upload-ready ZIP
+        run: |
+          python - <<'PY'
+          from zipfile import ZipFile, ZIP_DEFLATED
+          from pathlib import Path
+          z=Path('HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip')
+          with ZipFile(z,'w',ZIP_DEFLATED) as f:
+              f.write('index.html','index.html')
+              f.writestr('CHANGES_v2.16.0_FA.txt','v2.16.0\n- Renal Scar integrated into Urinary Engine\n- IUD position/malposition integrated into Women & Pregnancy\n- Existing GA by Hadlock, RPOC and PAS preserved\n')
+          print(z, z.stat().st_size)
+          PY
+
+      - name: Commit updated index and ZIP
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'v2.16.0 integrate renal scar and IUD into current index'
+            git push origin main
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HN_Radiology_Suite_v2.16.0_UPLOAD_READY
+          path: HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip
+          retention-days: 30
