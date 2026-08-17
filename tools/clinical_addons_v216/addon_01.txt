@@ -44,4 +44,22 @@
         <h3>Biometry — GA بر اساس هر پارامتر طبق Hadlock 1984</h3>
         <div class="hnv216-note">ورودی‌ها بر حسب mm هستند. فرمول‌های dating کلاسیک Hadlock 1984 برای BPD / HC / AC / FL به‌صورت جداگانه استفاده می‌شوند. صدک‌های موجود در فرم اصلی دست‌نخورده می‌مانند.</div>
         <div class="hnv216-ga-row"><b>BPD</b><input id="hnv216-bpd" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-bpd-out" class="hnv216-ga-result">—</span></div>
-        <div cl
+        <div class="hnv216-ga-row"><b>HC</b><input id="hnv216-hc" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-hc-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-ga-row"><b>AC</b><input id="hnv216-ac" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-ac-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-ga-row"><b>FL</b><input id="hnv216-fl" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-fl-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-actions"><button class="hnv216-secondary" id="hnv216-sync-biometry" type="button">خواندن BPD/HC/AC/FL از فرم باز</button><button class="hnv216-primary" id="hnv216-add-biometry" type="button">افزودن GAها به گزارش نهایی</button></div>
+        <div id="hnv216-biometry-report" class="hnv216-report"></div>
+      </div>
+
+      <div class="hnv216-card">
+        <h3>Residual pregnancy tissue / RPOC</h3>
+        <div class="hnv216-grid">
+          <label class="hnv216-field">زمینه بالینی<select id="hnv216-rpoc-context"><option value="">—</option><option>پس از سقط</option><option>پس از زایمان</option><option>پس از termination</option><option>سایر</option></select></label>
+          <label class="hnv216-field">ضخامت Endometrial echo complex (mm)<input id="hnv216-rpoc-eec" type="number" step="0.1"></label>
+          <label class="hnv216-field">Intracavitary mass<select id="hnv216-rpoc-mass"><option value="">—</option><option value="absent">رویت نشد</option><option value="present">رویت شد</option></select></label>
+          <label class="hnv216-field">ابعاد mass (mm)<input id="hnv216-rpoc-size" placeholder="مثلاً 22×14×10"></label>
+          <label class="hnv216-field">اکو<select id="hnv216-rpoc-echo"><option value="">—</option><option>اکوژن</option><option>هتروژن</option><option>هیپواکو</option><option>complex / clot-like</option></select></label>
+          <label class="hnv216-field">Endometrial vascularity<select id="hnv216-rpoc-vasc"><option value="">—</option><option value="0">Type 0 — avascular</option><option value="1">Type 1 — mild</option><option value="2">Type 2 — moderate</option><option value="3">Type 3 — marked</option></select></label>
+          <label class="hnv216-field">Enhanced myometrial vascularity<select id="hnv216-rpoc-emv"><option value="">—</option><option value="no">رویت نشد</option><option value="yes">رویت شد</option></select></label>
+          <label class="hnv216-field">PSV در صورت نیاز (cm/s)<input id="hnv216-rpoc-psv" type="number" step="0.1"></label>
+       
