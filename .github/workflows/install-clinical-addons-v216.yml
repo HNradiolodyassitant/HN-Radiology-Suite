@@ -1,0 +1,70 @@
+name: Install Clinical Add-ons v2.16.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/clinical_addons_v216/install_v216.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install v2.16 clinical add-ons
+        run: python tools/clinical_addons_v216/install_v216.py
+
+      - name: Validate generated production
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s = Path('index.html').read_text(encoding='utf-8')
+          assert s.count('HN_CLINICAL_ADDONS_V216_START') == 1
+          assert s.count('HN_CLINICAL_ADDONS_V216_END') == 1
+          for needle in [
+              'HNClinicalAddonsV216',
+              '9.54+1.482*x+0.1676*x*x',
+              '8.96+0.540*x+0.0003*x*x*x',
+              'Residual pregnancy tissue / RPOC',
+              'Placenta Accreta Spectrum',
+              '+ افزودن اسکار',
+              'low-lying IUD',
+          ]:
+              assert needle in s, needle
+          z = Path('HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip')
+          assert z.exists() and z.stat().st_size > 1000
+          print('Validation OK:', z.stat().st_size, 'bytes')
+          PY
+
+      - name: Commit production update and ZIP
+        run: |
+          git config user.name 'HN Radiology Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip
+          if git diff --cached --quiet; then
+            echo 'Production is already up to date.'
+          else
+            git commit -m 'v2.16.0 add pregnancy, renal scar and IUD modules'
+            git push origin HEAD:main
+          fi
+
+      - name: Upload ready-to-use ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY
+          path: HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip
+          if-no-files-found: error
+          retention-days: 30
