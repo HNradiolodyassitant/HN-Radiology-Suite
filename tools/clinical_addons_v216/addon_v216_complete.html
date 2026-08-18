@@ -1,0 +1,184 @@
+<!-- HN_CLINICAL_ADDONS_V216_START -->
+<style id="hnv216-style">
+#hnv216-launch{position:fixed;right:18px;bottom:74px;z-index:2147482400;border:0;border-radius:14px;padding:11px 15px;background:#155e75;color:#fff;font-family:"Peyda",Arial,Tahoma,sans-serif;font-weight:800;box-shadow:0 10px 28px #0005;cursor:pointer}
+#hnv216-launch:hover{filter:brightness(1.08)}
+#hnv216-modal{display:none;position:fixed;inset:0;z-index:2147483500;background:rgba(2,6,23,.80);padding:12px;font-family:"Peyda",Arial,Tahoma,sans-serif;direction:rtl}
+#hnv216-modal.hnv-open{display:flex;align-items:center;justify-content:center}
+#hnv216-panel{width:min(1160px,100%);max-height:94vh;overflow:auto;background:#f8fafc;color:#0f172a;border-radius:18px;box-shadow:0 24px 90px #0009;border:1px solid #64748b}
+#hnv216-head{position:sticky;top:0;z-index:3;background:#0f172a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+#hnv216-head h2{font-size:18px;margin:0}
+#hnv216-close{border:0;background:#fff;color:#0f172a;border-radius:10px;width:38px;height:38px;font-size:22px;cursor:pointer}
+#hnv216-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px 0}
+#hnv216-tabs button{border:1px solid #94a3b8;background:#fff;color:#0f172a;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:700}
+#hnv216-tabs button[aria-selected="true"]{background:#0f766e;color:#fff;border-color:#0f766e}
+.hnv216-tab{display:none;padding:14px}.hnv216-tab.hnv-active{display:block}
+.hnv216-card{background:#fff;border:1px solid #cbd5e1;border-radius:14px;padding:14px;margin:0 0 14px;box-shadow:0 4px 12px #0f172a0d}
+.hnv216-card h3{margin:0 0 10px;font-size:16px}.hnv216-note{font-size:12px;color:#475569;line-height:1.8}
+.hnv216-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.hnv216-field{display:flex;flex-direction:column;gap:5px;font-size:13px}.hnv216-field input,.hnv216-field select,.hnv216-field textarea{width:100%;border:1px solid #94a3b8;border-radius:9px;padding:8px;background:#fff;color:#0f172a}
+.hnv216-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hnv216-actions button{border:0;border-radius:9px;padding:8px 11px;cursor:pointer;font-weight:700}
+.hnv216-primary{background:#0f766e;color:#fff}.hnv216-secondary{background:#e2e8f0;color:#0f172a}.hnv216-danger{background:#fee2e2;color:#991b1b}
+.hnv216-report{white-space:pre-wrap;direction:rtl;text-align:right;background:#f1f5f9;border:1px dashed #94a3b8;border-radius:10px;padding:10px;min-height:48px;margin-top:10px;font-size:13px;line-height:1.9}
+.hnv216-ga-row{display:grid;grid-template-columns:70px 1fr 1.2fr;gap:8px;align-items:center;margin:6px 0}.hnv216-ga-row input{border:1px solid #94a3b8;border-radius:8px;padding:7px}.hnv216-ga-result{font-weight:800;color:#0f766e;direction:ltr;text-align:left}
+.hnv216-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}.hnv216-check{display:flex;align-items:center;gap:7px;border:1px solid #e2e8f0;border-radius:9px;padding:8px;background:#fff;font-size:13px}.hnv216-check input{width:auto}
+@media(max-width:640px){#hnv216-launch{right:8px;bottom:64px;font-size:12px;padding:9px 10px}#hnv216-modal{padding:0}#hnv216-panel{border-radius:0;max-height:100vh;height:100vh}.hnv216-ga-row{grid-template-columns:56px 1fr 1.15fr}}
+@media print{#hnv216-launch,#hnv216-modal{display:none!important}}
+</style>
+
+<button id="hnv216-launch" type="button" title="ماژول‌های تکمیلی بارداری، اسکار کلیه و IUD">🧩 Clinical Add-ons v2.16</button>
+<div id="hnv216-modal" role="dialog" aria-modal="true" aria-label="Clinical Add-ons v2.16">
+  <div id="hnv216-panel">
+    <div id="hnv216-head"><h2>HN Radiology Suite — Clinical Add-ons v2.16.0</h2><button id="hnv216-close" type="button" aria-label="بستن">×</button></div>
+    <div id="hnv216-tabs">
+      <button type="button" data-tab="preg" aria-selected="true">بارداری</button>
+      <button type="button" data-tab="renal" aria-selected="false">اسکار کلیه</button>
+      <button type="button" data-tab="iud" aria-selected="false">IUD</button>
+    </div>
+
+    <section id="hnv216-tab-preg" class="hnv216-tab hnv-active">
+      <div class="hnv216-card">
+        <h3>Biometry — GA بر اساس هر پارامتر طبق Hadlock 1984</h3>
+        <div class="hnv216-note">ورودی‌ها بر حسب mm هستند و برای محاسبه به cm تبدیل می‌شوند. این بخش سن بارداری را از BPD / HC / AC / FL جداگانه محاسبه می‌کند و صدک‌های فرم اصلی را تغییر نمی‌دهد.</div>
+        <div class="hnv216-ga-row"><b>BPD</b><input id="hnv216-bpd" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-bpd-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-ga-row"><b>HC</b><input id="hnv216-hc" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-hc-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-ga-row"><b>AC</b><input id="hnv216-ac" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-ac-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-ga-row"><b>FL</b><input id="hnv216-fl" inputmode="decimal" type="number" step="0.1" placeholder="mm"><span id="hnv216-fl-out" class="hnv216-ga-result">—</span></div>
+        <div class="hnv216-actions"><button class="hnv216-primary" id="hnv216-calc-ga" type="button">محاسبه GA</button><button class="hnv216-secondary" id="hnv216-biometry-copy" type="button">کپی نتیجه</button><button class="hnv216-secondary" id="hnv216-biometry-add" type="button">افزودن به گزارش</button></div>
+        <div id="hnv216-biometry-report" class="hnv216-report"></div>
+      </div>
+
+      <div class="hnv216-card">
+        <h3>Residual pregnancy tissue / RPOC</h3>
+        <div class="hnv216-grid">
+          <label class="hnv216-field">زمینه بالینی<select id="hnv216-rpoc-context"><option value="">—</option><option>پس از سقط</option><option>پس از زایمان</option><option>پس از termination</option><option>سایر</option></select></label>
+          <label class="hnv216-field">Endometrial echo complex (mm)<input id="hnv216-rpoc-eec" type="number" step="0.1"></label>
+          <label class="hnv216-field">Intracavitary mass<select id="hnv216-rpoc-mass"><option value="">—</option><option value="absent">رویت نشد</option><option value="present">رویت شد</option></select></label>
+          <label class="hnv216-field">ابعاد mass (mm)<input id="hnv216-rpoc-size" placeholder="22×14×10"></label>
+          <label class="hnv216-field">اکوی محتویات<select id="hnv216-rpoc-echo"><option value="">—</option><option>اکوژن</option><option>هتروژن</option><option>هیپواکو</option><option>complex / clot-like</option></select></label>
+          <label class="hnv216-field">Endometrial vascularity<select id="hnv216-rpoc-vasc"><option value="">—</option><option value="0">Type 0 — avascular</option><option value="1">Type 1 — mild</option><option value="2">Type 2 — moderate</option><option value="3">Type 3 — marked</option></select></label>
+          <label class="hnv216-field">Enhanced myometrial vascularity<select id="hnv216-rpoc-emv"><option value="">—</option><option value="no">رویت نشد</option><option value="yes">رویت شد</option></select></label>
+          <label class="hnv216-field">PSV در صورت اندازه‌گیری (cm/s)<input id="hnv216-rpoc-psv" type="number" step="0.1"></label>
+          <label class="hnv216-field">Impression<select id="hnv216-rpoc-imp"><option value="">بدون نتیجه‌گیری خودکار</option><option>یافته‌ها مشکوک به RPOC است.</option><option>یافته‌ها به نفع RPOC نیست.</option><option>یافته‌ها غیراختصاصی است؛ تطبیق با شرایط بالینی و β-hCG توصیه می‌شود.</option></select></label>
+        </div>
+        <div class="hnv216-actions"><button class="hnv216-primary" id="hnv216-rpoc-build" type="button">ساخت متن</button><button class="hnv216-secondary" id="hnv216-rpoc-copy" type="button">کپی</button><button class="hnv216-secondary" id="hnv216-rpoc-add" type="button">افزودن به گزارش</button></div>
+        <div id="hnv216-rpoc-report" class="hnv216-report"></div>
+      </div>
+
+      <div class="hnv216-card">
+        <h3>Placenta Accreta Spectrum — Gray Scale &amp; Color Doppler</h3>
+        <div class="hnv216-grid">
+          <label class="hnv216-field">محل جفت<select id="hnv216-pas-loc"><option value="">—</option><option>قدامی</option><option>خلفی</option><option>فوندال</option><option>لترال</option><option>circumferential</option></select></label>
+          <label class="hnv216-field">رابطه با internal os<select id="hnv216-pas-os"><option value="">—</option><option>فاقد low-lying/previa</option><option>low-lying</option><option>placenta previa</option></select></label>
+          <label class="hnv216-field">کمترین ضخامت myometrium (mm)<input id="hnv216-pas-myo" type="number" step="0.1"></label>
+          <label class="hnv216-field">سطح شک بالینی/سونولوژیک<select id="hnv216-pas-level"><option value="">بدون درجه‌بندی خودکار</option><option>شک پایین</option><option>شک متوسط</option><option>شک بالا</option></select></label>
+        </div>
+        <div class="hnv216-checks" style="margin-top:10px">
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-lac">Placental lacunae</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-zone">Loss/irregularity of retroplacental clear zone</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-thin">Myometrial thinning</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-bladder">Bladder wall interruption</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-bulge">Placental bulge / exophytic appearance</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-subvasc">Subplacental hypervascularity</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-uteroves">Uterovesical hypervascularity</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-bridge">Bridging vessels</label>
+          <label class="hnv216-check"><input type="checkbox" id="hnv216-pas-turb">Turbulent lacunar flow</label>
+        </div>
+        <div class="hnv216-actions"><button class="hnv216-primary" id="hnv216-pas-build" type="button">ساخت متن</button><button class="hnv216-secondary" id="hnv216-pas-copy" type="button">کپی</button><button class="hnv216-secondary" id="hnv216-pas-add" type="button">افزودن به گزارش</button></div>
+        <div id="hnv216-pas-report" class="hnv216-report"></div>
+      </div>
+    </section>
+
+    <section id="hnv216-tab-renal" class="hnv216-tab">
+      <div class="hnv216-card">
+        <h3>Renal Scar — اسکار پارانشیم کلیه</h3>
+        <div class="hnv216-grid">
+          <label class="hnv216-field">سمت<select id="hnv216-scar-side"><option>راست</option><option>چپ</option><option>دوطرفه</option></select></label>
+          <label class="hnv216-field">محل<select id="hnv216-scar-pole"><option>قطب فوقانی</option><option>قسمت میانی</option><option>قطب تحتانی</option><option>چندکانونی</option></select></label>
+          <label class="hnv216-field">طول ناحیه اسکار (mm)<input id="hnv216-scar-len" type="number" step="0.1"></label>
+          <label class="hnv216-field">حداقل ضخامت پارانشیم (mm)<input id="hnv216-scar-thick" type="number" step="0.1"></label>
+          <label class="hnv216-field">Contour<select id="hnv216-scar-contour"><option value="">—</option><option>فرورفتگی/نامنظمی کورتیکال</option><option>صاف</option></select></label>
+          <label class="hnv216-field">Echogenicity<select id="hnv216-scar-echo"><option value="">—</option><option>افزایش اکوژنیسیته</option><option>اکوژنیسیته طبیعی</option></select></label>
+          <label class="hnv216-field">کالیس مجاور<select id="hnv216-scar-calyx"><option value="">—</option><option>بدون تغییر واضح</option><option>clubbed/deformed</option></select></label>
+          <label class="hnv216-field">توضیح اضافی<textarea id="hnv216-scar-note" rows="2"></textarea></label>
+        </div>
+        <div class="hnv216-actions"><button class="hnv216-primary" id="hnv216-scar-build" type="button">+ افزودن اسکار</button><button class="hnv216-secondary" id="hnv216-scar-copy" type="button">کپی</button><button class="hnv216-secondary" id="hnv216-scar-add" type="button">افزودن به گزارش</button></div>
+        <div id="hnv216-scar-report" class="hnv216-report"></div>
+      </div>
+    </section>
+
+    <section id="hnv216-tab-iud" class="hnv216-tab">
+      <div class="hnv216-card">
+        <h3>بررسی موقعیت IUD</h3>
+        <div class="hnv216-grid">
+          <label class="hnv216-field">نوع IUD<select id="hnv216-iud-type"><option value="">نامشخص</option><option>Copper IUD</option><option>LNG-IUS</option></select></label>
+          <label class="hnv216-field">موقعیت<select id="hnv216-iud-pos"><option value="fundal">Fundal / appropriately positioned</option><option value="low">low-lying IUD</option><option value="cervical">Intracervical</option><option value="partial">Partially expelled</option><option value="embedded">Embedded</option><option value="perforation">Suspected perforation</option><option value="notseen">IUD not visualized</option></select></label>
+          <label class="hnv216-field">فاصله از فوندوس حفره رحم (mm)<input id="hnv216-iud-dist" type="number" step="0.1"></label>
+          <label class="hnv216-field">Orientation<select id="hnv216-iud-orient"><option value="">—</option><option>طبیعی</option><option>چرخیده/مایل</option><option>معکوس</option></select></label>
+          <label class="hnv216-field">Embedment<select id="hnv216-iud-embed"><option value="">—</option><option>شواهدی دیده نشد</option><option>بازوی راست</option><option>بازوی چپ</option><option>ساقه</option><option>بیش از یک قسمت</option></select></label>
+          <label class="hnv216-field">Perforation<select id="hnv216-iud-perf"><option value="">—</option><option>شواهدی دیده نشد</option><option>مشکوک</option><option>واضح</option></select></label>
+          <label class="hnv216-field">توضیح اضافی<textarea id="hnv216-iud-note" rows="2"></textarea></label>
+        </div>
+        <div class="hnv216-actions"><button class="hnv216-primary" id="hnv216-iud-build" type="button">ساخت متن</button><button class="hnv216-secondary" id="hnv216-iud-copy" type="button">کپی</button><button class="hnv216-secondary" id="hnv216-iud-add" type="button">افزودن به گزارش</button></div>
+        <div id="hnv216-iud-report" class="hnv216-report"></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script id="hnv216-script">
+(()=>{
+'use strict';
+if(window.HNClinicalAddonsV216)return;
+const $=id=>document.getElementById(id);
+const val=id=>($(id)&&$(id).value||'').trim();
+const checked=id=>!!($(id)&&$(id).checked);
+const report=(id,text)=>{if($(id))$(id).textContent=text;return text};
+const copy=async text=>{if(!text)return;try{await navigator.clipboard.writeText(text)}catch(_){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}};
+function appendToReport(text){
+  if(!text)return false;
+  const o=window.HNClinicOutput;
+  try{
+    if(o&&typeof o.append==='function'){o.append(text);return true}
+    if(o&&typeof o.addText==='function'){o.addText(text);return true}
+    if(o&&typeof o.insert==='function'){o.insert(text);return true}
+  }catch(_){ }
+  try{window.dispatchEvent(new CustomEvent('hn:append-report',{detail:{text,source:'HNClinicalAddonsV216'}}))}catch(_){ }
+  const all=[...document.querySelectorAll('textarea, [contenteditable="true"]')].filter(el=>{
+    const s=((el.id||'')+' '+(el.name||'')+' '+(el.className||'')+' '+(el.getAttribute('placeholder')||'')).toLowerCase();
+    const r=el.getBoundingClientRect();
+    return r.width>50&&r.height>20&&/report|final|result|گزارش|نتیجه/.test(s);
+  });
+  if(all.length===1){const el=all[0];if(el.tagName==='TEXTAREA'){el.value=(el.value?el.value+'\n':'')+text;el.dispatchEvent(new Event('input',{bubbles:true}))}else{el.textContent+=(el.textContent?'\n':'')+text;el.dispatchEvent(new Event('input',{bubbles:true}))}return true}
+  copy(text);return false;
+}
+const fmt=w=>{if(!Number.isFinite(w)||w<=0)return '—';let wk=Math.floor(w),d=Math.round((w-wk)*7);if(d===7){wk++;d=0}return `${wk}w ${d}d`};
+function calcGA(){
+  const bpd=parseFloat(val('hnv216-bpd'))/10,hc=parseFloat(val('hnv216-hc'))/10,ac=parseFloat(val('hnv216-ac'))/10,fl=parseFloat(val('hnv216-fl'))/10;
+  const bpdGA=x=>9.54+1.482*x+0.1676*x*x;
+  const hcGA=x=>8.96+0.540*x+0.0003*x*x*x;
+  const acGA=x=>8.14+0.753*x+0.0036*x*x;
+  const flGA=x=>10.35+2.460*x+0.170*x*x;
+  const rows=[];
+  [[bpd,bpdGA,'BPD','hnv216-bpd-out'],[hc,hcGA,'HC','hnv216-hc-out'],[ac,acGA,'AC','hnv216-ac-out'],[fl,flGA,'FL','hnv216-fl-out']].forEach(([x,fn,n,id])=>{const w=Number.isFinite(x)&&x>0?fn(x):NaN;$(id).textContent=fmt(w);if(Number.isFinite(w))rows.push(`${n}: GA ${fmt(w)} (Hadlock 1984)`) });
+  return report('hnv216-biometry-report',rows.join('\n'));
+}
+function buildRPOC(){
+ const a=[];if(val('hnv216-rpoc-context'))a.push(`زمینه بالینی: ${val('hnv216-rpoc-context')}.`);if(val('hnv216-rpoc-eec'))a.push(`ضخامت endometrial echo complex حدود ${val('hnv216-rpoc-eec')} mm است.`);if(val('hnv216-rpoc-mass')==='present')a.push(`توده داخل حفره رحم${val('hnv216-rpoc-size')?' به ابعاد '+val('hnv216-rpoc-size')+' mm':''}${val('hnv216-rpoc-echo')?' با نمای '+val('hnv216-rpoc-echo'):''} مشاهده می‌شود.`);if(val('hnv216-rpoc-mass')==='absent')a.push('توده مشخص داخل حفره رحم مشاهده نشد.');if(val('hnv216-rpoc-vasc'))a.push(`Endometrial vascularity: Type ${val('hnv216-rpoc-vasc')}.`);if(val('hnv216-rpoc-emv')==='yes')a.push('Enhanced myometrial vascularity مشاهده می‌شود.');if(val('hnv216-rpoc-emv')==='no')a.push('Enhanced myometrial vascularity واضح مشاهده نشد.');if(val('hnv216-rpoc-psv'))a.push(`PSV اندازه‌گیری‌شده حدود ${val('hnv216-rpoc-psv')} cm/s است.`);if(val('hnv216-rpoc-imp'))a.push(val('hnv216-rpoc-imp'));return report('hnv216-rpoc-report',a.join('\n'));
+}
+function buildPAS(){
+ const a=[];if(val('hnv216-pas-loc'))a.push(`Placenta: ${val('hnv216-pas-loc')}.`);if(val('hnv216-pas-os'))a.push(`رابطه جفت با internal os: ${val('hnv216-pas-os')}.`);if(val('hnv216-pas-myo'))a.push(`کمترین ضخامت myometrium مجاور جفت حدود ${val('hnv216-pas-myo')} mm است.`);const f=[];if(checked('hnv216-pas-lac'))f.push('placental lacunae');if(checked('hnv216-pas-zone'))f.push('loss/irregularity of retroplacental clear zone');if(checked('hnv216-pas-thin'))f.push('myometrial thinning');if(checked('hnv216-pas-bladder'))f.push('bladder wall interruption');if(checked('hnv216-pas-bulge'))f.push('placental bulge/exophytic appearance');if(checked('hnv216-pas-subvasc'))f.push('subplacental hypervascularity');if(checked('hnv216-pas-uteroves'))f.push('uterovesical hypervascularity');if(checked('hnv216-pas-bridge'))f.push('bridging vessels');if(checked('hnv216-pas-turb'))f.push('turbulent lacunar flow');if(f.length)a.push(`یافته‌های همراه: ${f.join('، ')}.`);if(val('hnv216-pas-level'))a.push(`سطح شک سونولوژیک ثبت‌شده توسط کاربر: ${val('hnv216-pas-level')}.`);return report('hnv216-pas-report',a.join('\n'));
+}
+function buildScar(){
+ const a=[];let s=`در ${val('hnv216-scar-pole')} کلیه ${val('hnv216-scar-side')}`;if(val('hnv216-scar-len'))s+=` ناحیه‌ای به طول تقریبی ${val('hnv216-scar-len')} mm`;s+=' مطرح‌کننده اسکار پارانشیمی مشاهده می‌شود.';a.push(s);if(val('hnv216-scar-thick'))a.push(`حداقل ضخامت پارانشیم در این ناحیه حدود ${val('hnv216-scar-thick')} mm است.`);if(val('hnv216-scar-contour'))a.push(`${val('hnv216-scar-contour')} در محل مذکور مشاهده می‌شود.`);if(val('hnv216-scar-echo'))a.push(`${val('hnv216-scar-echo')} در پارانشیم ناحیه مذکور مشاهده می‌شود.`);if(val('hnv216-scar-calyx'))a.push(`کالیس مجاور: ${val('hnv216-scar-calyx')}.`);if(val('hnv216-scar-note'))a.push(val('hnv216-scar-note'));return report('hnv216-scar-report',a.join('\n'));
+}
+function buildIUD(){
+ const a=[];if(val('hnv216-iud-type'))a.push(`نوع IUD: ${val('hnv216-iud-type')}.`);const p=val('hnv216-iud-pos');const map={fundal:'IUD در موقعیت فوندال مناسب داخل حفره رحم مشاهده می‌شود.',low:'low-lying IUD در قسمت تحتانی حفره رحم مشاهده می‌شود.',cervical:'IUD در کانال سرویکس مشاهده می‌شود.',partial:'قسمتی از IUD در کانال سرویکس قرار گرفته و نمای partial expulsion مطرح است.',embedded:'شواهدی از embedment قسمتی از IUD در myometrium مشاهده می‌شود.',perforation:'موقعیت IUD مشکوک به perforation است.',notseen:'IUD در بررسی انجام‌شده مشاهده نشد.'};if(map[p])a.push(map[p]);if(val('hnv216-iud-dist'))a.push(`فاصله انتهای فوقانی IUD از فوندوس حفره رحم حدود ${val('hnv216-iud-dist')} mm است.`);if(val('hnv216-iud-orient'))a.push(`Orientation: ${val('hnv216-iud-orient')}.`);if(val('hnv216-iud-embed'))a.push(`Embedment: ${val('hnv216-iud-embed')}.`);if(val('hnv216-iud-perf'))a.push(`Perforation: ${val('hnv216-iud-perf')}.`);if(val('hnv216-iud-note'))a.push(val('hnv216-iud-note'));return report('hnv216-iud-report',a.join('\n'));
+}
+const modal=$('hnv216-modal'),open=()=>{modal.classList.add('hnv-open');document.documentElement.style.overflow='hidden'},close=()=>{modal.classList.remove('hnv-open');document.documentElement.style.overflow=''};
+$('hnv216-launch').addEventListener('click',open);$('hnv216-close').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('hnv-open'))close()});
+[...document.querySelectorAll('#hnv216-tabs button')].forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#hnv216-tabs button').forEach(x=>x.setAttribute('aria-selected','false'));b.setAttribute('aria-selected','true');document.querySelectorAll('.hnv216-tab').forEach(x=>x.classList.remove('hnv-active'));$('hnv216-tab-'+b.dataset.tab).classList.add('hnv-active')}));
+$('hnv216-calc-ga').addEventListener('click',calcGA);$('hnv216-biometry-copy').addEventListener('click',()=>copy($('hnv216-biometry-report').textContent));$('hnv216-biometry-add').addEventListener('click',()=>appendToReport($('hnv216-biometry-report').textContent));
+[['rpoc',buildRPOC],['pas',buildPAS],['scar',buildScar],['iud',buildIUD]].forEach(([n,fn])=>{$('hnv216-'+n+'-build').addEventListener('click',fn);$('hnv216-'+n+'-copy').addEventListener('click',()=>copy($('hnv216-'+n+'-report').textContent));$('hnv216-'+n+'-add').addEventListener('click',()=>appendToReport($('hnv216-'+n+'-report').textContent))});
+window.HNClinicalAddonsV216={version:'2.16.0',open,close,calcGA,buildRPOC,buildPAS,buildScar,buildIUD,appendToReport};
+})();
+</script>
+<!-- HN_CLINICAL_ADDONS_V216_END -->
