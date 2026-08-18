@@ -18112,6 +18112,47 @@ function createWordBase64(item) {
     });
     return window.HNWord.toBase64(bytes);
 }
+/* HN_A5_INSURANCE_V1 */
+function escapeInsuranceHtml(value) {
+    return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+function insuranceReportText(item) {
+    if (String(item && item.fullReport || "").trim()) return String(item.fullReport).trim();
+    const sections = [];
+    if (String(item && item.finding || "").trim()) sections.push(`یافته‌ها:\n${String(item.finding).trim()}`);
+    if (String(item && item.impression || "").trim()) sections.push(`نتیجه‌گیری:\n${String(item.impression).trim()}`);
+    if (String(item && item.recommendation || "").trim()) sections.push(`پیشنهاد:\n${String(item.recommendation).trim()}`);
+    return sections.join("\n\n");
+}
+function sameLocalDay(iso, reference = new Date()) {
+    const date = new Date(iso);
+    return !Number.isNaN(date.getTime()) &&
+        date.getFullYear() === reference.getFullYear() &&
+        date.getMonth() === reference.getMonth() &&
+        date.getDate() === reference.getDate();
+}
+function printInsuranceA5(items) {
+    const rows = (Array.isArray(items) ? items : []).filter(Boolean);
+    if (!rows.length) return false;
+    const pages = rows.map(item => {
+        const patientId = escapeInsuranceHtml(item.patientId || "------");
+        const title = escapeInsuranceHtml(item.examTitle || "گزارش سونوگرافی");
+        const date = escapeInsuranceHtml(formatDate(item.createdAt || new Date().toISOString()));
+        const report = escapeInsuranceHtml(insuranceReportText(item));
+        return `<section class="page"><div class="header"><strong>گزارش جهت ارائه به بیمه</strong></div><div class="meta"><div><b>Patient ID:</b> ${patientId}</div><div><b>تاریخ:</b> ${date}</div><div class="wide"><b>نوع بررسی:</b> ${title}</div></div><div class="report">${report}</div><div class="signature">مهر و امضای پزشک</div></section>`;
+    }).join("");
+    const win = window.open("", "_blank", "width=800,height=1000");
+    if (!win) return false;
+    const peyda = window.HNPrintAssets && window.HNPrintAssets.peydaVariable ? window.HNPrintAssets.peydaVariable : "";
+    const fontFace = peyda ? `@font-face{font-family:"Peyda";src:url("${peyda}") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}` : "";
+    win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>چاپ بیمه A5</title><style>${fontFace}@page{size:A5 portrait;margin:10mm}html,body{margin:0;padding:0;background:#fff;color:#111}body{font-family:"Peyda",Arial,Tahoma,sans-serif;direction:rtl}.page{page-break-after:always;min-height:190mm;box-sizing:border-box;position:relative;padding-bottom:18mm}.page:last-child{page-break-after:auto}.header{border-bottom:1px solid #111;padding-bottom:3mm;margin-bottom:4mm;text-align:center;font-size:13pt}.meta{display:grid;grid-template-columns:1fr 1fr;gap:2mm 5mm;font-size:10pt;margin-bottom:5mm}.meta .wide{grid-column:1/-1}.report{white-space:pre-wrap;line-height:1.85;font-size:10.5pt;text-align:right;overflow-wrap:anywhere}.signature{position:absolute;left:0;bottom:2mm;width:42mm;text-align:center;border-top:1px solid #aaa;padding-top:2mm;font-size:9pt;color:#444}@media screen{body{background:#e5e7eb;padding:12px}.page{width:148mm;margin:0 auto 12px;background:white;padding:10mm;box-shadow:0 3px 18px #0002}.signature{left:10mm;bottom:10mm}}@media print{.page{padding:0}}</style></head><body>${pages}<script>window.onload=()=>{window.focus();window.print();}<\/script></body></html>`);
+    win.document.close();
+    return true;
+}
 function MyReports({ goBack }) {
     const [reports, setReports] = React.useState(() => readReports());
     const [search, setSearch] = React.useState("");
@@ -18123,6 +18164,7 @@ function MyReports({ goBack }) {
         return () => window.removeEventListener("hn-reports-updated", update);
     }, []);
     const filtered = reports.filter(item => !search.trim() || String(item.patientId || "").includes(search.trim()) || String(item.examTitle || "").includes(search.trim()));
+    const todayReports = reports.filter(item => sameLocalDay(item.createdAt));
     const flash = (text, ms = 2300) => { setStatus(text); window.setTimeout(() => setStatus(""), ms); };
     const copy = async text => {
         try { await navigator.clipboard.writeText(text); }
@@ -18130,6 +18172,13 @@ function MyReports({ goBack }) {
             const area = document.createElement("textarea"); area.value = text; document.body.appendChild(area); area.select(); document.execCommand("copy"); document.body.removeChild(area);
         }
         flash("گزارش کپی شد");
+    };
+    const printA5 = items => {
+        if (!printInsuranceA5(items)) {
+            flash("پنجره چاپ باز نشد؛ اجازه Pop-up مرورگر را بررسی کنید.", 3500);
+            return;
+        }
+        flash("نسخه A5 برای چاپ بیمه آماده شد");
     };
     const downloadWord = item => {
         try {
@@ -18190,11 +18239,16 @@ function MyReports({ goBack }) {
         h("p", { style: { color: "#cbd5e1", lineHeight: 1.9 } }, "هر گزارش به‌همراه فایل Word با نام Patient ID در همین مرورگر نگهداری می‌شود. این آرشیو با مرورگر یا دستگاه دیگر همگام نمی‌شود."),
         h("input", { value: search, onChange: e => setSearch(String(e.target.value || "").replace(/[^0-9\u0600-\u06FFa-zA-Z ]/g, "")), placeholder: "جست‌وجو با Patient ID یا نوع بررسی", style: { width: "min(520px, 100%)", padding: "11px 13px", borderRadius: "9px", border: "1px solid #64748b", fontSize: "15px" } }),
         h("div", { style: { marginTop: "15px", color: "#7dd3fc" } }, `${filtered.length} گزارش از ${reports.length} گزارش ذخیره‌شده`),
+        h("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "12px" } },
+            h("button", { type: "button", disabled: !filtered.length, onClick: () => printA5(filtered), style: { background: "#7c3aed", color: "white", border: "1px solid #c4b5fd" } }, `چاپ A5 گزارش‌های فیلترشده (${filtered.length})`),
+            h("button", { type: "button", disabled: !todayReports.length, onClick: () => printA5(todayReports), style: { background: "#6d28d9", color: "white", border: "1px solid #c4b5fd" } }, `چاپ A5 گزارش‌های امروز (${todayReports.length})`)
+        ),
         !filtered.length ? h("div", { style: card }, "گزارشی مطابق جست‌وجو موجود نیست.") : filtered.map(item => h("details", { key: item.id, style: card },
             h("summary", { style: { cursor: "pointer", fontWeight: "bold", lineHeight: 1.9 } }, `Patient ID: ${item.patientId} — ${item.examTitle || "گزارش سونوگرافی"} — ${formatDate(item.createdAt)}`),
             h("div", { style: { marginTop: "10px", color: "#86efac", fontFamily: "Arial, Tahoma, sans-serif" } }, `فایل Word: ${item.wordFileName || `${item.patientId}.docx`}${item.docxBase64 ? " — ذخیره‌شده در آرشیو" : " — هنگام دانلود ساخته می‌شود"}`),
             h("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "14px 0" } },
                 h("button", { type: "button", onClick: () => copy(item.fullReport || "") }, "کپی گزارش"),
+                h("button", { type: "button", onClick: () => printA5([item]), style: { background: "#7c3aed", color: "white", border: "1px solid #c4b5fd" } }, "چاپ بیمه A5"),
                 h("button", { type: "button", onClick: () => downloadWord(item), style: { background: "#166534", color: "white", border: "1px solid #4ade80" } }, "دانلود / بازکردن Word"),
                 h("button", { type: "button", onClick: () => remove(item.id), style: { border: "1px solid #ef4444", color: "#fecaca", background: "#7f1d1d" } }, "حذف")
             ),
