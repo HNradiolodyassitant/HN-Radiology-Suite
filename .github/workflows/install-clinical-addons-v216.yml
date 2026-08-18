@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'tools/clinical_addons_v216/install_v216.py'
+      - 'tools/clinical_addons_v216/**'
+      - '.github/workflows/install-clinical-addons-v216.yml'
   workflow_dispatch:
 
 permissions:
