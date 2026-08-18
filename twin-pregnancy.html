@@ -1,34 +1,636 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HN Twin Pregnancy v2.15.0</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HN Radiology Suite — Twin Pregnancy v2.15.0</title>
 <style>
-body{margin:0;background:#f4f7fb;font-family:Tahoma,Arial,sans-serif;color:#162033;direction:rtl}.card{max-width:760px;margin:12vh auto;background:#fff;border:1px solid #dfe6ef;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(25,45,80,.08);line-height:2}.muted{color:#667085;font-size:13px}
+:root{--bg:#f4f7fb;--card:#fff;--text:#162033;--muted:#667085;--line:#dfe6ef;--accent:#2457d6;--accent2:#eaf0ff;--warn:#a15c00;--warnbg:#fff7e8;--danger:#b42318;--dangerbg:#fff0ee;--ok:#067647;--okbg:#ecfdf3;--shadow:0 8px 30px rgba(25,45,80,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#2457d6,#6c8eff);display:grid;place-items:center;color:#fff;font-weight:800}.brand h1{font-size:18px;margin:0}.brand small{color:var(--muted)}
+.lab{background:#fff2c6;color:#7a4b00;border:1px solid #f0d078;padding:7px 10px;border-radius:10px;font-weight:700;font-size:12px}
+.shell{max-width:1450px;margin:22px auto;padding:0 18px 50px}.notice{background:#eef4ff;border:1px solid #c7d7fe;border-radius:14px;padding:12px 15px;margin-bottom:16px;font-size:13px;line-height:1.9}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:11px;cursor:pointer;font-weight:700;color:#344054}.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:1.45fr .8fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}.card h2,.card h3{margin:0 0 13px}.card h2{font-size:18px}.card h3{font-size:15px}.sub{color:var(--muted);font-size:12px;margin-top:-6px;margin-bottom:12px;line-height:1.7}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.field label{display:block;font-size:12px;color:#475467;margin:0 0 5px}.field input,.field select,.field textarea{width:100%;border:1px solid #cfd8e6;border-radius:10px;padding:9px 10px;background:#fff;color:#101828;font:inherit;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#7b9bf0;box-shadow:0 0 0 3px #edf2ff}.field textarea{min-height:80px;resize:vertical}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.btn{border:1px solid var(--line);background:#fff;color:#344054;border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:700}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.soft{background:var(--accent2);color:#2148a7;border-color:#ccd9ff}.btn.danger{background:#fff;color:var(--danger);border-color:#f1b7b1}.btn:disabled{opacity:.45;cursor:not-allowed}
+.fetus{border:1px solid #d9e2f0;border-radius:14px;padding:13px;margin:11px 0;background:#fbfcfe}.fetus-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.badge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;background:#eef2f6;color:#344054;font-size:11px;font-weight:700}.badge.ok{background:var(--okbg);color:var(--ok)}.badge.warn{background:var(--warnbg);color:var(--warn)}.badge.danger{background:var(--dangerbg);color:var(--danger)}
+.metric{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}.metric>div{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.metric .n{font-weight:800;font-size:20px;direction:ltr;text-align:right}.metric .t{font-size:11px;color:var(--muted);margin-top:3px}
+.checks{display:flex;flex-wrap:wrap;gap:9px}.check{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;display:flex;align-items:center;gap:7px;font-size:13px}.check input{accent-color:var(--accent)}
+.dynamic{display:none;margin-top:12px;border-top:1px dashed #d7dfeb;padding-top:12px}.dynamic.show{display:block}.callout{padding:10px 12px;border-radius:12px;border:1px solid var(--line);font-size:12px;line-height:1.8;margin-top:10px}.callout.warn{background:var(--warnbg);border-color:#efd7ad;color:#744700}.callout.danger{background:var(--dangerbg);border-color:#efc1bc;color:#84251d}.callout.ok{background:var(--okbg);border-color:#b7ebcd;color:#08603b}
+.report{position:sticky;top:86px}.report-box{background:#0f172a;color:#e5e7eb;border-radius:14px;padding:15px;min-height:430px;white-space:pre-wrap;line-height:2;font-size:13px;direction:rtl}.report-actions{display:flex;gap:8px;margin-top:10px}.tiny{font-size:11px;color:var(--muted);line-height:1.7}.separator{height:1px;background:var(--line);margin:14px 0}.scar-item{border:1px dashed #b8c6da;border-radius:12px;padding:11px;margin:10px 0}.hidden{display:none!important}
+
+.bio-table-wrap{overflow-x:auto;margin-top:12px}.bio-table{width:100%;border-collapse:collapse;min-width:760px;background:#fff;border-radius:12px;overflow:hidden}.bio-table th,.bio-table td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:center;font-size:11px;direction:ltr}.bio-table th{background:#f2f5f9;color:#344054;font-weight:800}.bio-table td:first-child,.bio-table th:first-child{direction:ltr;text-align:left}.bio-table tr:last-child td{border-bottom:0}.formula-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.formula-strip>div{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:8px}.formula-strip b{display:block;font-size:13px;direction:ltr}.formula-strip span{font-size:10px;color:var(--muted)}.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.chart-box{border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px;overflow:hidden}.chart-box h4{margin:0 0 6px;font-size:13px}.chart-box svg{display:block;width:100%;height:auto}.chart-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:6px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:4px}.section-title{font-size:12px;font-weight:800;color:#344054;margin:12px 0 7px}.inline-switch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#f8fafc}.inline-switch input{accent-color:var(--accent)}.readonly{background:#f2f4f7!important;color:#475467!important}
+
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.report{position:static}.form-grid,.form-grid.three{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1000px){.formula-strip,.chart-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.formula-strip,.chart-grid{grid-template-columns:1fr}header{padding:11px 12px}.shell{padding:0 10px 35px}.form-grid,.form-grid.three,.form-grid.two,.metric{grid-template-columns:1fr}.brand small{display:none}}
+
+.output-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.output-controls .field{margin:0}
+.output-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.report-title-fa{font-weight:800;color:#dbeafe;margin:8px 0 4px}
+@media(max-width:640px){.output-controls{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
-<div class="card" id="status"><b>در حال بارگذاری ماژول بارداری دوقلویی v2.15.0…</b><div class="muted">HN Radiology Suite</div></div>
+<header>
+  <div class="brand"><div class="logo">HN</div><div><h1>HN Radiology Suite</h1><small>Twin Pregnancy Module — v2.15.0</small></div></div>
+  <div class="lab">نسخه یکپارچه HN Radiology Suite</div>
+</header>
+<div class="shell">
+  <div class="notice"><b>ماژول بارداری چندقلویی:</b> بیومتری، نمودار رشد، EFW discordance، NT و Doppler برای هر جنین. خروجی‌های محاسباتی باید پیش از ثبت نهایی توسط رادیولوژیست تأیید شوند.</div>
+  <div class="tabs">
+    <button class="tab active" data-tab="multi">بارداری چندقلویی / رشد</button>
+    <button class="tab" data-tab="nt">NT + Percentile</button>
+    <button class="tab" data-tab="iud">رحم / IUD</button>
+    <button class="tab" data-tab="renal">کلیه / Renal Scar</button>
+  </div>
+
+  <section id="multi" class="panel active">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>بارداری چندقلویی و بیومتری رشد — Dual Reference</h2>
+          <div class="sub">همان موتور بیومتری singleton برای هر جنین: BPD/HC/AC/FL، سن معادل، صدک INTERGROWTH-21st و Hadlock، EFW و نمودار رشد مشترک A/B.</div>
+          <div class="form-grid">
+            <div class="field"><label>GA هفته (براساس dating معتبر/NT)</label><input id="multiGaWeeks" type="number" min="12" max="42" step="1" placeholder="مثلاً 30"></div>
+            <div class="field"><label>GA روز</label><input id="multiGaDays" type="number" min="0" max="6" step="1" value="0"></div>
+            <div class="field"><label>نوع بارداری</label><select id="pregType"><option value="twin">دوقلویی</option><option value="triplet">سه‌قلویی</option><option value="multiple">چندقلویی (قابل افزودن)</option></select></div>
+            <div class="field"><label>Chorionicity / Amnionicity</label><select id="chorionicity"><option value="DCDA">DCDA</option><option value="MCDA">MCDA</option><option value="MCMA">MCMA</option><option value="TCTA">Trichorionic–Triamniotic</option><option value="DCTA">Dichorionic–Triamniotic</option><option value="other">سایر / نامشخص</option></select></div>
+            <div class="field"><label>تعداد جفت قابل مشاهده</label><select id="placentaCount"><option>2</option><option>1</option><option>3</option><option>نامشخص</option></select></div>
+            <div class="field"><label>علامت غشایی</label><select id="membraneSign"><option value="">—</option><option>Lambda / Twin-peak sign</option><option>T-sign</option><option>Intertwin membrane not seen</option></select></div>
+            <div class="field"><label>مرجع نمودار رشد</label><select id="growthRef"><option value="intergrowth">INTERGROWTH-21st</option><option value="hadlock">Hadlock</option></select></div>
+            <div class="field"><label>نوع بررسی</label><div class="inline-switch"><input type="checkbox" id="dopplerToggle"><span>IUGR/FGR + Doppler</span></div></div>
+          </div>
+          <div class="callout"><b>منطق EFW:</b> اگر EFW دستگاه وارد شود همان وزن استفاده می‌شود؛ در غیر این صورت ابتدا Hadlock BPD+AC+FL و سپس HC+AC+FL محاسبه می‌شود. <b>همان EFW</b> هم‌زمان نسبت به استاندارد INTERGROWTH-21st و مرجع Hadlock صدک‌بندی می‌شود.</div>
+          <div id="fetuses"></div>
+          <div class="row"><button class="btn soft" id="addFetus">+ افزودن جنین</button><button class="btn" id="resetFetuses">بازنشانی A و B</button></div>
+
+          <div id="maternalDoppler" class="dynamic">
+            <div class="separator"></div>
+            <h3>Maternal uterine artery Doppler — اختیاری</h3>
+            <div class="form-grid">
+              <div class="field"><label>Right UtA PI</label><input type="number" step="0.01" id="utaR" class="multiGlobal"></div>
+              <div class="field"><label>Left UtA PI</label><input type="number" step="0.01" id="utaL" class="multiGlobal"></div>
+              <div class="field"><label>Mean UtA PI</label><input id="utaMean" class="readonly" readonly></div>
+              <div class="field"><label>Mean UtA percentile (device/manual)</label><input type="number" step="0.1" id="utaP" class="multiGlobal" min="0" max="100"></div>
+            </div>
+            <div class="checks" style="margin-top:9px">
+              <label class="check"><input type="checkbox" id="notchR" class="multiGlobal"> Right uterine artery notch</label>
+              <label class="check"><input type="checkbox" id="notchL" class="multiGlobal"> Left uterine artery notch</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><div><h3 style="margin-bottom:4px">جدول‌ها و نمودارهای رشد دوقلویی/چندقلویی</h3><div class="sub" style="margin:0">نقاط A/B روی یک نمودار؛ خطوط P3/P10/P50/P90/P97 براساس مرجع انتخاب‌شده.</div></div><span class="badge" id="chartRefBadge">INTERGROWTH-21st</span></div>
+          <div id="growthCharts" class="chart-grid"></div>
+        </div>
+
+        <div class="card">
+          <h3>EFW Discordance</h3>
+          <div class="metric">
+            <div><div class="n" id="discordanceMain">—</div><div class="t">بیشترین اختلاف وزن (%)</div></div>
+            <div><div class="n" id="largestEFW">—</div><div class="t">بزرگ‌ترین EFW (g)</div></div>
+            <div><div class="n" id="smallestEFW">—</div><div class="t">کوچک‌ترین EFW (g)</div></div>
+          </div>
+          <div id="pairwise" class="tiny" style="margin-top:10px"></div>
+          <div id="discordanceAlert"></div>
+        </div>
+
+        <div class="card">
+          <h3>عوارض بارداری چندقلویی</h3>
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="comp" value="sFGR"> sFGR</label>
+            <label class="check"><input type="checkbox" class="comp mono" value="TTTS"> TTTS</label>
+            <label class="check"><input type="checkbox" class="comp mono" value="TAPS"> TAPS</label>
+            <label class="check"><input type="checkbox" class="comp mono" value="TRAP"> TRAP sequence</label>
+            <label class="check"><input type="checkbox" class="comp" value="demise"> Single fetal demise</label>
+            <label class="check"><input type="checkbox" class="comp" value="conjoined"> Conjoined twins</label>
+          </div>
+          <div id="monoHint" class="callout warn hidden">TTTS، TAPS و TRAP عمدتاً برای بارداری monochorionic طراحی شده‌اند؛ chorionicity فعلی را دوباره بررسی کن.</div>
+
+          <div id="sFGRBox" class="dynamic">
+            <h3>sFGR — Structured entry</h3>
+            <div class="form-grid three">
+              <div class="field"><label>جنین کوچک‌تر</label><select id="sfgrFetus"></select></div>
+              <div class="field"><label>UA end-diastolic flow</label><select id="sfgrUa"><option value="positive">Positive EDF</option><option value="absent-reversed">Persistently absent/reversed EDF</option><option value="intermittent">Intermittent/cyclical AREDF</option></select></div>
+              <div class="field"><label>Type پیشنهادی</label><input id="sfgrType" readonly value="Type I" /></div>
+            </div>
+            <div class="tiny">Type I/II/III فقط بر اساس الگوی UA در جنین growth-restricted پیشنهاد می‌شود؛ تشخیص نهایی sFGR به مجموعه معیارها وابسته است.</div>
+          </div>
+
+          <div id="TTTSBox" class="dynamic">
+            <h3>TTTS — Quintero helper</h3>
+            <div class="form-grid">
+              <div class="field"><label>Donor</label><select id="tttsDonor"></select></div>
+              <div class="field"><label>Recipient</label><select id="tttsRecipient"></select></div>
+              <div class="field"><label>Donor DVP (cm)</label><input type="number" step="0.1" id="donorDvp"></div>
+              <div class="field"><label>Recipient DVP (cm)</label><input type="number" step="0.1" id="recipientDvp"></div>
+            </div>
+            <div class="checks" style="margin-top:10px">
+              <label class="check"><input type="checkbox" id="tttsFluid"> الگوی oligohydramnios/polyhydramnios برقرار است</label>
+              <label class="check"><input type="checkbox" id="donorBladderAbsent"> مثانه donor دیده نمی‌شود</label>
+              <label class="check"><input type="checkbox" id="tttsDopplerAbn"> Doppler شدیداً غیرطبیعی (Stage III criteria)</label>
+              <label class="check"><input type="checkbox" id="tttsHydrops"> Hydrops</label>
+              <label class="check"><input type="checkbox" id="tttsDemise"> Demise of one/both fetuses</label>
+            </div>
+            <div class="callout" id="quinteroOut">Quintero stage: —</div>
+          </div>
+
+          <div id="TAPSBox" class="dynamic">
+            <h3>TAPS — MCA-PSV</h3>
+            <div class="form-grid">
+              <div class="field"><label>Donor</label><select id="tapsDonor"></select></div>
+              <div class="field"><label>Donor MCA-PSV (MoM)</label><input type="number" step="0.01" id="tapsDonorMca"></div>
+              <div class="field"><label>Recipient</label><select id="tapsRecipient"></select></div>
+              <div class="field"><label>Recipient MCA-PSV (MoM)</label><input type="number" step="0.01" id="tapsRecipMca"></div>
+            </div>
+            <div class="callout" id="tapsOut">ΔMCA-PSV: —</div>
+          </div>
+
+          <div id="TRAPBox" class="dynamic">
+            <h3>TRAP sequence</h3>
+            <div class="form-grid two"><div class="field"><label>Pump twin</label><select id="pumpTwin"></select></div><div class="field"><label>Acardiac twin</label><select id="acardiacTwin"></select></div></div>
+          </div>
+          <div id="demiseBox" class="dynamic"><div class="field"><label>جنین دچار demise</label><select id="demiseFetus"></select></div></div>
+          <div id="conjoinedBox" class="dynamic"><div class="field"><label>نوع/محل اتصال (اختیاری)</label><input id="conjoinedType" placeholder="مثلاً thoracopagus"></div></div>
+        </div>
+      </div>
+      <aside class="card report">
+        <h3>پیش‌نمایش گزارش فارسی</h3>
+        <div class="output-controls">
+          <div class="field"><label>نام بیمار</label><input id="outPatientName" placeholder="نام و نام خانوادگی"></div>
+          <div class="field"><label>Patient ID (اختیاری)</label><input id="outPatientId" dir="ltr"></div>
+          <div class="field"><label>عنوان گزارش</label><input id="outReportTitle" value="سونوگرافی بارداری دوقلویی / چندقلویی"></div>
+          <div class="field"><label>مرکز / سربرگ</label><select id="outClinic"><option value="valiasr">مرکز تصویربرداری ولیعصر(عج)</option><option value="shams">مرکز تصویربرداری شمس (زاهدان)</option><option value="toos">بیمارستان توس — کاغذ سربرگ‌دار</option></select></div>
+        </div>
+        <div class="tiny">چاپ/PDF با قالب مرکز انتخاب‌شده انجام می‌شود. خروجی Word طبق قاعده قبلی فقط متن گزارش و بدون سربرگ است.</div>
+        <div class="report-box" id="multiReport"></div>
+        <div class="output-actions">
+          <button class="btn primary" onclick="copyReport('multiReport')">کپی گزارش</button>
+          <button class="btn soft" onclick="printPersianMultiReport()">چاپ / PDF با سربرگ</button>
+          <button class="btn" onclick="exportPersianWord()">Word فارسی</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="nt" class="panel">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>NT + CRL Percentile</h2>
+          <div class="sub">برای هر جنین می‌توان CRL و NT جداگانه وارد کرد. از CRL، سن سونوگرافیک (GA by CRL) نیز محاسبه می‌شود؛ فقط در صورت تأیید شما در گزارش ثبت خواهد شد. محدوده استاندارد گزارش صدک NT: CRL 45–84 mm.</div>
+          <div id="ntEntries"></div>
+          <button class="btn soft" id="addNt">+ افزودن جنین برای NT</button>
+          <div class="callout warn"><b>NT:</b> GA by CRL با modified Robinson–Fleming محاسبه می‌شود. expected NT و percentile به‌عنوان ابزار کمکی نمایش داده می‌شوند و تفسیر نهایی با رادیولوژیست است.</div>
+        </div>
+      </div>
+      <aside class="card report"><h3>پیش‌نمایش NT</h3><div class="report-box" id="ntReport"></div><div class="report-actions"><button class="btn primary" onclick="copyReport('ntReport')">کپی گزارش</button></div></aside>
+    </div>
+  </section>
+
+  <section id="iud" class="panel">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>رحم و ضمائم — IUD</h2>
+          <div class="form-grid two">
+            <div class="field"><label>وضعیت IUD</label><select id="iudStatus"><option value="none">IUD ندارد / ذکر نشود</option><option value="appropriate">موقعیت مناسب Fundal</option><option value="low">Low-lying</option><option value="cervical">Intracervical / Partial expulsion</option><option value="rotated">Rotated / Maloriented</option><option value="embed">Embedment</option><option value="partialPerf">Partial perforation</option><option value="completePerf">Complete perforation / Extrauterine</option><option value="notseen">Not visualized</option></select></div>
+            <div class="field"><label>نوع IUD (اختیاری)</label><input id="iudType" placeholder="Copper / LNG-IUD / نامشخص"></div>
+          </div>
+          <div id="iudLow" class="dynamic"><div class="form-grid two"><div class="field"><label>فاصله قسمت فوقانی IUD تا fundal endometrium (mm)</label><input type="number" step="0.1" id="iudFundalDistance"></div><div class="field"><label>محل</label><select id="iudLowSite"><option>Lower uterine segment</option><option>Mid uterine cavity</option></select></div></div></div>
+          <div id="iudEmbed" class="dynamic"><div class="form-grid two"><div class="field"><label>قسمت درگیر</label><select id="iudPart"><option>Right arm</option><option>Left arm</option><option>Stem</option></select></div><div class="field"><label>محل میومتر</label><select id="iudWall"><option>Fundal</option><option>Anterior</option><option>Posterior</option><option>Right lateral</option><option>Left lateral</option></select></div></div></div>
+          <div id="iudPerf" class="dynamic"><div class="field"><label>محل perforation</label><select id="iudPerfSite"><option>Fundal</option><option>Anterior wall</option><option>Posterior wall</option><option>Right lateral wall</option><option>Left lateral wall</option></select></div></div>
+        </div>
+      </div>
+      <aside class="card report"><h3>جمله پیشنهادی گزارش</h3><div class="report-box" id="iudReport"></div><div class="report-actions"><button class="btn primary" onclick="copyReport('iudReport')">کپی گزارش</button></div></aside>
+    </div>
+  </section>
+
+  <section id="renal" class="panel">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>کلیه — Renal Parenchymal Scar</h2>
+          <div class="sub">هر بیمار می‌تواند چند اسکار در یک یا هر دو کلیه داشته باشد.</div>
+          <div id="scarList"></div>
+          <div class="row"><button class="btn soft" id="addScar">+ افزودن اسکار</button><button class="btn" id="clearScars">پاک کردن همه</button></div>
+        </div>
+      </div>
+      <aside class="card report"><h3>پیش‌نمایش گزارش کلیه</h3><div class="report-box" id="renalReport"></div><div class="report-actions"><button class="btn primary" onclick="copyReport('renalReport')">کپی گزارش</button></div></aside>
+    </div>
+  </section>
+</div>
 <script>
-(async()=>{
-  const status=document.getElementById('status');
-  try{
-    if(!('DecompressionStream' in window)) throw new Error('مرورگر از DecompressionStream پشتیبانی نمی‌کند. لطفاً Chrome یا Safari جدید استفاده شود.');
-    const urls=['tools/twin_v215/p1.b64','tools/twin_v215/p2.b64'];
-    const parts=await Promise.all(urls.map(async u=>{const r=await fetch(u+'?v=2150',{cache:'no-store'});if(!r.ok)throw new Error('عدم دریافت '+u+' ('+r.status+')');return (await r.text()).trim()}));
-    const b64=parts.join('').replace(/\s+/g,'');
-    const binary=atob(b64);
-    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
-    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const html=await new Response(stream).text();
-    if(!html.includes('Twin Pregnancy Module — v2.15.0')) throw new Error('فایل ماژول پس از بازسازی معتبر نیست.');
-    document.open();document.write(html);document.close();
-  }catch(e){
-    console.error(e);
-    status.innerHTML='<b>خطا در بارگذاری ماژول Twin</b><br><span class="muted">'+String(e && e.message || e)+'</span>';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function copyReport(id){navigator.clipboard?.writeText(document.getElementById(id).innerText).then(()=>alert('گزارش کپی شد.')).catch(()=>alert('امکان کپی خودکار نبود. متن را دستی انتخاب کن.'));}
+
+$$('.tab').forEach(b=>b.addEventListener('click',()=>{ $$('.tab').forEach(x=>x.classList.remove('active')); $$('.panel').forEach(x=>x.classList.remove('active')); b.classList.add('active'); $('#'+b.dataset.tab).classList.add('active'); }));
+
+
+let fetusCount=0;
+const optNum=v=>v===null||v===undefined||String(v).trim()===''?null:(Number.isFinite(Number(v))?Number(v):null);
+const gaTotalDays=()=>{const w=optNum($('#multiGaWeeks').value),d=optNum($('#multiGaDays').value)??0;return w===null?null:w*7+d};
+const gaText=days=>{if(!Number.isFinite(days))return '—';const w=Math.floor(days/7),d=Math.round(days-w*7);return `${w}w${d}d`};
+const normalCdf=z=>0.5*(1+erf(z/Math.sqrt(2)));
+const fmtP=v=>v==null||!Number.isFinite(v)?'—':`${v.toFixed(1)}%`;
+const fmtZ=v=>v==null||!Number.isFinite(v)?'—':v.toFixed(2);
+const zAnchors={3:-1.880793608,10:-1.281551566,50:0,90:1.281551566,97:1.880793608};
+
+function igBiometryParams(key,days){
+ if(!Number.isFinite(days)||days<98||days>280)return null;
+ const g=days/7,L=Math.log(g);
+ if(key==='hc')return {mu:-28.2849+1.69267*g*g-0.397485*g*g*L,sigma:1.98735+0.0136772*g*g*g-0.00726264*g*g*g*L+0.000976253*g*g*g*L*L};
+ if(key==='ac')return {mu:-81.3243+11.6772*g-0.000561865*g*g*g,sigma:-4.36302+0.121445*g*g-0.0130256*g*g*g+0.00282143*g*g*g*L};
+ if(key==='fl')return {mu:-39.9616+4.32298*g-0.0380156*g*g,sigma:Math.exp(0.605843-42.0014*Math.pow(g,-2)+0.00000917972*g*g*g)};
+ if(key==='bpd')return {mu:5.60878+0.158369*g*g-0.00256379*g*g*g,sigma:Math.exp(0.101242+0.00150557*g*g*g-0.000771535*g*g*g*L+0.0000999638*g*g*g*L*L)};
+ return null;
+}
+function invertIgMetricGa(key,value){const v=Number(value);if(!Number.isFinite(v))return null;let lo=98,hi=280;const mn=igBiometryParams(key,lo),mx=igBiometryParams(key,hi);if(!mn||!mx||v<mn.mu||v>mx.mu)return null;for(let i=0;i<45;i++){const mid=(lo+hi)/2,m=igBiometryParams(key,mid).mu;if(m<v)lo=mid;else hi=mid}return (lo+hi)/2}
+function igMetricResult(key,value,days){const v=optNum(value),p=igBiometryParams(key,days);if(v===null||v<=0||!p||!(p.sigma>0))return null;const z=(v-p.mu)/p.sigma;return {value:v,z,percentile:Math.min(99.9,Math.max(.1,normalCdf(z)*100)),equivDays:invertIgMetricGa(key,v)}}
+
+function hadlockBiometryParams(key,days){
+ if(!Number.isFinite(days)||days<98||days>294)return null;const g=days/7;
+ if(key==='bpd')return {mu:(-3.08+.41*g-.000061*g*g*g)*10,sigma:3};
+ if(key==='hc')return {mu:(-11.48+1.56*g-.0002548*g*g*g)*10,sigma:10};
+ if(key==='ac')return {mu:(-13.3+1.61*g-.00998*g*g)*10,sigma:13.4};
+ if(key==='fl')return {mu:(-3.91+.427*g-.0034*g*g)*10,sigma:3};
+ return null;
+}
+function hadlockGaFromMetric(key,value){const v=optNum(value);if(v===null||v<=0)return null;const c=v/10;let weeks=null;if(key==='bpd')weeks=9.54+1.482*c+0.1676*c*c;else if(key==='hc')weeks=8.96+0.54*c+0.0003*c*c*c;else if(key==='ac')weeks=8.14+0.753*c+0.0036*c*c;else if(key==='fl')weeks=10.35+2.46*c+0.17*c*c;else return null;if(!Number.isFinite(weeks)||weeks<12||weeks>42)return null;return weeks*7}
+function hadlockMetricResult(key,value,days){const v=optNum(value),p=hadlockBiometryParams(key,days);if(v===null||v<=0||!p||!(p.sigma>0))return null;const z=(v-p.mu)/p.sigma;return {value:v,z,percentile:Math.min(99.9,Math.max(.1,normalCdf(z)*100)),equivDays:hadlockGaFromMetric(key,v)}}
+
+function hadlockHcAcFl(hc,ac,fl){hc=Number(hc);ac=Number(ac);fl=Number(fl);if(![hc,ac,fl].every(Number.isFinite)||hc<=0||ac<=0||fl<=0)return null;const H=hc/10,A=ac/10,F=fl/10;return Math.pow(10,1.326+0.0107*H+0.0438*A+0.158*F-0.00326*A*F)}
+function hadlockAcFl(ac,fl){ac=Number(ac);fl=Number(fl);if(![ac,fl].every(Number.isFinite)||ac<=0||fl<=0)return null;const A=ac/10,F=fl/10;return Math.pow(10,1.304+0.05281*A+0.1938*F-0.004*A*F)}
+function hadlockBpdAcFl(bpd,ac,fl){bpd=Number(bpd);ac=Number(ac);fl=Number(fl);if(![bpd,ac,fl].every(Number.isFinite)||bpd<=0||ac<=0||fl<=0)return null;const B=bpd/10,A=ac/10,F=fl/10;return Math.pow(10,1.335-.0034*A*F+.0316*B+.0457*A+.1623*F)}
+
+function efwLms(days){if(!Number.isFinite(days)||days<126||days>280)return null;const g=days/7,q=days/70,lnq=Math.log(q);return {lambda:9.43643+9.41579*Math.pow(q,-2)-83.5422*lnq*Math.pow(q,-2),mu:-2.42272+1.86478*Math.sqrt(g)-0.0000193299*Math.pow(g,3),sigma:0.0193557+0.0310716*Math.pow(q,-2)-0.0657587*lnq*Math.pow(q,-2)}}
+function efwZ(weight,days){const w=Number(weight),p=efwLms(days);if(!Number.isFinite(w)||w<=0||!p)return null;const y=Math.log(w);return Math.abs(p.lambda)<1e-10?Math.log(y/p.mu)/p.sigma:(Math.pow(y/p.mu,p.lambda)-1)/(p.sigma*p.lambda)}
+function efwAtZ(days,z){const p=efwLms(days);if(!p)return null;const logW=Math.abs(p.lambda)<1e-10?p.mu*Math.exp(p.sigma*z):p.mu*Math.pow(1+z*p.sigma*p.lambda,1/p.lambda);return Math.exp(logW)}
+function invertEfwGa(weight){if(!Number.isFinite(weight)||weight<=0)return null;let lo=126,hi=280;if(weight<efwAtZ(lo,0)||weight>efwAtZ(hi,0))return null;for(let i=0;i<45;i++){const mid=(lo+hi)/2;if(efwAtZ(mid,0)<weight)lo=mid;else hi=mid}return (lo+hi)/2}
+function efwResult(weight,days){const z=efwZ(weight,days);if(z===null)return null;return {value:Number(weight),z,percentile:Math.min(99.9,Math.max(.1,normalCdf(z)*100)),equivDays:invertEfwGa(Number(weight))}}
+
+const hadlockEfwTable={14:[70,77,93,109,116],15:[88,97,117,137,146],16:[110,121,146,171,183],17:[136,150,181,212,226],18:[167,185,223,261,279],19:[205,227,273,319,341],20:[248,275,331,387,414],21:[299,331,399,467,499],22:[359,398,478,559,598],23:[426,471,568,665,710],24:[503,556,670,784,838],25:[589,652,785,918,981],26:[685,758,913,1068,1141],27:[791,876,1055,1234,1319],28:[908,1004,1210,1416,1513],29:[1034,1145,1379,1613,1724],30:[1169,1294,1559,1824,1949],31:[1313,1453,1751,2049,2189],32:[1465,1621,1953,2285,2441],33:[1622,1794,2162,2530,2703],34:[1783,1973,2377,2781,2971],35:[1946,2154,2595,3036,3244],36:[2110,2335,2813,3291,3516],37:[2271,2513,3028,3543,3785],38:[2427,2686,3236,3786,4045],39:[2576,2851,3435,4019,4294],40:[2714,3004,3619,4234,4524]};
+const hadlockEfwZAnchors=[zAnchors[3],zAnchors[10],0,zAnchors[90],zAnchors[97]];
+function hadlockEfwQuantiles(days){if(!Number.isFinite(days)||days<98||days>280)return null;const g=days/7,w0=Math.floor(g),w1=Math.min(40,Math.ceil(g)),a=hadlockEfwTable[w0],b=hadlockEfwTable[w1];if(!a||!b)return null;const t=w1===w0?0:(g-w0)/(w1-w0);return a.map((v,i)=>v+(b[i]-v)*t)}
+function hadlockEfwResult(weight,days){const w=Number(weight),q=hadlockEfwQuantiles(days);if(!Number.isFinite(w)||w<=0||!q)return null;const lw=Math.log(w),logs=q.map(Math.log);let i=0;if(lw<=logs[0])i=0;else if(lw>=logs[4])i=3;else for(let j=0;j<4;j++){if(lw>=logs[j]&&lw<=logs[j+1]){i=j;break}}const z=hadlockEfwZAnchors[i]+(lw-logs[i])/(logs[i+1]-logs[i])*(hadlockEfwZAnchors[i+1]-hadlockEfwZAnchors[i]);return {value:w,z,percentile:Math.min(99.9,Math.max(.1,normalCdf(z)*100)),equivDays:null}}
+function hadlockEfwAtZ(days,z){const q=hadlockEfwQuantiles(days);if(!q)return null;const zs=hadlockEfwZAnchors;let i=0;if(z<=zs[0])i=0;else if(z>=zs[4])i=3;else for(let j=0;j<4;j++){if(z>=zs[j]&&z<=zs[j+1]){i=j;break}}const logW=Math.log(q[i])+(z-zs[i])/(zs[i+1]-zs[i])*(Math.log(q[i+1])-Math.log(q[i]));return Math.exp(logW)}
+
+function fetusTemplate(i){
+ const L=letters[i]||String(i+1);
+ return `<div class="fetus" data-i="${i}">
+  <div class="fetus-head"><div><b>Fetus ${L}</b> <span class="badge fetusSummary">بیومتری وارد نشده</span></div><button class="btn danger removeFetus" data-i="${i}" ${i<2?'disabled':''}>حذف</button></div>
+  <div class="section-title">Biometry</div>
+  <div class="form-grid">
+   <div class="field"><label>BPD (mm)</label><input type="number" step="0.1" class="bio bpd"></div><div class="field"><label>BPD percentile دستگاه</label><input type="number" step="0.1" class="bio bpdP" min="0" max="100"></div>
+   <div class="field"><label>HC (mm)</label><input type="number" step="0.1" class="bio hc"></div><div class="field"><label>HC percentile دستگاه</label><input type="number" step="0.1" class="bio hcP" min="0" max="100"></div>
+   <div class="field"><label>AC (mm)</label><input type="number" step="0.1" class="bio ac"></div><div class="field"><label>AC percentile دستگاه</label><input type="number" step="0.1" class="bio acp" min="0" max="100"></div>
+   <div class="field"><label>FL (mm)</label><input type="number" step="0.1" class="bio fl"></div><div class="field"><label>FL percentile دستگاه</label><input type="number" step="0.1" class="bio flP" min="0" max="100"></div>
+   <div class="field"><label>EFW دستگاه (g) — اختیاری</label><input type="number" step="1" class="bio efw"></div><div class="field"><label>EFW percentile دستگاه</label><input type="number" step="0.1" class="bio efwp" min="0" max="100"></div>
+   <div class="field"><label>DVP (cm)</label><input type="number" step="0.1" class="bio dvp"></div>
+   <div class="field"><label>Presentation</label><select class="bio pres"><option value="">—</option><option>Cephalic</option><option>Breech</option><option>Transverse</option><option>Oblique</option></select></div>
+   <div class="field"><label>Placental site</label><input class="bio placenta" placeholder="Anterior / posterior / ..."></div>
+   <div class="field"><label>نسبت قل به سرویکس</label><select class="bio cervixRelation"><option value="">— ذکر نشود —</option><option value="closest">نزدیک‌تر به سرویکس / Presenting twin</option><option value="intermediate">موقعیت میانی (برای ≥3 قل)</option><option value="farther">دورتر از سرویکس / Non-presenting twin</option><option value="farthest">دورترین قل از سرویکس (برای ≥3 قل)</option></select></div>
+   <div class="field"><label>جنسیت جنین — اختیاری</label><select class="bio fetalSex"><option value="">— ذکر نشود —</option><option value="male">Male</option><option value="female">Female</option><option value="indeterminate">Indeterminate / not confidently seen</option></select></div>
+  </div>
+  <div class="tiny">برای دوقلویی معمولاً یکی را «نزدیک‌تر به سرویکس / presenting twin» و دیگری را «دورتر از سرویکس» انتخاب کنید. در سه‌قلویی گزینه موقعیت میانی نیز قابل استفاده است.</div>
+  <div class="formula-strip autoWeights"></div>
+  <div class="bio-table-wrap"><table class="bio-table"><thead><tr><th>Parameter</th><th>Measurement</th><th>Equivalent GA</th><th>INTERGROWTH P</th><th>Hadlock P</th><th>Device P</th></tr></thead><tbody class="bioTable"></tbody></table></div>
+
+  <div class="dopplerFields dynamic">
+   <div class="separator"></div><div class="section-title">Fetal Doppler — IUGR/FGR</div>
+   <div class="form-grid">
+    <div class="field"><label>UA PI</label><input type="number" step="0.01" class="bio uaPi"></div><div class="field"><label>UA PI percentile</label><input type="number" step="0.1" class="bio uaP" min="0" max="100"></div>
+    <div class="field"><label>UA S/D</label><input type="number" step="0.01" class="bio uaSd"></div><div class="field"><label>UA EDF</label><select class="bio ua"><option value="">—</option><option value="positive">Positive</option><option value="absent">Absent</option><option value="reversed">Reversed</option><option value="intermittent">Intermittent/cyclical AREDF</option></select></div>
+    <div class="field"><label>MCA PI</label><input type="number" step="0.01" class="bio mcaPi"></div><div class="field"><label>MCA PI percentile</label><input type="number" step="0.1" class="bio mcaP" min="0" max="100"></div>
+    <div class="field"><label>MCA PSV (cm/s)</label><input type="number" step="0.1" class="bio mcaPsv"></div><div class="field"><label>MCA-PSV (MoM)</label><input type="number" step="0.01" class="bio mcaMom"></div>
+    <div class="field"><label>CPR (MCA PI / UA PI)</label><input class="cprAuto readonly" readonly></div><div class="field"><label>CPR percentile</label><input type="number" step="0.1" class="bio cprP" min="0" max="100"></div>
+    <div class="field"><label>DV PI</label><input type="number" step="0.01" class="bio dvPi"></div><div class="field"><label>DV PI percentile</label><input type="number" step="0.1" class="bio dvP" min="0" max="100"></div>
+    <div class="field"><label>DV a-wave</label><select class="bio dvA"><option value="">—</option><option value="positive">Positive</option><option value="absent">Absent</option><option value="reversed">Reversed</option></select></div>
+    <div class="field"><label>Umbilical vein</label><label class="check" style="margin:0"><input type="checkbox" class="bio uvPulsatile"> Pulsatile UV</label></div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function getFetusData(){
+ return $$('.fetus:not(.ntEntry)').map((c,i)=>({
+  name:'Fetus '+letters[i],letter:letters[i],
+  bpd:optNum(c.querySelector('.bpd').value),bpdP:optNum(c.querySelector('.bpdP').value),
+  hc:optNum(c.querySelector('.hc').value),hcP:optNum(c.querySelector('.hcP').value),
+  ac:optNum(c.querySelector('.ac').value),acp:optNum(c.querySelector('.acp').value),
+  fl:optNum(c.querySelector('.fl').value),flP:optNum(c.querySelector('.flP').value),
+  efw:optNum(c.querySelector('.efw').value),efwp:optNum(c.querySelector('.efwp').value),
+  dvp:optNum(c.querySelector('.dvp').value),pres:c.querySelector('.pres').value,placenta:c.querySelector('.placenta').value.trim(),
+  cervixRelation:c.querySelector('.cervixRelation').value,fetalSex:c.querySelector('.fetalSex').value,
+  uaPi:optNum(c.querySelector('.uaPi').value),uaP:optNum(c.querySelector('.uaP').value),uaSd:optNum(c.querySelector('.uaSd').value),ua:c.querySelector('.ua').value,
+  mcaPi:optNum(c.querySelector('.mcaPi').value),mcaP:optNum(c.querySelector('.mcaP').value),mcaPsv:optNum(c.querySelector('.mcaPsv').value),mcaMom:optNum(c.querySelector('.mcaMom').value),
+  cprP:optNum(c.querySelector('.cprP').value),dvPi:optNum(c.querySelector('.dvPi').value),dvP:optNum(c.querySelector('.dvP').value),dvA:c.querySelector('.dvA').value,
+  uvPulsatile:c.querySelector('.uvPulsatile').checked
+ }));
+}
+function computeFetus(x,days){
+ const ig={bpd:igMetricResult('bpd',x.bpd,days),hc:igMetricResult('hc',x.hc,days),ac:igMetricResult('ac',x.ac,days),fl:igMetricResult('fl',x.fl,days)};
+ const hadlock={bpd:hadlockMetricResult('bpd',x.bpd,days),hc:hadlockMetricResult('hc',x.hc,days),ac:hadlockMetricResult('ac',x.ac,days),fl:hadlockMetricResult('fl',x.fl,days)};
+ const wHcAcFl=hadlockHcAcFl(x.hc,x.ac,x.fl),wBpdAcFl=hadlockBpdAcFl(x.bpd,x.ac,x.fl),wAcFl=hadlockAcFl(x.ac,x.fl);
+ const weight=x.efw||wBpdAcFl||wHcAcFl;
+ ig.efw=weight?efwResult(weight,days):null;hadlock.efw=weight?hadlockEfwResult(weight,days):null;
+ const cpr=x.mcaPi&&x.uaPi?x.mcaPi/x.uaPi:null;
+ return {...x,ig,hadlock,wHcAcFl,wBpdAcFl,wAcFl,weight,cpr};
+}
+function computedFetuses(){const days=gaTotalDays();return getFetusData().map(x=>computeFetus(x,days))}
+
+function addFetus(){if(fetusCount>=6)return;$('#fetuses').insertAdjacentHTML('beforeend',fetusTemplate(fetusCount));fetusCount++;bindFetus();refreshFetusSelectors();applyDopplerVisibility();updateAll()}
+function bindFetus(){
+ $$('.fetus:not(.ntEntry) .bio').forEach(x=>{x.oninput=x.onchange=updateAll});
+ $$('.removeFetus').forEach(b=>b.onclick=()=>{if(fetusCount<=2)return;b.closest('.fetus').remove();renumberFetuses()});
+}
+function renumberFetuses(){const cards=$$('.fetus:not(.ntEntry)');fetusCount=cards.length;cards.forEach((c,idx)=>{c.dataset.i=idx;c.querySelector('.fetus-head b').textContent='Fetus '+letters[idx];const r=c.querySelector('.removeFetus');r.dataset.i=idx;r.disabled=idx<2});refreshFetusSelectors();updateAll()}
+function resetFetuses(){fetusCount=0;$('#fetuses').innerHTML='';addFetus();addFetus()}
+$('#addFetus').onclick=addFetus;$('#resetFetuses').onclick=resetFetuses;
+
+function applyDopplerVisibility(){const on=$('#dopplerToggle').checked;$$('.fetus:not(.ntEntry) .dopplerFields').forEach(x=>x.classList.toggle('show',on));$('#maternalDoppler').classList.toggle('show',on)}
+function updateUtaMean(){const r=optNum($('#utaR').value),l=optNum($('#utaL').value);$('#utaMean').value=r!==null&&l!==null?((r+l)/2).toFixed(2):''}
+function renderFetusComputations(){
+ const days=gaTotalDays(),arr=computedFetuses();
+ $$('.fetus:not(.ntEntry)').forEach((card,i)=>{
+  const x=arr[i], device=[x.bpdP,x.hcP,x.acp,x.flP,x.efwp];
+  const row=(name,measure,eq,ig,ha,dev)=>`<tr><td>${name}</td><td>${measure||'—'}</td><td>${eq||'—'}</td><td>${fmtP(ig?.percentile)}</td><td>${fmtP(ha?.percentile)}</td><td>${dev!==null&&dev!==undefined?dev.toFixed(1)+'%':'—'}</td></tr>`;
+  const rows=[
+   row('BPD',x.bpd?x.bpd+' mm':null,x.hadlock.bpd?.equivDays?gaText(x.hadlock.bpd.equivDays):null,x.ig.bpd,x.hadlock.bpd,x.bpdP),
+   row('HC',x.hc?x.hc+' mm':null,x.hadlock.hc?.equivDays?gaText(x.hadlock.hc.equivDays):null,x.ig.hc,x.hadlock.hc,x.hcP),
+   row('AC',x.ac?x.ac+' mm':null,x.hadlock.ac?.equivDays?gaText(x.hadlock.ac.equivDays):null,x.ig.ac,x.hadlock.ac,x.acp),
+   row('FL',x.fl?x.fl+' mm':null,x.hadlock.fl?.equivDays?gaText(x.hadlock.fl.equivDays):null,x.ig.fl,x.hadlock.fl,x.flP),
+   row('EFW',x.weight?Math.round(x.weight)+' g':null,x.ig.efw?.equivDays?gaText(x.ig.efw.equivDays):null,x.ig.efw,x.hadlock.efw,x.efwp)
+  ];
+  card.querySelector('.bioTable').innerHTML=rows.join('');
+  card.querySelector('.autoWeights').innerHTML=
+   `<div><b>${x.weight?Math.round(x.weight)+' g':'—'}</b><span>EFW used for percentiles</span></div>`+
+   `<div><b>${x.wBpdAcFl?Math.round(x.wBpdAcFl)+' g':'—'}</b><span>Hadlock BPD+AC+FL</span></div>`+
+   `<div><b>${x.wHcAcFl?Math.round(x.wHcAcFl)+' g':'—'}</b><span>Hadlock HC+AC+FL</span></div>`+
+   `<div><b>${x.wAcFl?Math.round(x.wAcFl)+' g':'—'}</b><span>Hadlock AC+FL</span></div>`;
+  card.querySelector('.cprAuto').value=x.cpr?x.cpr.toFixed(2):'';
+  const b=card.querySelector('.fetusSummary');
+  if(!Number.isFinite(days)){b.textContent='GA را وارد کنید';b.className='badge fetusSummary warn'}
+  else if(x.weight){const p=x.ig.efw?.percentile;b.textContent=`EFW ${Math.round(x.weight)} g${Number.isFinite(p)?` / IG P${p.toFixed(0)}`:''}`;b.className='badge fetusSummary '+(p<10?'danger':p<20?'warn':'ok')}
+  else{b.textContent='بیومتری را وارد کنید';b.className='badge fetusSummary'}
+ });
+}
+
+function calculateDiscordance(){
+ const d=computedFetuses().filter(x=>x.weight);
+ if(d.length<2){$('#discordanceMain').textContent='—';$('#largestEFW').textContent='—';$('#smallestEFW').textContent='—';$('#pairwise').textContent='';$('#discordanceAlert').innerHTML='';return}
+ const sorted=[...d].sort((a,b)=>b.weight-a.weight),max=sorted[0],min=sorted.at(-1),disc=(max.weight-min.weight)/max.weight*100;
+ $('#discordanceMain').textContent=disc.toFixed(1)+'%';$('#largestEFW').textContent=Math.round(max.weight);$('#smallestEFW').textContent=Math.round(min.weight);
+ let pairs=[];for(let i=0;i<d.length;i++)for(let j=i+1;j<d.length;j++){const a=d[i],b=d[j],larger=Math.max(a.weight,b.weight),smaller=Math.min(a.weight,b.weight);pairs.push(`${a.name}–${b.name}: ${((larger-smaller)/larger*100).toFixed(1)}%`)}
+ $('#pairwise').textContent=d.length>2?'اختلاف‌های جفتی: '+pairs.join(' | '):'';
+ if(disc>=25)$('#discordanceAlert').innerHTML='<div class="callout danger">EFW discordance ≥25% — بررسی دقیق معیارهای sFGR و Doppler توصیه می‌شود؛ نرم‌افزار به‌تنهایی تشخیص sFGR نمی‌دهد.</div>';
+ else if(disc>=20)$('#discordanceAlert').innerHTML='<div class="callout warn">EFW discordance ≥20% — اختلاف رشد قابل توجه و نیازمند توجه در تفسیر.</div>';
+ else $('#discordanceAlert').innerHTML='<div class="callout ok">EFW discordance کمتر از 20% است.</div>';
+}
+
+function refValue(metric,ref,days,z){
+ if(metric==='ac'){const p=ref==='intergrowth'?igBiometryParams('ac',days):hadlockBiometryParams('ac',days);return p?p.mu+p.sigma*z:null}
+ return ref==='intergrowth'?efwAtZ(days,z):hadlockEfwAtZ(days,z);
+}
+function makeGrowthSvg(metric,ref,arr,days){
+ const start=metric==='efw'&&ref==='intergrowth'?18:14,end=40,W=720,H=345,m={l:58,r:18,t:22,b:38},weeks=[];for(let w=start;w<=end;w+=.5)weeks.push(w);
+ const ps=[3,10,50,90,97], curves=ps.map(p=>({p,pts:weeks.map(w=>[w,refValue(metric,ref,w*7,zAnchors[p])]).filter(v=>Number.isFinite(v[1]))}));
+ const vals=curves.flatMap(c=>c.pts.map(p=>p[1]));arr.forEach(x=>{const y=metric==='efw'?x.weight:x.ac;if(Number.isFinite(y))vals.push(y)});
+ if(!vals.length)return '<div class="callout">GA و بیومتری را وارد کنید تا نمودار رسم شود.</div>';
+ let ymin=Math.min(...vals),ymax=Math.max(...vals);const pad=(ymax-ymin)*.06||1;ymin=Math.max(0,ymin-pad);ymax+=pad;
+ const X=w=>m.l+(w-start)/(end-start)*(W-m.l-m.r),Y=v=>m.t+(ymax-v)/(ymax-ymin)*(H-m.t-m.b);
+ const path=pts=>pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+ const curveStroke={3:'#c7ceda',10:'#9ea9ba',50:'#475467',90:'#9ea9ba',97:'#c7ceda'}, fetusColors=['#2457d6','#d92d20','#067647','#a15c00','#7a5af8','#0e7090'];
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img"><rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`;
+ [0,.25,.5,.75,1].forEach(t=>{const y=m.t+t*(H-m.t-m.b),v=ymax-t*(ymax-ymin);s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="#edf0f4"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="#667085">${metric==='efw'?Math.round(v):v.toFixed(0)}</text>`});
+ for(let w=Math.ceil(start/2)*2;w<=end;w+=2){s+=`<line x1="${X(w)}" x2="${X(w)}" y1="${m.t}" y2="${H-m.b}" stroke="#f3f5f8"/><text x="${X(w)}" y="${H-14}" text-anchor="middle" font-size="10" fill="#667085">${w}</text>`}
+ curves.forEach(c=>{s+=`<path d="${path(c.pts)}" fill="none" stroke="${curveStroke[c.p]}" stroke-width="${c.p===50?2.2:1.25}"/><text x="${W-m.r-2}" y="${Y(c.pts.at(-1)[1])+3}" text-anchor="end" font-size="9" fill="${curveStroke[c.p]}">P${c.p}</text>`});
+ if(Number.isFinite(days)){const gw=days/7;arr.forEach((x,i)=>{const y=metric==='efw'?x.weight:x.ac;if(Number.isFinite(y)&&gw>=start&&gw<=end){const cx=X(gw),cy=Y(y),col=fetusColors[i%fetusColors.length];s+=`<circle cx="${cx}" cy="${cy}" r="5.5" fill="${col}" stroke="#fff" stroke-width="2"/><text x="${cx+8}" y="${cy-7}" font-size="11" font-weight="700" fill="${col}">${x.letter}</text>`}})}
+ s+=`<text x="${W/2}" y="${H-2}" text-anchor="middle" font-size="10" fill="#475467">Gestational age (weeks)</text><text transform="translate(13 ${H/2}) rotate(-90)" text-anchor="middle" font-size="10" fill="#475467">${metric==='efw'?'EFW (g)':'AC (mm)'}</text></svg>`;
+ return s;
+}
+function renderGrowthCharts(){
+ const ref=$('#growthRef').value,arr=computedFetuses(),days=gaTotalDays();$('#chartRefBadge').textContent=ref==='intergrowth'?'INTERGROWTH-21st':'Hadlock';
+ $('#growthCharts').innerHTML=`<div class="chart-box"><h4>EFW growth chart — Fetus A/B</h4>${makeGrowthSvg('efw',ref,arr,days)}<div class="chart-legend">P3 / P10 / P50 / P90 / P97 + نقاط هر جنین</div></div><div class="chart-box"><h4>AC growth chart — Fetus A/B</h4>${makeGrowthSvg('ac',ref,arr,days)}<div class="chart-legend">P3 / P10 / P50 / P90 / P97 + نقاط هر جنین</div></div>`;
+}
+
+function refreshFetusSelectors(){const opts=getFetusData().map((x,i)=>`<option value="${i}">${x.name}</option>`).join('');['sfgrFetus','tttsDonor','tttsRecipient','tapsDonor','tapsRecipient','pumpTwin','acardiacTwin','demiseFetus'].forEach(id=>{const old=$('#'+id)?.value;if($('#'+id)){ $('#'+id).innerHTML=opts;if(old!==''&&old!=null&&[...$('#'+id).options].some(o=>o.value===old))$('#'+id).value=old}})}
+$$('.comp').forEach(c=>c.onchange=()=>{const box=$('#'+c.value+'Box');if(box)box.classList.toggle('show',c.checked);if(c.value==='sFGR')$('#sFGRBox').classList.toggle('show',c.checked);updateMultiReport()});
+function checkMono(){const mono=['MCDA','MCMA'].includes($('#chorionicity').value);const any=$$('.comp.mono').some(c=>c.checked);$('#monoHint').classList.toggle('hidden',mono||!any)}
+$('#sfgrUa').onchange=()=>{const m={'positive':'Type I','absent-reversed':'Type II','intermittent':'Type III'};$('#sfgrType').value=m[$('#sfgrUa').value]||'—';updateMultiReport()};
+['sfgrFetus','tttsDonor','tttsRecipient','donorDvp','recipientDvp','tttsFluid','donorBladderAbsent','tttsDopplerAbn','tttsHydrops','tttsDemise','tapsDonor','tapsRecipient','tapsDonorMca','tapsRecipMca','pumpTwin','acardiacTwin','demiseFetus','conjoinedType'].forEach(id=>{const e=$('#'+id);if(e)e.oninput=e.onchange=()=>{calcQuintero();calcTaps();updateMultiReport()}});
+function calcQuintero(){let st='—';if($('#tttsDemise').checked)st='Stage V';else if($('#tttsHydrops').checked)st='Stage IV';else if($('#tttsDopplerAbn').checked)st='Stage III';else if($('#donorBladderAbsent').checked)st='Stage II';else if($('#tttsFluid').checked)st='Stage I';$('#quinteroOut').textContent='Quintero stage: '+st}
+function selectedFetusData(id){const idx=+$('#'+id).value;return computedFetuses()[idx]||null}
+function calcTaps(){const donor=selectedFetusData('tapsDonor'),recip=selectedFetusData('tapsRecipient'),a=optNum($('#tapsDonorMca').value)||donor?.mcaMom,b=optNum($('#tapsRecipMca').value)||recip?.mcaMom;if(a&&b){const delta=Math.abs(a-b);$('#tapsOut').textContent=`ΔMCA-PSV: ${delta.toFixed(2)} MoM — Donor ${a.toFixed(2)} / Recipient ${b.toFixed(2)} MoM`}else $('#tapsOut').textContent='ΔMCA-PSV: —'}
+function selectedFetusName(id){const idx=+$('#'+id).value;return getFetusData()[idx]?.name||'—'}
+
+
+function cervixLabel(v){return ({closest:'نزدیک‌تر به سرویکس (قل ارائه‌شونده / presenting twin)',intermediate:'موقعیت میانی نسبت به سرویکس',farther:'دورتر از سرویکس (قل غیرارائه‌شونده)',farthest:'دورترین قل نسبت به سرویکس'})[v]||''}
+function sexLabel(v){return ({male:'مذکر',female:'مونث',indeterminate:'نامشخص / با اطمینان کافی قابل تعیین نیست'})[v]||''}
+function presentationFa(v){
+ const m={cephalic:'سفالیک',breech:'بریچ',transverse:'عرضی',oblique:'مایل'};
+ return m[String(v||'').toLowerCase()]||v||'';
+}
+function placentaFa(v){
+ const m={anterior:'قدامی',posterior:'خلفی',fundal:'فوندال',right:'راست',left:'چپ'};
+ return m[String(v||'').toLowerCase()]||v||'';
+}
+function chorionicityFa(v){
+ return ({DCDA:'دیکوریونیک دی‌آمنیوتیک (DCDA)',MCDA:'مونوکوریونیک دی‌آمنیوتیک (MCDA)',MCMA:'مونوکوریونیک مونوآمنیوتیک (MCMA)',TCTA:'تریکوریونیک تری‌آمنیوتیک (TCTA)',DCTA:'دیکوریونیک تری‌آمنیوتیک (DCTA)',other:'نامشخص / سایر'})[v]||v;
+}
+function membraneFa(v){
+ return ({'Lambda / Twin-peak sign':'علامت Lambda / Twin-peak','T-sign':'علامت T','Intertwin membrane not seen':'غشای بین‌جنینی مشاهده نشد'})[v]||v;
+}
+function uaEdfFa(v){
+ return ({present:'جریان انتهای دیاستولیک مثبت',absent:'جریان انتهای دیاستولیک غایب',reversed:'جریان انتهای دیاستولیک معکوس'})[String(v||'').toLowerCase()]||v||'';
+}
+function dvAWaveFa(v){
+ return ({positive:'مثبت',absent:'غایب',reversed:'معکوس'})[String(v||'').toLowerCase()]||v||'';
+}
+function fetusFa(x){return `قل ${x.letter}`}
+function cervixConsistencyLine(f){
+ const chosen=f.filter(x=>x.cervixRelation);if(chosen.length<2)return '';
+ const closest=chosen.filter(x=>x.cervixRelation==='closest');
+ if(f.length===2 && closest.length!==1)return 'توجه: در بارداری دوقلویی بهتر است فقط یک قل به‌عنوان قل نزدیک‌تر به سرویکس / presenting twin مشخص شود.';
+ return '';
+}
+function percentilePhrase(refName,obj){
+ if(!obj || obj.percentile==null || !Number.isFinite(Number(obj.percentile)))return '';
+ return `صدک ${Math.round(Number(obj.percentile))} بر اساس ${refName}`;
+}
+function updateMultiReport(){
+ checkMono();updateUtaMean();const f=computedFetuses(),days=gaTotalDays(),dop=$('#dopplerToggle').checked;let lines=[];
+ const pregFa=$('#pregType').value==='triplet'?'سه‌قلویی':($('#pregType').value==='multiple'?'چندقلویی':'دوقلویی');
+ let first=`بارداری ${pregFa} از نوع ${chorionicityFa($('#chorionicity').value)}`;
+ if(Number.isFinite(days)) first+=`، با سن بارداری ${gaText(days).replace('w','هفته').replace('d','روز')}`;
+ first+=' مشاهده شد.';
+ lines.push(first);
+ if($('#placentaCount').value)lines.push(`تعداد جفت قابل مشاهده: ${$('#placentaCount').value}.`);
+ if($('#membraneSign').value)lines.push(`علامت غشای بین‌جنینی: ${membraneFa($('#membraneSign').value)}.`);
+ f.forEach(x=>{
+  const head=[];
+  if(x.cervixRelation)head.push(cervixLabel(x.cervixRelation));
+  if(x.fetalSex)head.push(`جنسیت ${sexLabel(x.fetalSex)}`);
+  if(x.pres)head.push(`پرزنتاسیون ${presentationFa(x.pres)}`);
+  if(x.placenta)head.push(`محل جفت ${placentaFa(x.placenta)}`);
+  let s=[`${fetusFa(x)}${head.length?` (${head.join('، ')})`:''}:`];
+  [['BPD',x.bpd,x.ig.bpd,x.hadlock.bpd],['HC',x.hc,x.ig.hc,x.hadlock.hc],['AC',x.ac,x.ig.ac,x.hadlock.ac],['FL',x.fl,x.ig.fl,x.hadlock.fl]].forEach(([n,v,ig,ha])=>{
+    if(v){
+      const ps=[];if(ig?.percentile!=null)ps.push(`IG P${Math.round(ig.percentile)}`);if(ha?.percentile!=null)ps.push(`Hadlock P${Math.round(ha.percentile)}`);
+      s.push(`${n}: ${v} mm${ps.length?` (${ps.join('، ')})`:''}`);
+    }
+  });
+  if(x.weight){
+    const ps=[];if(x.ig.efw?.percentile!=null)ps.push(`INTERGROWTH P${Math.round(x.ig.efw.percentile)}`);if(x.hadlock.efw?.percentile!=null)ps.push(`Hadlock P${Math.round(x.hadlock.efw.percentile)}`);if(x.efw&&x.efwp!=null)ps.push(`Device P${x.efwp}`);
+    s.push(`وزن تخمینی جنین (EFW): ${Math.round(x.weight)} گرم${ps.length?` (${ps.join('، ')})`:''}`);
   }
-})();
+  if(x.dvp)s.push(`بیشترین پاکت عمودی مایع (DVP): ${x.dvp} cm`);
+  if(dop){
+    if(x.uaPi)s.push(`UA PI: ${x.uaPi}${x.uaP?` (P${x.uaP})`:''}`);
+    if(x.uaSd)s.push(`UA S/D: ${x.uaSd}`);
+    if(x.ua)s.push(`UA EDF: ${uaEdfFa(x.ua)}`);
+    if(x.mcaPi)s.push(`MCA PI: ${x.mcaPi}${x.mcaP?` (P${x.mcaP})`:''}`);
+    if(x.mcaPsv)s.push(`MCA PSV: ${x.mcaPsv} cm/s`);
+    if(x.mcaMom)s.push(`MCA-PSV: ${x.mcaMom} MoM`);
+    if(x.cpr)s.push(`CPR: ${x.cpr.toFixed(2)}${x.cprP?` (P${x.cprP})`:''}`);
+    if(x.dvPi)s.push(`DV PI: ${x.dvPi}${x.dvP?` (P${x.dvP})`:''}`);
+    if(x.dvA)s.push(`DV a-wave: ${dvAWaveFa(x.dvA)}`);
+    if(x.uvPulsatile)s.push('جریان ورید نافی pulsatile است');
+  }
+  lines.push(s.join('، ')+'.');
+ });
+ const cervixWarn=cervixConsistencyLine(f);if(cervixWarn)lines.push(cervixWarn);
+ const weights=f.filter(x=>x.weight);
+ if(weights.length>=2){
+   const vals=weights.map(x=>x.weight),max=Math.max(...vals),min=Math.min(...vals),disc=(max-min)/max*100;
+   lines.push(`اختلاف وزن تخمینی بین بزرگ‌ترین و کوچک‌ترین قل (EFW discordance): ${disc.toFixed(1)}٪.`);
+   if(disc>=25)lines.push('اختلاف وزن بین قل‌ها بیش از یا مساوی ۲۵٪ است؛ ارزیابی دقیق معیارهای sFGR و یافته‌های داپلر توصیه می‌شود.');
+   else if(disc>=20)lines.push('اختلاف وزن بین قل‌ها بیش از یا مساوی ۲۰٪ است و در تفسیر رشد جنین‌ها قابل توجه می‌باشد.');
+ }
+ if(dop){
+   const r=optNum($('#utaR').value),l=optNum($('#utaL').value),mean=r!==null&&l!==null?(r+l)/2:null,p=optNum($('#utaP').value),n=[];
+   if(r)n.push(`PI شریان رحمی راست ${r}`);if(l)n.push(`PI شریان رحمی چپ ${l}`);if(mean)n.push(`Mean PI ${mean.toFixed(2)}${p?` (P${p})`:''}`);if($('#notchR').checked)n.push('notch سمت راست');if($('#notchL').checked)n.push('notch سمت چپ');
+   if(n.length)lines.push(`داپلر شریان‌های رحمی مادر: ${n.join('، ')}.`);
+ }
+ if($('#sFGRBox').classList.contains('show'))lines.push(`گزینه sFGR برای ${fetusFa(selectedFetusData('sfgrFetus')||{letter:'—'})} انتخاب شده است؛ الگوی UA با ${$('#sfgrType').value} مطابقت دارد.`);
+ if($('#TTTSBox').classList.contains('show')){calcQuintero();const stage=($('#quinteroOut').textContent.match(/Stage\s+[IVX]+/i)||[])[0]||'مرحله نامشخص';lines.push(`در ارزیابی TTTS، ${fetusFa(selectedFetusData('tttsDonor')||{letter:'—'})} به‌عنوان donor و ${fetusFa(selectedFetusData('tttsRecipient')||{letter:'—'})} به‌عنوان recipient در نظر گرفته شده است؛ Quintero ${stage}.`)}
+ if($('#TAPSBox').classList.contains('show')){calcTaps();const donor=selectedFetusData('tapsDonor'),recip=selectedFetusData('tapsRecipient'),a=optNum($('#tapsDonorMca').value)||donor?.mcaMom,b=optNum($('#tapsRecipMca').value)||recip?.mcaMom;lines.push(`ارزیابی TAPS: MCA-PSV در donor برابر ${a||'—'} MoM و در recipient برابر ${b||'—'} MoM است.`)}
+ if($('#TRAPBox').classList.contains('show'))lines.push(`TRAP sequence انتخاب شده است؛ ${fetusFa(selectedFetusData('pumpTwin')||{letter:'—'})} به‌عنوان pump twin و ${fetusFa(selectedFetusData('acardiacTwin')||{letter:'—'})} به‌عنوان acardiac twin ثبت شد.`);
+ if($('#demiseBox').classList.contains('show'))lines.push(`مرگ داخل‌رحمی یک جنین: ${fetusFa(selectedFetusData('demiseFetus')||{letter:'—'})}.`);
+ if($('#conjoinedBox').classList.contains('show'))lines.push(`دوقلوهای به‌هم‌چسبیده${$('#conjoinedType').value?` با نوع/محل اتصال ${$('#conjoinedType').value}`:''} مطرح است.`);
+ $('#multiReport').textContent=lines.join('\n');
+}
+function updateAll(){applyDopplerVisibility();updateUtaMean();renderFetusComputations();calculateDiscordance();renderGrowthCharts();calcTaps();updateMultiReport()}
+['pregType','chorionicity','placentaCount','membraneSign','multiGaWeeks','multiGaDays','growthRef','dopplerToggle','utaR','utaL','utaP','notchR','notchL'].forEach(id=>{const e=$('#'+id);if(e)e.oninput=e.onchange=()=>{if(id==='chorionicity')checkMono();updateAll()}});
+
+// NT — CRL dating + Perinatology-style experimental NT percentile.
+function crlGaDays(crl){const c=Number(crl);if(!Number.isFinite(c)||c<=0)return null;return Math.round(8.052*Math.sqrt(1.037*c)+23.73)}
+function gaTextFromDays(days){if(!Number.isFinite(days))return '';return `${Math.floor(days/7)} w + ${days%7} d`}
+let ntCount=0;
+const ntRef={crl:[40,45,50,55,60,65,70,75,80,85],p5:[0.31,0.40,0.50,0.60,0.70,0.80,0.90,0.99,1.09,1.19],p50:[1.22,1.32,1.42,1.52,1.62,1.72,1.82,1.91,2.01,2.11],p95:[2.14,2.24,2.34,2.44,2.54,2.64,2.73,2.83,2.93,3.03]};
+function lerpRef(arr,crl){const xs=ntRef.crl;if(crl<=xs[0])return arr[0];if(crl>=xs.at(-1))return arr.at(-1);for(let i=0;i<xs.length-1;i++)if(crl>=xs[i]&&crl<=xs[i+1]){const t=(crl-xs[i])/(xs[i+1]-xs[i]);return arr[i]+t*(arr[i+1]-arr[i]);}}
+function erf(x){const sign=x>=0?1:-1;x=Math.abs(x);const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911,t=1/(1+p*x),y=1-(((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t)*Math.exp(-x*x);return sign*y;}
+function ntCalc(crl,nt){if(!crl||!nt)return null;const median=0.437+0.01969*crl;const p5=lerpRef(ntRef.p5,crl),p95=lerpRef(ntRef.p95,crl);const sd=((median-p5)+(p95-median))/(2*1.644853626951);const z=(nt-median)/sd;let pct=100*0.5*(1+erf(z/Math.sqrt(2)));pct=Math.max(.1,Math.min(99.9,pct));return{median,p5,p95,sd,pct,valid:crl>=45&&crl<=84};}
+function ntTemplate(i){return `<div class="fetus ntEntry"><div class="fetus-head"><b>Fetus ${letters[i]}</b><button class="btn danger removeNt" ${i===0?'disabled':''}>حذف</button></div><div class="form-grid"><div class="field"><label>CRL (mm)</label><input type="number" step="0.1" class="ntCrl" min="2" max="100"></div><div class="field"><label>GA by CRL — نرم‌افزاری</label><input class="ntGa" readonly></div><div class="field"><label>Measured NT (mm)</label><input type="number" step="0.01" class="ntVal"></div><div class="field"><label>Expected NT (mm)</label><input class="ntExpected" readonly></div><div class="field"><label>NT percentile</label><input class="ntPct" readonly></div><div class="field"><label>ثبت سن سونوگرافیک</label><label class="check" style="margin:0"><input type="checkbox" class="ntGaConfirm"> تأیید و ثبت GA by CRL در گزارش</label></div></div><div class="tiny ntNote"></div></div>`}
+function addNt(){if(ntCount>=6)return;$('#ntEntries').insertAdjacentHTML('beforeend',ntTemplate(ntCount));ntCount++;bindNt();updateNt();}
+function bindNt(){$$('.ntCrl,.ntVal').forEach(x=>x.oninput=updateNt);$$('.ntGaConfirm').forEach(x=>x.onchange=updateNt);$$('.removeNt').forEach(b=>b.onclick=()=>{b.closest('.ntEntry').remove();ntCount=$$('.ntEntry').length;$$('.ntEntry').forEach((e,i)=>e.querySelector('b').textContent='Fetus '+letters[i]);updateNt();});}
+function updateNt(){
+ let lines=[];$$('.ntEntry').forEach((e,i)=>{
+  const crl=+e.querySelector('.ntCrl').value||0,nt=+e.querySelector('.ntVal').value||0,r=ntCalc(crl,nt),gaDays=crlGaDays(crl),gaConfirmed=e.querySelector('.ntGaConfirm').checked;
+  e.querySelector('.ntGa').value=gaDays?gaTextFromDays(gaDays):'';
+  e.querySelector('.ntExpected').value=r?r.median.toFixed(2):'';
+  e.querySelector('.ntPct').value=r?`${r.pct.toFixed(1)}th`:'';
+  e.querySelector('.ntNote').textContent=r?(r.valid?'محدوده CRL مناسب برای NT percentile.':'CRL خارج از محدوده استاندارد 45–84 mm؛ percentile فقط برای تست نمایش داده شده است.'):'';
+  if(crl){
+    let parts=[`قل ${letters[i]}: CRL برابر ${crl} mm`];
+    if(gaConfirmed&&gaDays)parts.push(`سن بارداری محاسبه‌شده بر اساس CRL برابر ${Math.floor(gaDays/7)} هفته و ${gaDays%7} روز`);
+    if(nt&&r)parts.push(`NT برابر ${nt.toFixed(2)} mm (تقریباً صدک ${Math.round(r.pct)} نسبت به CRL؛ NT مورد انتظار ${r.median.toFixed(2)} mm)`);
+    lines.push(parts.join('؛ ')+'.');
+  }
+ });
+ $('#ntReport').textContent=lines.join('\n');
+}
+$('#addNt').onclick=addNt;
+
+// IUD
+const iudMap={none:'',appropriate:'IUD در موقعیت مناسب در قسمت فوندال حفره اندومتر قرار گرفته است؛ بازوهای عرضی آن به‌طور مناسب باز بوده و شواهدی از embedment یا perforation مشاهده نمی‌شود.',low:'IUD پایین‌تر از موقعیت مطلوب قرار گرفته است؛ یافته مطرح‌کننده low-lying IUD می‌باشد.',cervical:'قسمتی از IUD در کانال سرویکس قرار گرفته است؛ یافته مطرح‌کننده intracervical malposition / partial expulsion می‌باشد.',rotated:'IUD دارای جهت‌گیری غیرطبیعی/چرخش در حفره رحم بوده و در موقعیت فوندال طبیعی قرار ندارد؛ یافته مطرح‌کننده malpositioned IUD است.',embed:'قسمتی از IUD در میومتر embedded شده است؛ شواهدی از عبور کامل از ضخامت میومتر مشاهده نمی‌شود.',partialPerf:'قسمتی از IUD از حفره اندومتر وارد میومتر شده است؛ یافته مطرح‌کننده partial uterine perforation توسط IUD می‌باشد.',completePerf:'IUD در حفره اندومتر مشاهده نشده و وسیله در خارج از رحم رویت می‌شود؛ یافته مطرح‌کننده complete uterine perforation with extrauterine migration of IUD می‌باشد.',notseen:'IUD در حفره اندومتر یا کانال سرویکس در بررسی سونوگرافیک مشاهده نشد. در صورت عدم وجود سابقه خروج IUD، بررسی تکمیلی جهت تعیین موقعیت وسیله توصیه می‌شود.'};
+function updateIud(){const s=$('#iudStatus').value;$('#iudLow').classList.toggle('show',s==='low');$('#iudEmbed').classList.toggle('show',s==='embed');$('#iudPerf').classList.toggle('show',['partialPerf','completePerf'].includes(s));let text=iudMap[s]||'';if(s==='low'){const d=$('#iudFundalDistance').value,site=$('#iudLowSite').value;if(d)text=`IUD پایین‌تر از موقعیت مطلوب و در ${site} قرار گرفته است؛ فاصله قسمت فوقانی IUD تا fundal endometrium حدود ${d} mm است؛ یافته مطرح‌کننده low-lying IUD می‌باشد.`}if(s==='embed')text=`${$('#iudPart').value} مربوط به IUD در میومتر ناحیه ${$('#iudWall').value} embedded شده است؛ شواهدی از perforation کامل مشاهده نمی‌شود.`;if(s==='partialPerf')text=`قسمتی از IUD از حفره اندومتر وارد میومتر در ناحیه ${$('#iudPerfSite').value} شده است؛ یافته مطرح‌کننده partial uterine perforation می‌باشد.`;if(s==='completePerf')text=`IUD در حفره اندومتر مشاهده نشده و شواهد جابه‌جایی خارج‌رحمی از ناحیه ${$('#iudPerfSite').value} مطرح است؛ یافته به نفع complete perforation / extrauterine migration می‌باشد.`;const typ=$('#iudType').value.trim();if(text&&typ)text=`${typ}: ${text}`;$('#iudReport').textContent=text||'برای IUD جمله‌ای به گزارش اضافه نمی‌شود.';}
+['iudStatus','iudType','iudFundalDistance','iudLowSite','iudPart','iudWall','iudPerfSite'].forEach(id=>{const e=$('#'+id);e.oninput=e.onchange=updateIud;});
+
+// Renal scars
+let scarCount=0;
+function scarTemplate(i){return `<div class="scar-item"><div class="fetus-head"><b>Scar ${i+1}</b><button class="btn danger removeScar">حذف</button></div><div class="form-grid"><div class="field"><label>کلیه</label><select class="scarSide"><option value="right">راست</option><option value="left">چپ</option></select></div><div class="field"><label>محل</label><select class="scarLoc"><option value="upper pole">Upper pole</option><option value="mid pole">Mid pole</option><option value="lower pole">Lower pole</option><option value="custom">محل دلخواه</option></select></div><div class="field"><label>محل دلخواه</label><input class="scarCustom" placeholder="مثلاً posterolateral" disabled></div><div class="field"><label>ضخامت پارانشیم در محل (mm) — اختیاری</label><input type="number" step="0.1" class="scarThick"></div></div></div>`}
+function addScar(){if(scarCount>=12)return;$('#scarList').insertAdjacentHTML('beforeend',scarTemplate(scarCount));scarCount++;bindScars();updateRenal();}
+function bindScars(){$$('.scarSide,.scarLoc,.scarCustom,.scarThick').forEach(x=>x.oninput=x.onchange=()=>{const item=x.closest('.scar-item');if(x.classList.contains('scarLoc')){const c=item.querySelector('.scarCustom');c.disabled=x.value!=='custom';if(c.disabled)c.value='';}updateRenal();});$$('.removeScar').forEach(b=>b.onclick=()=>{b.closest('.scar-item').remove();scarCount=$$('.scar-item').length;$$('.scar-item').forEach((e,i)=>e.querySelector('b').textContent='Scar '+(i+1));updateRenal();});}
+function updateRenal(){const lines=$$('.scar-item').map(e=>{const side=e.querySelector('.scarSide').value==='right'?'کلیه راست':'کلیه چپ',loc=e.querySelector('.scarLoc').value==='custom'?(e.querySelector('.scarCustom').value.trim()||'محل مشخص‌شده'):e.querySelector('.scarLoc').value,t=e.querySelector('.scarThick').value;return `کاهش فوکال ضخامت پارانشیم در ${loc} ${side}${t?` با ضخامت باقی‌مانده حدود ${t} mm`:''} رویت شد که مطرح‌کننده renal parenchymal scar می‌باشد.`});$('#renalReport').textContent=lines.length?lines.join('\n'):'اسکاری ثبت نشده است.';}
+$('#addScar').onclick=addScar;$('#clearScars').onclick=()=>{$('#scarList').innerHTML='';scarCount=0;updateRenal();};
+
+
+function getParentClinicApi(){
+ try{
+   if(window.parent && window.parent !== window && window.parent.HNClinicOutput) return window.parent.HNClinicOutput;
+ }catch(_e){}
+ try{ if(window.HNClinicOutput) return window.HNClinicOutput; }catch(_e){}
+ return null;
+}
+const HN_LAB_CLINICS={
+ valiasr:{id:'valiasr',label:'مرکز تصویربرداری ولیعصر(عج)',name:'مرکز تصویربرداری ولیعصر(عج)',address:'',mode:'letterhead'},
+ shams:{id:'shams',label:'مرکز تصویربرداری شمس (زاهدان)',name:'مرکز تصویربرداری شمس (زاهدان)',address:'',mode:'letterhead'},
+ toos:{id:'toos',label:'بیمارستان توس',name:'بیمارستان توس',address:'',mode:'preprinted'}
+};
+function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function reportHtmlFromText(t){return escapeHtml(t).split(/\n+/).filter(Boolean).map(x=>`<div class="report-line">${x}</div>`).join('')}
+function syncClinicFromParent(){
+ const api=getParentClinicApi(), sel=$('#outClinic');
+ if(!api||!sel) return;
+ try{
+   const id=api.getId ? api.getId() : null;
+   if(id && [...sel.options].some(o=>o.value===id)) sel.value=id;
+ }catch(_e){}
+}
+function printPersianMultiReport(){
+ const report=$('#multiReport').textContent.trim();if(!report){alert('ابتدا اطلاعات گزارش را وارد کنید.');return}
+ const clinicId=$('#outClinic')?.value||'valiasr';
+ const patient=($('#outPatientName')?.value||'').trim(), pid=($('#outPatientId')?.value||'').trim();
+ const title=($('#outReportTitle')?.value||'سونوگرافی بارداری دوقلویی / چندقلویی').trim();
+ const api=getParentClinicApi();
+ if(api && typeof api.printPlainText==='function'){
+   try{
+     if(typeof api.set==='function') api.set(clinicId);
+     const meta=[];
+     if(patient) meta.push(`نام بیمار: ${patient}`);
+     if(pid) meta.push(`Patient ID: ${pid}`);
+     const text=[meta.join('     '), report].filter(Boolean).join('\n\n');
+     const ok=api.printPlainText({clinicId,text,title,english:false,direction:'rtl'});
+     if(ok!==false) return;
+   }catch(err){ console.warn('HN clinic print fallback',err); }
+ }
+ const clinic=HN_LAB_CLINICS[clinicId]||HN_LAB_CLINICS.valiasr;
+ const safePatient=escapeHtml(patient),safePid=escapeHtml(pid),safeTitle=escapeHtml(title),d=new Date().toLocaleDateString('fa-IR');
+ const pre=clinic.mode==='preprinted';
+ const w=window.open('','_blank','width=900,height=1100');if(!w){alert('مرورگر پنجره چاپ را مسدود کرده است.');return}
+ w.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${safeTitle}</title><style>@page{size:A4;margin:${pre?'60mm 22mm 50mm':'18mm'}}*{box-sizing:border-box}body{font-family:"Peyda",Tahoma,Arial,sans-serif;font-size:11pt;line-height:1.9;direction:rtl;text-align:right}.meta{border-bottom:1px solid #aaa;padding-bottom:3mm;margin-bottom:4mm}h1{font-size:14pt}.report-line{margin-bottom:1mm}</style></head><body><div class="meta">${safePatient?`نام بیمار: ${safePatient}<br>`:''}${safePid?`Patient ID: <span dir="ltr">${safePid}</span><br>`:''}تاریخ: ${d}</div><h1>${safeTitle}</h1>${reportHtmlFromText(report)}<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
+ w.document.close();
+}
+function exportPersianWord(){
+ const report=$('#multiReport').textContent.trim();if(!report){alert('ابتدا اطلاعات گزارش را وارد کنید.');return}
+ const patient=escapeHtml($('#outPatientName')?.value||''),pid=escapeHtml($('#outPatientId')?.value||''),title=escapeHtml($('#outReportTitle')?.value||'سونوگرافی بارداری دوقلویی / چندقلویی');
+ const html=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><style>body{direction:rtl;text-align:right;font-family:Peyda,Tahoma,Arial,sans-serif;font-size:12pt;line-height:2;color:#111}h1{text-align:center;font-size:15pt}.meta{border-bottom:1px solid #999;padding-bottom:8px;margin-bottom:12px}.line{margin:0 0 6px}</style></head><body>${patient||pid?`<div class="meta">${patient?`نام بیمار: ${patient}<br>`:''}${pid?`Patient ID: <span dir="ltr">${pid}</span>`:''}</div>`:''}<h1>${title}</h1>${reportHtmlFromText(report).replaceAll('report-line','line')}</body></html>`;
+ const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Twin_Pregnancy_Report_FA.doc';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+['outPatientName','outPatientId','outReportTitle','outClinic'].forEach(id=>{const e=document.getElementById(id);if(e&&id==='outClinic'){try{e.value=localStorage.getItem('hnClinicOutputV1')||'valiasr'}catch(_){}}if(e)e.addEventListener('change',()=>{if(id==='outClinic')try{localStorage.setItem('hnClinicOutputV1',e.value)}catch(_){}})});
+
+resetFetuses(); addNt(); addScar(); updateIud(); updateAll();
+
+try{syncClinicFromParent();}catch(_e){}
 </script>
 </body>
 </html>
