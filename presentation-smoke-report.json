@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "checks": {
+    "large_index": true,
+    "single_twin": true,
+    "single_clinical": true,
+    "single_presentation": true,
+    "twin_button": true,
+    "clinical_button": true,
+    "presentation_toolbar": true,
+    "about_modal": true,
+    "output_api": true,
+    "version_title": true,
+    "body_closed": true
+  }
+}
