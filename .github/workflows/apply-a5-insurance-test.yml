@@ -1,0 +1,76 @@
+name: Apply A5 insurance print on test branch
+
+on:
+  push:
+    branches: [a5-insurance-test]
+    paths:
+      - '.github/workflows/apply-a5-insurance-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          ref: a5-insurance-test
+          fetch-depth: 0
+
+      - name: Verify stable baseline
+        run: |
+          test -s index.html
+          grep -q 'HN_V2162_NATIVE_RENAL' index.html
+          grep -q 'HN_V2162_NATIVE_IUD' index.html
+          grep -q 'HN_V2162_NATIVE_TWIN' index.html
+          grep -q 'کپی برای CMS' index.html
+          grep -q 'src/components/MyReports.jsx' index.html
+          test -f tools/a5_insurance/apply.py
+
+      - name: Apply A5 insurance patch
+        run: python tools/a5_insurance/apply.py
+
+      - name: Validate feature markers
+        run: |
+          test "$(grep -o 'HN_A5_INSURANCE_V1' index.html | wc -l | tr -d ' ')" = "1"
+          grep -q 'چاپ بیمه A5' index.html
+          grep -q 'چاپ A5 گزارش‌های فیلترشده' index.html
+          grep -q 'چاپ A5 گزارش‌های امروز' index.html
+          grep -q '@page{size:A5 portrait' index.html
+          grep -q 'کپی برای CMS' index.html
+          grep -q 'HN_V2162_NATIVE_RENAL' index.html
+          grep -q 'HN_V2162_NATIVE_IUD' index.html
+          grep -q 'HN_V2162_NATIVE_TWIN' index.html
+          ! grep -q 'HN CMS Pilot' index.html
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          out = Path('.tmp_a5_scripts')
+          out.mkdir(exist_ok=True)
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.I|re.S)
+          if not scripts:
+              raise SystemExit('No scripts found')
+          for i, script in enumerate(scripts):
+              (out / f'script_{i}.js').write_text(script, encoding='utf-8')
+          print('scripts:', len(scripts))
+          PY
+          for f in .tmp_a5_scripts/*.js; do node --check "$f"; done
+
+      - name: Commit patched index to test branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'No index change to commit'
+          else
+            git commit -m 'Add A5 insurance batch printing to My Reports'
+            git push origin HEAD:a5-insurance-test
+          fi
