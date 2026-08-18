@@ -1,0 +1,87 @@
+name: Apply CMS Pilot v2.16.3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/cms_pilot/install_cms_pilot.py'
+      - '.github/workflows/apply-cms-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply CMS pilot
+        run: python tools/cms_pilot/install_cms_pilot.py
+
+      - name: Validate CMS pilot markers
+        run: |
+          grep -q 'HN_CMS_PILOT_START' index.html
+          grep -q 'HNCMSPilot' index.html
+          grep -q 'کپی برای CMS' index.html
+          grep -q 'قفل بیمار' index.html
+          grep -q 'hn-cms-packet' index.html
+          grep -q 'hn-cms-search' index.html
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text=Path('index.html').read_text(encoding='utf-8')
+          out=Path('.tmp_cms_scripts'); out.mkdir(exist_ok=True)
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.I|re.S)
+          for i,script in enumerate(scripts):
+              (out/f'script_{i}.js').write_text(script, encoding='utf-8')
+          print('scripts:',len(scripts))
+          PY
+          for f in .tmp_cms_scripts/*.js; do node --check "$f"; done
+
+      - name: Build CMS pilot upload-ready ZIP
+        run: |
+          python - <<'PY'
+          from zipfile import ZipFile, ZIP_DEFLATED
+          from pathlib import Path
+          z=Path('HN_Radiology_Suite_v2.16.3_CMS_PILOT_UPLOAD_READY.zip')
+          if z.exists(): z.unlink()
+          with ZipFile(z,'w',ZIP_DEFLATED) as f:
+              f.write('index.html','index.html')
+              if Path('twin-pregnancy.html').exists():
+                  f.write('twin-pregnancy.html','twin-pregnancy.html')
+              f.writestr('CMS_PILOT_README_FA.txt',
+                  'CMS Pilot v2.16.3\n'
+                  '- Copy for CMS: plain-text and character normalization.\n'
+                  '- Patient identity lock using Patient ID + patient name.\n'
+                  '- CSV/TXT admission-list import and Patient ID lookup.\n'
+                  '- CMS Bridge packet export for safe integration testing.\n'
+                  '- No direct write to the clinic CMS/database is performed in this pilot.\n')
+          print(z, z.stat().st_size)
+          PY
+
+      - name: Commit production index and ZIP
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html HN_Radiology_Suite_v2.16.3_CMS_PILOT_UPLOAD_READY.zip
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'v2.16.3 add Valiasr CMS pilot workflow'
+            git push origin main
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HN_Radiology_Suite_v2.16.3_CMS_PILOT_UPLOAD_READY
+          path: HN_Radiology_Suite_v2.16.3_CMS_PILOT_UPLOAD_READY.zip
+          retention-days: 30
