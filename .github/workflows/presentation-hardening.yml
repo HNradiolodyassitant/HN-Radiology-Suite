@@ -1,0 +1,73 @@
+name: Presentation Hardening v2.16
+
+on:
+  push:
+    branches: [presentation-hardening-2026-08-23]
+    paths:
+      - 'tools/presentation_polish/**'
+      - '.github/workflows/presentation-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout presentation branch
+        uses: actions/checkout@v4
+        with:
+          ref: presentation-hardening-2026-08-23
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply presentation polish and smoke checks
+        run: python tools/presentation_polish/install_presentation_polish.py
+
+      - name: Validate key production markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          required=[
+            'HN Radiology Suite v2.16 — Clinical Edition',
+            'HN_TWIN_V215_START','HN_TWIN_V215_END',
+            'HN_CLINICAL_ADDONS_V216_START','HN_CLINICAL_ADDONS_V216_END',
+            'HN_PRESENTATION_POLISH_V216_START','HN_PRESENTATION_POLISH_V216_END',
+            'id="hnTwinV215Button"','id="hnv216-launch"','id="hn-present-toolbar"',
+            'HNPresentationPolishV216','HNClinicOutput'
+          ]
+          for x in required:
+              assert x in s, x
+          assert s.count('HN_PRESENTATION_POLISH_V216_START')==1
+          assert s.count('id="hnTwinV215Button"')==1
+          assert s.count('id="hnv216-launch"')==1
+          print('Presentation validation OK:', len(s.encode('utf-8')), 'bytes')
+          PY
+
+      - name: Commit polished preview to presentation branch
+        run: |
+          git config user.name 'HN Radiology Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html presentation-smoke-report.json
+          if git diff --cached --quiet; then
+            echo 'Presentation branch already up to date.'
+          else
+            git commit -m 'Apply v2.16 presentation polish and smoke validation'
+            git push origin HEAD:presentation-hardening-2026-08-23
+          fi
+
+      - name: Upload presentation preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: HN_Radiology_Suite_v2.16_PRESENTATION_PREVIEW
+          path: |
+            index.html
+            twin-pregnancy.html
+            presentation-smoke-report.json
+          retention-days: 14
