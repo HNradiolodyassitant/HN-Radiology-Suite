@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HN Radiology Suite — CMS Copy Preview</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0f172a;color:#e2e8f0;font-family:Arial,Tahoma,sans-serif;min-height:100vh}.wrap{max-width:1100px;margin:0 auto;padding:28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.badge{background:#052e16;border:1px solid #22c55e;color:#bbf7d0;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}.card{background:#1e293b;border:1px solid #38bdf8;border-radius:16px;padding:18px;box-shadow:0 14px 40px #0004}.note{background:#0b2230;border:1px solid #33536c;border-radius:10px;padding:12px 14px;line-height:1.9;font-size:13px;margin:12px 0 18px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.btn{border:1px solid #64748b;background:#334155;color:#fff;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}.btn:hover{filter:brightness(1.08)}.cms{background:#0f766e;border-color:#5eead4}.back{background:#111827}.status{font-size:12px;color:#86efac;min-height:18px}.report{width:100%;min-height:360px;resize:vertical;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:10px;padding:18px;font-family:Arial,Tahoma,sans-serif;font-size:15px;line-height:2;text-align:right}.preview{margin-top:16px;background:#020617;border:1px solid #334155;border-radius:10px;padding:14px}.preview pre{white-space:pre-wrap;direction:rtl;text-align:right;font-family:Arial,Tahoma,sans-serif;line-height:1.9;margin:8px 0 0;color:#cbd5e1}.small{font-size:12px;color:#94a3b8;line-height:1.8}a{color:#7dd3fc;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h2 style="margin:0 0 6px">Preview مستقل — کپی برای CMS</h2>
+      <div class="small">این صفحه از سایت اصلی جداست و هیچ تغییری در HN Radiology Suite اصلی ایجاد نمی‌کند.</div>
+    </div>
+    <span class="badge">Preview Safe</span>
+  </div>
+
+  <section class="card">
+    <div class="note">
+      متن را مثل گزارش نهایی ویرایش کن. دکمه <b>«کپی برای CMS»</b> خروجی را فقط به صورت Plain Text کپی می‌کند و اعداد/کاراکترهای ناسازگار را استاندارد می‌کند؛ هیچ HTML یا Font metadata به Clipboard نمی‌فرستد.
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" id="copyNormal" type="button">کپی گزارش</button>
+      <button class="btn cms" id="copyCms" type="button">کپی برای CMS</button>
+      <button class="btn back" id="refreshPreview" type="button">نمایش خروجی CMS-safe</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <textarea id="report" class="report" spellcheck="false">یافته‌ها:
+کبد از نظر اندازه و اکوتکستچر دارای نمای طبیعی است.
+کیسه صفرا دارای حجم و ضخامت جداری طبیعی بوده و فاقد سنگ است.
+CBD به قطر ۶ میلی‌متر مشاهده شد.
+کلیه راست به طول ۱۱۲ میلی‌متر و کلیه چپ به طول ۱۰۹ میلی‌متر مشاهده شد.
+ضایعه‌ای با اندازه ۱۲ × ۸ میلی‌متر در قطب تحتانی کلیه راست مشاهده شد.
+
+نتیجه‌گیری:
+یافته پاتولوژیک بارزی در بررسی انجام‌شده مشاهده نشد.</textarea>
+
+    <div class="preview">
+      <b>خروجی‌ای که با «کپی برای CMS» وارد Clipboard می‌شود:</b>
+      <pre id="safePreview"></pre>
+    </div>
+
+    <div class="small" style="margin-top:16px">
+      بعد از تست این دکمه داخل خود CMS ولیعصر، اگر اعداد و متن درست Paste شدند، همین منطق کوچک را داخل دکمه گزارش نهایی نسخه اصلی قرار می‌دهیم.
+      &nbsp;|&nbsp; <a href="./">بازگشت به سایت اصلی</a>
+    </div>
+  </section>
+</div>
+<script>
+(function(){
+  'use strict';
+  const report=document.getElementById('report');
+  const status=document.getElementById('status');
+  const safePreview=document.getElementById('safePreview');
+
+  function normalizeForCMS(value){
+    let s=String(value||'').normalize('NFKC');
+    const fa='۰۱۲۳۴۵۶۷۸۹', ar='٠١٢٣٤٥٦٧٨٩';
+    s=s.replace(/[۰-۹]/g,ch=>String(fa.indexOf(ch)));
+    s=s.replace(/[٠-٩]/g,ch=>String(ar.indexOf(ch)));
+    s=s.replace(/\u00a0/g,' ');
+    s=s.replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g,'');
+    s=s.replace(/ي/g,'ی').replace(/ك/g,'ک');
+    s=s.replace(/[–—−]/g,'-').replace(/×/g,'x');
+    s=s.replace(/≥/g,'>=').replace(/≤/g,'<=');
+    s=s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'");
+    s=s.split(/\r?\n/).map(line=>line.replace(/[ \t]+$/g,'')).join('\n');
+    return s.replace(/\n{3,}/g,'\n\n').trim();
+  }
+
+  async function copyText(text){
+    try{await navigator.clipboard.writeText(text);}
+    catch(_){
+      const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.focus();t.select();document.execCommand('copy');t.remove();
+    }
+  }
+
+  function showSafe(){safePreview.textContent=normalizeForCMS(report.value);}
+  function flash(msg){status.textContent=msg;clearTimeout(flash.t);flash.t=setTimeout(()=>status.textContent='',2400);}
+
+  document.getElementById('copyNormal').onclick=async()=>{await copyText(report.value);flash('گزارش معمولی کپی شد ✓');};
+  document.getElementById('copyCms').onclick=async()=>{const s=normalizeForCMS(report.value);await copyText(s);safePreview.textContent=s;flash('نسخه CMS-safe کپی شد ✓');};
+  document.getElementById('refreshPreview').onclick=showSafe;
+  report.addEventListener('input',showSafe);
+  showSafe();
+})();
+</script>
+</body>
+</html>
