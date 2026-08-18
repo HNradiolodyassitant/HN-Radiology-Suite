@@ -1,4 +1,4 @@
-name: Install Clinical Add-ons v2.16.0
+name: Recover and Install v2.16.0
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  install:
+  recover-and-install:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout production
@@ -25,16 +25,65 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install v2.16 clinical add-ons
-        run: python tools/clinical_addons_v216/install_v216.py
-
-      - name: Validate generated production
+      - name: Restore last known-good production index if needed
         run: |
           python - <<'PY'
           from pathlib import Path
-          s = Path('index.html').read_text(encoding='utf-8')
+          from zipfile import ZipFile
+
+          index = Path('index.html')
+          good = False
+          if index.exists() and index.stat().st_size > 100000:
+              text = index.read_text(encoding='utf-8', errors='ignore')
+              good = '</body>' in text.lower() and 'HNClinicOutput' in text
+
+          if good:
+              print('Current index.html is usable; restore not needed:', index.stat().st_size)
+          else:
+              package = Path('HN_Radiology_Suite_v2.14.0_PREGNANCY_LOCKED_GITHUB_UPLOAD_READY.zip')
+              if not package.exists():
+                  raise SystemExit('Recovery package v2.14.0 is missing')
+              with ZipFile(package) as z:
+                  if 'index.html' not in z.namelist():
+                      raise SystemExit('Recovery package has no index.html')
+                  data = z.read('index.html')
+              if len(data) < 100000 or b'</body>' not in data.lower():
+                  raise SystemExit('Recovered index.html failed safety checks')
+              index.write_bytes(data)
+              print('Restored production index from approved v2.14.0 package:', len(data), 'bytes')
+          PY
+
+      - name: Install Twin Pregnancy v2.15.0 safely
+        run: |
+          # The existing Twin installer resolves its working root to tools/.
+          # Feed it a temporary copy, then copy the validated result back to production.
+          cp index.html tools/index.html
+          python tools/twin_v215/install_twin_v215.py
+          cp tools/index.html index.html
+          cp tools/twin-pregnancy.html twin-pregnancy.html
+          rm -f tools/index.html tools/twin-pregnancy.html
+
+      - name: Install v2.16 clinical add-ons
+        run: python tools/clinical_addons_v216/install_v216.py
+
+      - name: Validate complete production build
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          index = Path('index.html')
+          twin = Path('twin-pregnancy.html')
+          zip_path = Path('HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip')
+
+          assert index.exists() and index.stat().st_size > 1000000, index.stat().st_size if index.exists() else 0
+          s = index.read_text(encoding='utf-8')
+          assert '</body>' in s.lower()
+          assert 'HNClinicOutput' in s
+          assert s.count('HN_TWIN_V215_START') == 1
+          assert s.count('HN_TWIN_V215_END') == 1
           assert s.count('HN_CLINICAL_ADDONS_V216_START') == 1
           assert s.count('HN_CLINICAL_ADDONS_V216_END') == 1
+
           for needle in [
               'HNClinicalAddonsV216',
               '9.54+1.482*x+0.1676*x*x',
@@ -43,29 +92,38 @@ jobs:
               'Placenta Accreta Spectrum',
               '+ افزودن اسکار',
               'low-lying IUD',
+              'hnTwinV215Button',
           ]:
               assert needle in s, needle
-          z = Path('HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip')
-          assert z.exists() and z.stat().st_size > 1000
-          print('Validation OK:', z.stat().st_size, 'bytes')
+
+          assert twin.exists() and twin.stat().st_size > 10000
+          t = twin.read_text(encoding='utf-8')
+          for needle in ['Twin Pregnancy Module — v2.15.0', 'INTERGROWTH-21st', 'Hadlock']:
+              assert needle in t, needle
+
+          assert zip_path.exists() and zip_path.stat().st_size > 1000
+          print('COMPLETE VALIDATION OK')
+          print('index:', index.stat().st_size, 'bytes')
+          print('twin:', twin.stat().st_size, 'bytes')
+          print('zip:', zip_path.stat().st_size, 'bytes')
           PY
 
-      - name: Commit production update and ZIP
+      - name: Commit recovered production and upload-ready ZIP
         run: |
           git config user.name 'HN Radiology Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add index.html HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip
+          git add index.html twin-pregnancy.html HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip
           if git diff --cached --quiet; then
             echo 'Production is already up to date.'
           else
-            git commit -m 'v2.16.0 add pregnancy, renal scar and IUD modules'
+            git commit -m 'Recover production and integrate Twin plus v2.16 clinical modules'
             git push origin HEAD:main
           fi
 
-      - name: Upload ready-to-use ZIP
+      - name: Upload ready-to-use ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY
+          name: HN_Radiology_Suite_v2.16.0_COMPLETE_UPLOAD_READY
           path: HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip
           if-no-files-found: error
           retention-days: 30
