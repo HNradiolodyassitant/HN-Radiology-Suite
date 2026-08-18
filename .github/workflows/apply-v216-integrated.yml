@@ -1,10 +1,11 @@
-name: Apply v2.16 Integrated
+name: Apply v2.16.1 Native Placement
 
 on:
   push:
     branches: [main]
     paths:
       - 'tools/v216_integrated/patch_v216_integrated.py'
+      - '.github/workflows/apply-v216-integrated.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,16 +20,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply integrated patch
+      - name: Apply native placement patch
         run: python tools/v216_integrated/patch_v216_integrated.py
 
-      - name: Validate required modules
+      - name: Validate original modules and native placement
         run: |
+          grep -q 'HNClinicalAddonsV216' index.html
+          grep -q 'hnTwinV215Button' index.html
           grep -q 'Renal Scar — اسکار پارانشیم کلیه' index.html
-          grep -q 'بررسی موقعیت IUD' index.html
-          grep -q 'Residual Products of Conception (RPOC)' index.html
-          grep -q 'Placenta Accreta Spectrum — Gray Scale & Color Doppler' index.html
-          grep -q 'active==="iud"?h(IudEngine)' index.html
+          grep -q 'Residual pregnancy tissue / RPOC' index.html
+          grep -q 'Placenta Accreta Spectrum' index.html
+          grep -q 'HN_V216_NATIVE_PLACEMENT_START' index.html
+          grep -q 'hn-v216-native-pregnancy' index.html
+          grep -q 'hn-v216-native-renal' index.html
+          grep -q 'hn-v216-native-iud' index.html
 
       - name: Validate inline JavaScript syntax
         run: |
@@ -36,41 +41,50 @@ jobs:
           import re
           from pathlib import Path
           text=Path('index.html').read_text(encoding='utf-8')
-          out=Path('.tmp_v216_scripts'); out.mkdir(exist_ok=True)
+          out=Path('.tmp_v2161_scripts'); out.mkdir(exist_ok=True)
           scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.I|re.S)
           for i,script in enumerate(scripts):
               (out/f'script_{i}.js').write_text(script, encoding='utf-8')
           print('scripts:',len(scripts))
           PY
-          for f in .tmp_v216_scripts/*.js; do node --check "$f"; done
+          for f in .tmp_v2161_scripts/*.js; do node --check "$f"; done
 
-      - name: Build upload-ready ZIP
+      - name: Build v2.16.1 upload-ready ZIP
         run: |
           python - <<'PY'
           from zipfile import ZipFile, ZIP_DEFLATED
           from pathlib import Path
-          z=Path('HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip')
+          z=Path('HN_Radiology_Suite_v2.16.1_NATIVE_PLACEMENT_UPLOAD_READY.zip')
+          if z.exists(): z.unlink()
           with ZipFile(z,'w',ZIP_DEFLATED) as f:
               f.write('index.html','index.html')
-              f.writestr('CHANGES_v2.16.0_FA.txt','v2.16.0\n- Renal Scar integrated into Urinary Engine\n- IUD position/malposition integrated into Women & Pregnancy\n- Existing GA by Hadlock, RPOC and PAS preserved\n')
+              if Path('twin-pregnancy.html').exists():
+                  f.write('twin-pregnancy.html','twin-pregnancy.html')
+              f.writestr('CHANGES_v2.16.1_FA.txt',
+                  'v2.16.1\n'
+                  '- Twin Pregnancy launcher moved into the pregnancy section.\n'
+                  '- Renal Scar launcher moved into the kidney section.\n'
+                  '- IUD launcher moved into the uterus/endometrium section.\n'
+                  '- Floating v2.16 launchers hidden.\n'
+                  '- Clinical report logic and calculations unchanged.\n')
           print(z, z.stat().st_size)
           PY
 
-      - name: Commit updated index and ZIP
+      - name: Commit updated production index and ZIP
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip
+          git add index.html HN_Radiology_Suite_v2.16.1_NATIVE_PLACEMENT_UPLOAD_READY.zip
           if git diff --cached --quiet; then
             echo 'No changes to commit'
           else
-            git commit -m 'v2.16.0 integrate renal scar and IUD into current index'
+            git commit -m 'v2.16.1 place clinical controls in native sections'
             git push origin main
           fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HN_Radiology_Suite_v2.16.0_UPLOAD_READY
-          path: HN_Radiology_Suite_v2.16.0_UPLOAD_READY.zip
+          name: HN_Radiology_Suite_v2.16.1_NATIVE_PLACEMENT_UPLOAD_READY
+          path: HN_Radiology_Suite_v2.16.1_NATIVE_PLACEMENT_UPLOAD_READY.zip
           retention-days: 30
