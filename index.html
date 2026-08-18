@@ -17801,6 +17801,22 @@ function normalizeUltrasoundTitle(value) {
     const title = String(value || "").trim() || "گزارش سونوگرافی";
     return HN_ULTRASOUND_TITLE_ALIASES[title] || title;
 }
+/* HN_CMS_COPY_ONLY_SAFE */
+function normalizeForCMS(value) {
+    let s = String(value || "").normalize("NFKC");
+    const fa = "۰۱۲۳۴۵۶۷۸۹";
+    const ar = "٠١٢٣٤٥٦٧٨٩";
+    s = s.replace(/[۰-۹]/g, ch => String(fa.indexOf(ch)));
+    s = s.replace(/[٠-٩]/g, ch => String(ar.indexOf(ch)));
+    s = s.replace(/\u00A0/g, " ");
+    s = s.replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
+    s = s.replace(/ي/g, "ی").replace(/ك/g, "ک");
+    s = s.replace(/[–—−]/g, "-").replace(/×/g, "x");
+    s = s.replace(/≥/g, ">=").replace(/≤/g, "<=");
+    s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+    s = s.split(/\r?\n/).map(line => line.replace(/[ \t]+$/g, "")).join("\n");
+    return s.replace(/\n{3,}/g, "\n\n").trim();
+}
 function ReportOutput({ finding = "", impression = "", recommendation = "", sessionKey = 0, wordExtras = null, plainText = "", examTitle = "گزارش سونوگرافی" }) {
     const generatedReport = React.useMemo(() => String(plainText || "").trim() || buildGeneratedReport(finding, impression, recommendation), [plainText, finding, impression, recommendation]);
     const escapeHtml = value => String(value || "").replace(/[&<>\"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[s]));
@@ -17859,6 +17875,11 @@ function ReportOutput({ finding = "", impression = "", recommendation = "", sess
         if (!validate()) return;
         await copyText(editorText());
         flash("گزارش کپی شد");
+    };
+    const copyForCMS = async () => {
+        if (!validate()) return;
+        await copyText(normalizeForCMS(editorText()));
+        flash("نسخه سازگار با CMS کپی شد");
     };
     const editorText = () => editorRef.current ? String(editorRef.current.innerText || "").trim() : editableReport.trim();
     const syncEditor = () => {
@@ -18018,6 +18039,7 @@ let content=makePage(),itemCount=0;for(const item of items){content.appendChild(
         h("div", { style: { display: "flex", gap: "9px", alignItems: "center", flexWrap: "wrap" } },
             h("h3", { style: { margin: 0 } }, "گزارش نهایی قابل ویرایش"),
             h("button", { type: "button", onClick: copyReport, style: actionStyle }, "کپی گزارش"),
+            h("button", { type: "button", onClick: copyForCMS, style: Object.assign({}, actionStyle, { background: "#0f766e", color: "white", border: "1px solid #5eead4" }) }, "کپی برای CMS"),
             h("button", { type: "button", onClick: exportWord, style: Object.assign({}, actionStyle, { background: "#166534", color: "white", border: "1px solid #4ade80" }) }, "خروجی Word"),
             h("button", { type: "button", onClick: printReport, style: actionStyle }, "چاپ گزارش / PDF"),
             h("button", { type: "button", onClick: saveReport, style: actionStyle }, "ذخیره اختیاری"),
