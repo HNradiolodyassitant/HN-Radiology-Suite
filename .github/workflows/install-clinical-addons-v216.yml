@@ -55,21 +55,61 @@ jobs:
 
       - name: Install Twin Pregnancy v2.15.0 safely
         run: |
-          # The existing Twin installer resolves its working root to tools/.
-          # Feed it a temporary copy, then copy the validated result back to production.
           cp index.html tools/index.html
           python tools/twin_v215/install_twin_v215.py
           cp tools/index.html index.html
           cp tools/twin-pregnancy.html twin-pregnancy.html
           rm -f tools/index.html tools/twin-pregnancy.html
 
-      - name: Install v2.16 clinical add-ons
-        run: python tools/clinical_addons_v216/install_v216.py
+      - name: Install v2.16 from validated plain-text payload
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import zipfile
+
+          index_path = Path('index.html')
+          addon_path = Path('tools/clinical_addons_v216/addon_v216_complete.html')
+          twin_path = Path('twin-pregnancy.html')
+          zip_path = Path('HN_Radiology_Suite_v2.16.0_CLINICAL_ADDONS_UPLOAD_READY.zip')
+
+          if not addon_path.exists():
+              raise SystemExit('Validated v2.16 plain-text payload is missing')
+
+          index = index_path.read_text(encoding='utf-8')
+          addon = addon_path.read_text(encoding='utf-8').strip()
+
+          start = '<!-- HN_CLINICAL_ADDONS_V216_START -->'
+          end = '<!-- HN_CLINICAL_ADDONS_V216_END -->'
+          if addon.count(start) != 1 or addon.count(end) != 1:
+              raise SystemExit('v2.16 payload marker validation failed')
+          if 'HNClinicalAddonsV216' not in addon:
+              raise SystemExit('v2.16 payload API marker missing')
+          if '</body>' not in index.lower() or 'HNClinicOutput' not in index:
+              raise SystemExit('Production index safety validation failed')
+
+          pattern = re.compile(re.escape(start) + r'.*?' + re.escape(end), re.S)
+          index = pattern.sub('', index)
+          pos = index.lower().rfind('</body>')
+          index = index[:pos] + '\n' + addon + '\n' + index[pos:]
+          index_path.write_text(index, encoding='utf-8')
+
+          if zip_path.exists():
+              zip_path.unlink()
+          with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+              z.write(index_path, 'index.html')
+              z.write(twin_path, 'twin-pregnancy.html')
+
+          print('Plain-text v2.16 payload installed:', len(addon), 'chars')
+          print('Production index:', index_path.stat().st_size, 'bytes')
+          print('Upload ZIP:', zip_path.stat().st_size, 'bytes')
+          PY
 
       - name: Validate complete production build
         run: |
           python - <<'PY'
           from pathlib import Path
+          import zipfile
 
           index = Path('index.html')
           twin = Path('twin-pregnancy.html')
@@ -102,6 +142,10 @@ jobs:
               assert needle in t, needle
 
           assert zip_path.exists() and zip_path.stat().st_size > 1000
+          with zipfile.ZipFile(zip_path) as z:
+              assert {'index.html', 'twin-pregnancy.html'}.issubset(set(z.namelist()))
+              assert z.testzip() is None
+
           print('COMPLETE VALIDATION OK')
           print('index:', index.stat().st_size, 'bytes')
           print('twin:', twin.stat().st_size, 'bytes')
@@ -116,7 +160,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'Production is already up to date.'
           else
-            git commit -m 'Recover production and integrate Twin plus v2.16 clinical modules'
+            git commit -m 'Integrate Twin v2.15 and clinical add-ons v2.16 into production'
             git push origin HEAD:main
           fi
 
