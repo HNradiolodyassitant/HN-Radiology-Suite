@@ -1,0 +1,89 @@
+name: Apply guarded A5 insurance print
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-insurance-a5-current.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Hard guard production index before any change
+        run: |
+          test -f index.html
+          test -s index.html
+          bytes=$(wc -c < index.html | tr -d ' ')
+          echo "Current index.html bytes: $bytes"
+          test "$bytes" -gt 1500000
+          grep -q 'function ReportOutput' index.html
+          grep -q 'کپی برای CMS' index.html
+          grep -q 'HN_V2162_NATIVE_RENAL' index.html
+          grep -q 'HN_V2162_NATIVE_IUD' index.html
+          grep -q 'HN_V2162_NATIVE_TWIN' index.html
+          test -f tools/insurance_a5_current/apply.py
+
+      - name: Preserve exact previous production version
+        run: |
+          mkdir -p backups
+          cp index.html backups/index_before_insurance_a5_20260819.html
+          cmp -s index.html backups/index_before_insurance_a5_20260819.html
+          test "$(wc -c < backups/index_before_insurance_a5_20260819.html | tr -d ' ')" -gt 1500000
+
+      - name: Apply only current-report A5 insurance patch
+        run: python tools/insurance_a5_current/apply.py
+
+      - name: Verify patch and unchanged core behavior
+        run: |
+          bytes=$(wc -c < index.html | tr -d ' ')
+          echo "Patched index.html bytes: $bytes"
+          test "$bytes" -gt 1500000
+          test "$(grep -o 'HN_INSURANCE_A5_CURRENT_V1' index.html | wc -l | tr -d ' ')" = "1"
+          test "$(grep -o 'onClick: printInsuranceCurrent' index.html | wc -l | tr -d ' ')" = "1"
+          test "$(grep -o 'کپی برای CMS' index.html | wc -l | tr -d ' ')" -ge "1"
+          grep -q 'چاپ بیمه' index.html
+          grep -q '@page{size:A5 portrait;margin:5mm}' index.html
+          grep -q 'نام و نام خانوادگی بیمار:' index.html
+          grep -q 'Patient ID:' index.html
+          grep -q 'چاپ گزارش / PDF' index.html
+          grep -q 'HN_V2162_NATIVE_RENAL' index.html
+          grep -q 'HN_V2162_NATIVE_IUD' index.html
+          grep -q 'HN_V2162_NATIVE_TWIN' index.html
+
+      - name: Validate all inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text=Path('index.html').read_text(encoding='utf-8')
+          out=Path('.tmp_insurance_scripts'); out.mkdir(exist_ok=True)
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.I|re.S)
+          if not scripts:
+              raise SystemExit('No scripts found')
+          for i, script in enumerate(scripts):
+              (out/f'script_{i}.js').write_text(script, encoding='utf-8')
+          print('scripts:', len(scripts))
+          PY
+          for f in .tmp_insurance_scripts/*.js; do node --check "$f"; done
+
+      - name: Commit production index plus immutable backup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html backups/index_before_insurance_a5_20260819.html
+          if git diff --cached --quiet; then
+            echo 'No production change to commit'
+          else
+            git commit -m 'Add A5 insurance print beside CMS copy with production backup'
+            git push origin main
+          fi
